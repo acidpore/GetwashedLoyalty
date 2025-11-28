@@ -35,4 +35,14 @@ return [
         ],
     ],
 
+    'whatsapp' => [
+        'provider' => env('WHATSAPP_PROVIDER', 'fonnte'), // fonnte, wablas, or twilio
+        'api_url' => env('WHATSAPP_API_URL'),
+        'api_token' => env('WHATSAPP_API_TOKEN'),
+        
+        // Twilio specific (if using Twilio)
+        'twilio_account_sid' => env('TWILIO_ACCOUNT_SID'),
+        'twilio_from' => env('TWILIO_FROM_NUMBER'),
+    ],
+
 ];
