@@ -39,6 +39,11 @@ Route::post('/logout', [LoginController::class, 'logout'])->name('logout')->midd
 Route::middleware('auth')->group(function () {
     Route::get('/dashboard', [CustomerDashboardController::class, 'index'])->name('customer.dashboard');
     
+    // Export Route
+    Route::get('/admin/export/customers', \App\Http\Controllers\CustomerExportController::class)
+        ->name('admin.export.customers')
+        ->middleware(\App\Http\Middleware\CheckAdminRole::class);
+
     // Profile routes (from Breeze)
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');

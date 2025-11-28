@@ -7,9 +7,9 @@ use Illuminate\Support\Facades\Log;
 
 class WhatsAppService
 {
-    protected string $provider;
-    protected string $apiUrl;
-    protected string $apiToken;
+    private string $provider;
+    private string $apiUrl;
+    private string $apiToken;
 
     public function __construct()
     {
@@ -18,153 +18,107 @@ class WhatsAppService
         $this->apiToken = config('services.whatsapp.api_token');
     }
 
-    /**
-     * Send WhatsApp message.
-     *
-     * @param string $phone Phone number (62xxx format)
-     * @param string $message Message content
-     * @return bool Success status
-     */
     public function sendMessage(string $phone, string $message): bool
     {
-        try {
-            // Validate config
-            if (empty($this->apiUrl) || empty($this->apiToken)) {
-                Log::warning('WhatsApp API not configured. Message not sent.', [
-                    'phone' => $phone,
-                    'message' => $message,
-                ]);
-                return false;
-            }
+        if (!$this->isConfigured()) {
+            Log::warning('WhatsApp not configured', compact('phone'));
+            return false;
+        }
 
+        try {
             $response = match ($this->provider) {
                 'fonnte' => $this->sendViaFonnte($phone, $message),
                 'wablas' => $this->sendViaWablas($phone, $message),
                 'twilio' => $this->sendViaTwilio($phone, $message),
-                default => throw new \Exception("Unsupported WhatsApp provider: {$this->provider}"),
+                default => throw new \Exception("Unsupported provider: {$this->provider}"),
             };
 
-            if ($response['success']) {
-                Log::info('WhatsApp message sent successfully', [
-                    'provider' => $this->provider,
-                    'phone' => $phone,
+            $this->logResult($response, $phone);
+
+            return $response['success'];
+
+        } catch (\Exception $e) {
+            Log::error('WhatsApp failed', ['phone' => $phone, 'error' => $e->getMessage()]);
+            return false;
+        }
+    }
+
+    public function sendBulk(array $recipients): array
+    {
+        return array_map(
+            fn($r) => ['phone' => $r['phone'], 'success' => $this->sendMessage($r['phone'], $r['message'])],
+            $recipients
+        );
+    }
+
+    private function isConfigured(): bool
+    {
+        return !empty($this->apiUrl) && !empty($this->apiToken);
+    }
+
+    private function logResult(array $response, string $phone): void
+    {
+        $response['success']
+            ? Log::info('WhatsApp sent', ['provider' => $this->provider, 'phone' => $phone])
+            : Log::error('WhatsApp failed', ['provider' => $this->provider, 'phone' => $phone, 'error' => $response['error'] ?? 'Unknown']);
+    }
+
+    private function sendViaFonnte(string $phone, string $message): array
+    {
+        try {
+            $response = Http::withHeaders(['Authorization' => $this->apiToken])
+                ->post($this->apiUrl, [
+                    'target' => $phone,
+                    'message' => $message,
+                    'countryCode' => '62',
                 ]);
-                return true;
-            }
 
-            Log::error('WhatsApp message failed', [
-                'provider' => $this->provider,
-                'phone' => $phone,
-                'error' => $response['error'] ?? 'Unknown error',
-            ]);
-            return false;
+            return $response->successful()
+                ? ['success' => true]
+                : ['success' => false, 'error' => $response->json('detail') ?? $response->body()];
 
-        } catch (\Exception $e) {
-            Log::error('WhatsApp service exception', [
-                'phone' => $phone,
-                'error' => $e->getMessage(),
-            ]);
-            return false;
-        }
-    }
-
-    /**
-     * Send via Fonnte API.
-     */
-    protected function sendViaFonnte(string $phone, string $message): array
-    {
-        try {
-            $response = Http::withHeaders([
-                'Authorization' => $this->apiToken,
-            ])->post($this->apiUrl, [
-                'target' => $phone,
-                'message' => $message,
-                'countryCode' => '62',
-            ]);
-
-            if ($response->successful()) {
-                return ['success' => true];
-            }
-
-            return [
-                'success' => false,
-                'error' => $response->json('detail') ?? $response->body(),
-            ];
         } catch (\Exception $e) {
             return ['success' => false, 'error' => $e->getMessage()];
         }
     }
 
-    /**
-     * Send via Wablas API.
-     */
-    protected function sendViaWablas(string $phone, string $message): array
+    private function sendViaWablas(string $phone, string $message): array
     {
         try {
-            $response = Http::withHeaders([
-                'Authorization' => $this->apiToken,
-            ])->post($this->apiUrl, [
-                'phone' => $phone,
-                'message' => $message,
-            ]);
+            $response = Http::withHeaders(['Authorization' => $this->apiToken])
+                ->post($this->apiUrl, compact('phone', 'message'));
 
-            if ($response->successful()) {
-                $data = $response->json();
-                return ['success' => $data['status'] ?? false];
+            if (!$response->successful()) {
+                return ['success' => false, 'error' => $response->json('message') ?? $response->body()];
             }
 
-            return [
-                'success' => false,
-                'error' => $response->json('message') ?? $response->body(),
-            ];
+            return ['success' => $response->json('status', false)];
+
         } catch (\Exception $e) {
             return ['success' => false, 'error' => $e->getMessage()];
         }
     }
 
-    /**
-     * Send via Twilio API.
-     */
-    protected function sendViaTwilio(string $phone, string $message): array
+    private function sendViaTwilio(string $phone, string $message): array
     {
         try {
-            $accountSid = config('services.whatsapp.twilio_account_sid');
-            $authToken = $this->apiToken;
-            $fromNumber = config('services.whatsapp.twilio_from');
+            $sid = config('services.whatsapp.twilio_account_sid');
+            $from = config('services.whatsapp.twilio_from');
 
             $response = Http::asForm()
-                ->withBasicAuth($accountSid, $authToken)
-                ->post("{$this->apiUrl}/Accounts/{$accountSid}/Messages.json", [
-                    'From' => "whatsapp:{$fromNumber}",
+                ->withBasicAuth($sid, $this->apiToken)
+                ->post("{$this->apiUrl}/Accounts/{$sid}/Messages.json", [
+                    'From' => "whatsapp:{$from}",
                     'To' => "whatsapp:+{$phone}",
                     'Body' => $message,
                 ]);
 
-            if ($response->successful()) {
-                return ['success' => true];
-            }
+            return $response->successful()
+                ? ['success' => true]
+                : ['success' => false, 'error' => $response->json('message') ?? $response->body()];
 
-            return [
-                'success' => false,
-                'error' => $response->json('message') ?? $response->body(),
-            ];
         } catch (\Exception $e) {
             return ['success' => false, 'error' => $e->getMessage()];
         }
-    }
-
-    /**
-     * Send bulk messages (for future use).
-     */
-    public function sendBulk(array $recipients): array
-    {
-        $results = [];
-        foreach ($recipients as $recipient) {
-            $results[] = [
-                'phone' => $recipient['phone'],
-                'success' => $this->sendMessage($recipient['phone'], $recipient['message']),
-            ];
-        }
-        return $results;
     }
 }

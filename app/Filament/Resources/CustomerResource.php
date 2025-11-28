@@ -141,6 +141,13 @@ class CustomerResource extends Resource
                     ->action(fn (Customer $record) => $record->resetPoints())
                     ->visible(fn (Customer $record) => $record->current_points > 0),
             ])
+            ->headerActions([
+                Tables\Actions\Action::make('export')
+                    ->label('Export CSV')
+                    ->icon('heroicon-o-arrow-down-tray')
+                    ->url(fn () => route('admin.export.customers'))
+                    ->openUrlInNewTab(),
+            ])
             ->bulkActions([
                 Tables\Actions\BulkActionGroup::make([
                     Tables\Actions\DeleteBulkAction::make(),
