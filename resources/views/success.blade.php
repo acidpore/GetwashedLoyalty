@@ -1,10 +1,18 @@
-<x-layout title="Berhasil! - Getwashed Loyalty" bg-class="bg-gradient-to-br from-purple-50 to-pink-100">
+<x-layout.layout title="Berhasil! - Getwashed Loyalty" bg-class="bg-gradient-to-br from-purple-50 to-pink-100">
     <div class="min-h-screen flex items-center justify-center p-4">
         <div class="w-full max-w-md">
             <div class="bg-white rounded-3xl shadow-2xl p-8 text-center">
                 <div class="mb-6">
-                    <div class="text-8xl mb-4 {{ $hasReward ? 'animate-bounce' : '' }}">
-                        {{ $hasReward ? '🎉' : '✅' }}
+                    <div class="w-24 h-24 mx-auto mb-4 rounded-full {{ $hasReward ? 'bg-gradient-to-br from-purple-400 to-pink-500 animate-bounce' : 'bg-gradient-to-br from-green-400 to-emerald-500' }} flex items-center justify-center shadow-lg">
+                        @if($hasReward)
+                            <svg class="w-12 h-12 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v13m0-13V6a2 2 0 112 2h-2zm0 0V5.5A2.5 2.5 0 109.5 8H12zm-7 4h14M5 12a2 2 0 110-4h14a2 2 0 110 4M5 12v7a2 2 0 002 2h10a2 2 0 002-2v-7"/>
+                            </svg>
+                        @else
+                            <svg class="w-12 h-12 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+                            </svg>
+                        @endif
                     </div>
                     <h1 class="text-3xl font-bold {{ $hasReward ? 'text-purple-900' : 'text-gray-800' }} mb-2">
                         {{ $hasReward ? 'SELAMAT ' . strtoupper($name) . '!' : 'Terima Kasih ' . $name . '!' }}
@@ -46,8 +54,11 @@
                 </div>
 
                 <div class="space-y-3">
-                    <a href="{{ route('home') }}" class="block w-full bg-purple-600 hover:bg-purple-700 text-white font-bold py-3 rounded-xl transition">
-                        🏠 Kembali ke Beranda
+                    <a href="{{ route('home') }}" class="flex items-center justify-center gap-2 w-full bg-purple-600 hover:bg-purple-700 text-white font-bold py-3 rounded-xl transition">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/>
+                        </svg>
+                        <span>Kembali ke Beranda</span>
                     </a>
                     <a href="{{ route('checkin') }}" class="block w-full bg-gray-200 hover:bg-gray-300 text-gray-800 font-semibold py-3 rounded-xl transition">
                         ↻ Check-In Lagi
@@ -56,8 +67,8 @@
             </div>
 
             <p class="text-center text-sm text-gray-600 mt-6">
-                Terima kasih sudah setia dengan Getwashed! 🚗✨
+                Terima kasih sudah setia dengan Getwashed!
             </p>
         </div>
     </div>
-</x-layout>
+</x-layout.layout>

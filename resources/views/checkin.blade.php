@@ -1,81 +1,70 @@
-<x-layout title="Check-In - Getwashed Loyalty" bg-class="bg-gradient-to-br from-green-50 to-emerald-100">
+<x-layout.layout title="Check-In - Getwashed Loyalty" bg-class="bg-gradient-to-br from-green-50 to-emerald-100">
     <div class="min-h-screen flex items-center justify-center p-4">
         <div class="w-full max-w-md">
-            <a href="{{ route('home') }}" class="inline-block mb-4 text-gray-600 hover:text-gray-800">← Kembali</a>
+            <div class="mb-4">
+                <x-buttons.back-button href="{{ route('home') }}" text="Kembali" />
+            </div>
 
-            <div class="bg-white rounded-3xl shadow-2xl p-8">
-                <div class="text-center mb-8">
-                    <div class="text-6xl mb-4">🚗</div>
-                    <h1 class="text-3xl font-bold text-gray-800 mb-2">Check-In Sekarang</h1>
-                    <p class="text-gray-600">Isi data di bawah untuk dapatkan poin</p>
-                </div>
+            <x-cards.white-card>
+                <x-ui.page-header title="Check-In Sekarang" description="Isi data di bawah untuk dapatkan poin">
+                    <x-slot:icon>
+                        <svg class="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                        </svg>
+                    </x-slot:icon>
+                </x-ui.page-header>
 
                 @if(session('success'))
-                    <div class="mb-6 bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded-lg">
-                        {{ session('success') }}
-                    </div>
+                    <x-ui.alert type="success">{{ session('success') }}</x-ui.alert>
                 @endif
 
                 @if(session('error'))
-                    <div class="mb-6 bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded-lg">
-                        {{ session('error') }}
-                    </div>
+                    <x-ui.alert type="error">{{ session('error') }}</x-ui.alert>
                 @endif
 
                 <form method="POST" action="{{ route('checkin.store') }}" class="space-y-6">
                     @csrf
 
-                    <div>
-                        <label for="name" class="block text-sm font-semibold text-gray-700 mb-2">Nama Lengkap</label>
-                        <input 
-                            type="text" 
-                            id="name" 
-                            name="name" 
-                            value="{{ old('name') }}"
-                            required
-                            class="w-full px-4 py-3 border-2 border-gray-300 rounded-xl focus:border-emerald-500 focus:ring focus:ring-emerald-200 transition"
-                            placeholder="Masukkan nama Anda"
-                        >
-                        @error('name')
-                            <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
-                        @enderror
-                    </div>
+                    <x-forms.form-input 
+                        label="Nama Lengkap" 
+                        name="name" 
+                        placeholder="Masukkan nama Anda"
+                        required
+                    />
 
-                    <div>
-                        <label for="phone" class="block text-sm font-semibold text-gray-700 mb-2">Nomor WhatsApp</label>
-                        <input 
-                            type="tel" 
-                            id="phone" 
-                            name="phone" 
-                            value="{{ old('phone') }}"
-                            required
-                            class="w-full px-4 py-3 border-2 border-gray-300 rounded-xl focus:border-emerald-500 focus:ring focus:ring-emerald-200 transition"
-                            placeholder="08123456789"
-                        >
-                        <p class="mt-1 text-xs text-gray-500">Format: 08xxx atau 628xxx</p>
-                        @error('phone')
-                            <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
-                        @enderror
-                    </div>
-
-                    <button 
-                        type="submit"
-                        class="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-4 rounded-xl transition transform hover:scale-105"
+                    <x-forms.form-input 
+                        label="Nomor WhatsApp" 
+                        name="phone" 
+                        type="tel"
+                        placeholder="08123456789"
+                        required
                     >
-                        ✨ Dapatkan Poin Sekarang!
-                    </button>
+                        Format: 08xxx atau 628xxx
+                    </x-forms.form-input>
+
+                    <x-buttons.action-button type="submit" variant="success">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z"/>
+                        </svg>
+                        <span>Dapatkan Poin Sekarang!</span>
+                    </x-buttons.action-button>
                 </form>
 
                 <div class="mt-6 p-4 bg-blue-50 rounded-lg">
-                    <p class="text-sm text-blue-800 text-center">
-                        💡 Poin akan langsung masuk dan notifikasi dikirim ke WhatsApp Anda
-                    </p>
+                    <div class="flex items-start gap-3">
+                        <svg class="w-5 h-5 text-blue-600 flex-shrink-0 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
+                            <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd"/>
+                        </svg>
+                        <p class="text-sm text-blue-800">
+                            Poin akan langsung masuk dan notifikasi dikirim ke WhatsApp Anda
+                        </p>
+                    </div>
                 </div>
-            </div>
+            </x-cards.white-card>
 
             <p class="text-center text-xs text-gray-600 mt-4">
                 Data Anda aman dan hanya digunakan untuk program loyalitas
             </p>
         </div>
     </div>
-</x-layout>
+</x-layout.layout>
