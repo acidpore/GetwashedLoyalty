@@ -36,9 +36,12 @@ return [
     ],
 
     'whatsapp' => [
-        'provider' => env('WHATSAPP_PROVIDER', 'fonnte'), // fonnte, wablas, or twilio
+        'provider' => env('WHATSAPP_PROVIDER', 'fonnte'), // fonnte, wablas, twilio, or local
         'api_url' => env('WHATSAPP_API_URL'),
         'api_token' => env('WHATSAPP_API_TOKEN'),
+        
+        // Local Node.js service (whatsapp-web.js)
+        'local_url' => env('WHATSAPP_LOCAL_URL', 'http://localhost:3000'),
         
         // Twilio specific (if using Twilio)
         'twilio_account_sid' => env('TWILIO_ACCOUNT_SID'),

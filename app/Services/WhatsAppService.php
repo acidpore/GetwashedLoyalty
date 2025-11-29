@@ -8,8 +8,8 @@ use Illuminate\Support\Facades\Log;
 class WhatsAppService
 {
     private string $provider;
-    private string $apiUrl;
-    private string $apiToken;
+    private ?string $apiUrl;
+    private ?string $apiToken;
 
     public function __construct()
     {
@@ -30,6 +30,7 @@ class WhatsAppService
                 'fonnte' => $this->sendViaFonnte($phone, $message),
                 'wablas' => $this->sendViaWablas($phone, $message),
                 'twilio' => $this->sendViaTwilio($phone, $message),
+                'local' => $this->sendViaLocal($phone, $message),
                 default => throw new \Exception("Unsupported provider: {$this->provider}"),
             };
 
@@ -53,6 +54,10 @@ class WhatsAppService
 
     private function isConfigured(): bool
     {
+        if ($this->provider === 'local') {
+            return !empty(config('services.whatsapp.local_url'));
+        }
+        
         return !empty($this->apiUrl) && !empty($this->apiToken);
     }
 
@@ -116,6 +121,36 @@ class WhatsAppService
             return $response->successful()
                 ? ['success' => true]
                 : ['success' => false, 'error' => $response->json('message') ?? $response->body()];
+
+        } catch (\Exception $e) {
+            return ['success' => false, 'error' => $e->getMessage()];
+        }
+    }
+
+    private function sendViaLocal(string $phone, string $message): array
+    {
+        try {
+            $localUrl = config('services.whatsapp.local_url');
+            
+            $response = Http::timeout(10)
+                ->post("{$localUrl}/send-message", [
+                    'phone' => $phone,
+                    'message' => $message,
+                ]);
+
+            if (!$response->successful()) {
+                return [
+                    'success' => false,
+                    'error' => $response->json('message') ?? 'Local service unavailable'
+                ];
+            }
+
+            $data = $response->json();
+            
+            return [
+                'success' => $data['success'] ?? false,
+                'error' => $data['message'] ?? null
+            ];
 
         } catch (\Exception $e) {
             return ['success' => false, 'error' => $e->getMessage()];

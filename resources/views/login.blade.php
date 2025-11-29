@@ -4,7 +4,7 @@
     @endpush
 
     <div class="min-h-screen flex items-center justify-center p-4">
-        <div class="w-full max-w-md" x-data="{ tab: 'customer' }">
+        <div class="w-full max-w-md" x-data="{ tab: 'customer', phone: '' }">
             <a href="{{ route('home') }}" class="inline-block mb-4 text-gray-600 hover:text-gray-800">← Kembali</a>
 
             <div class="bg-white rounded-3xl shadow-2xl p-8">
@@ -52,6 +52,7 @@
                                 type="tel" 
                                 id="customer_phone" 
                                 name="phone" 
+                                x-model="phone"
                                 required
                                 class="w-full px-4 py-3 border-2 border-gray-300 rounded-xl focus:border-blue-500 focus:ring focus:ring-blue-200 transition"
                                 placeholder="08123456789"
