@@ -1,4 +1,35 @@
 <x-filament-panels::page>
+    <style>
+        @media print {
+            /* Hide everything by default */
+            body * {
+                visibility: hidden;
+            }
+            
+            /* Show only the QR code container and its contents */
+            #qr-code-print-area,
+            #qr-code-print-area * {
+                visibility: visible;
+            }
+            
+            /* Position the QR code at the top of the page */
+            #qr-code-print-area {
+                position: absolute;
+                left: 50%;
+                top: 20%;
+                transform: translateX(-50%);
+            }
+            
+            /* Remove any background colors and shadows */
+            #qr-code-print-area {
+                background: white !important;
+                box-shadow: none !important;
+                border: none !important;
+                padding: 20px !important;
+            }
+        }
+    </style>
+
     <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
         <!-- Left Column: QR Code Preview -->
         <x-filament::section>
@@ -7,11 +38,11 @@
             </x-slot>
             
             <div class="flex flex-col items-center justify-center p-6 bg-gray-50 rounded-xl border border-gray-200">
-                <div class="bg-white p-4 rounded-lg shadow-sm mb-6">
+                <div id="qr-code-print-area" class="bg-white p-4 rounded-lg shadow-sm mb-8">
                     {!! $this->getQrCodeSvg() !!}
                 </div>
                 
-                <div class="flex gap-3">
+                <div class="flex gap-3 mt-4">
                     <x-filament::button
                         icon="heroicon-o-printer"
                         color="gray"
@@ -42,9 +73,9 @@
 
                 <div class="space-y-4">
                     <div>
-                        <label class="text-sm font-medium text-gray-500">Target URL</label>
+                        <label class="text-sm font-medium text-gray-400">Target URL</label>
                         <div class="flex items-center gap-2 mt-1">
-                            <code class="bg-gray-100 px-3 py-2 rounded-lg text-sm flex-1 border border-gray-200 block">
+                            <code class="bg-white px-3 py-2 rounded-lg text-sm flex-1 border border-gray-300 block" style="color: #000000 !important;">
                                 {{ $this->getCheckinUrl() }}
                             </code>
                             <x-filament::icon-button

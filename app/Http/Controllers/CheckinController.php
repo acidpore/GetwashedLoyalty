@@ -30,9 +30,11 @@ class CheckinController extends Controller
 
         $normalizedPhone = $this->normalizePhone($validated['phone']);
 
-        if ($this->isRecentCheckIn($normalizedPhone, $request->ip())) {
-            return back()->with('error', 'Anda sudah check-in dalam 1 jam terakhir.');
-        }
+        // Temporarily disabled for testing - allow multiple check-ins
+        // if ($this->isRecentCheckIn($normalizedPhone, $request->ip())) {
+        //     return back()->with('error', 'Anda sudah check-in dalam 1 jam terakhir.');
+        // }
+
 
         try {
             DB::beginTransaction();
@@ -40,16 +42,22 @@ class CheckinController extends Controller
             $user = $this->findOrCreateUser($normalizedPhone, $validated['name']);
             $customer = $this->findOrCreateCustomer($user->id);
             
-            $this->processCheckin($customer, $request->ip());
+            // Check if customer already earned reward (5 points) BEFORE adding new points
+            $hadReward = $customer->current_points >= 5;
             
-            $hasReward = $customer->current_points >= 5;
-            $pointsToShow = $hasReward ? $customer->current_points : $customer->current_points;
-            
-            $this->sendNotification($normalizedPhone, $user->name, $customer->current_points);
-            
-            if ($hasReward) {
+            // If customer had reward, reset points first before adding new point
+            if ($hadReward) {
                 $customer->resetPoints();
             }
+            
+            // Now add the new point
+            $this->processCheckin($customer, $request->ip());
+            
+            // Determine what to show to user
+            $hasReward = $customer->current_points >= 5;
+            $pointsToShow = $customer->current_points;
+            
+            $this->sendNotification($normalizedPhone, $user->name, $customer->current_points);
 
             DB::commit();
 

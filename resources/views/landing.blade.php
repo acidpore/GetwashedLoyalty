@@ -43,16 +43,6 @@
                 </div>
 
                 <div class="space-y-4">
-                    <a href="{{ route('checkin') }}" class="group relative block w-full bg-gradient-to-r from-blue-400 to-cyan-400 hover:from-blue-500 hover:to-cyan-500 text-white font-bold py-5 rounded-full text-center shadow-lg shadow-blue-300/50 transition-all duration-300 transform hover:-translate-y-1 overflow-hidden">
-                        <div class="absolute inset-0 bg-white/20 group-hover:translate-x-full transition-transform duration-700 skew-x-12 -translate-x-full"></div>
-                        <div class="flex items-center justify-center gap-3 relative z-10">
-                            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <rect x="4" y="4" width="16" height="16" rx="2" stroke-width="2"/>
-                                <path d="M8 4v16M16 4v16M4 8h16M4 16h16" stroke-width="2"/>
-                            </svg>
-                            <span>Scan QR Code</span>
-                        </div>
-                    </a>
 
                     @auth
                         @if(auth()->user()->isAdmin())
@@ -209,25 +199,12 @@
             .mobile-z-pattern-alt {
                 display: flex;
                 flex-direction: column;
-                align-items: stretch;
+                align-items: center;
             }
             
-            .mobile-z-pattern-alt .z-pattern-item:nth-child(1) {
-                align-self: flex-end;
-                margin-left: auto;
+            .mobile-z-pattern-alt .z-pattern-item {
                 width: 90%;
-            }
-            
-            .mobile-z-pattern-alt .z-pattern-item:nth-child(2) {
-                align-self: flex-start;
-                margin-right: auto;
-                width: 90%;
-            }
-            
-            .mobile-z-pattern-alt .z-pattern-item:nth-child(3) {
-                align-self: flex-end;
-                margin-left: auto;
-                width: 90%;
+                max-width: 320px;
             }
 
             .z-pattern-hero {
