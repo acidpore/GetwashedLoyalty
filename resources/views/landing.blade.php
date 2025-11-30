@@ -4,12 +4,7 @@
             <img src="{{ asset('6874275.jpg') }}" alt="Background" class="w-full h-full object-cover opacity-60">
             <div class="absolute inset-0 bg-gradient-to-b from-white/80 via-white/60 to-blue-50/90"></div>
             
-            <!-- Bubbles -->
-            <div class="bubble w-20 h-20 top-20 left-10 delay-0"></div>
-            <div class="bubble w-12 h-12 top-40 right-20 delay-2000"></div>
-            <div class="bubble w-16 h-16 bottom-40 left-1/4 delay-4000"></div>
-            <div class="bubble w-24 h-24 bottom-20 right-1/3 delay-1000"></div>
-            <div class="bubble w-10 h-10 top-1/3 left-1/2 delay-3000"></div>
+            <div class="bg-animation" id="bgAnimation"></div>
         </div>
 
         <div class="absolute bottom-0 left-0 w-full overflow-hidden leading-none z-0">
@@ -142,19 +137,87 @@
     </div>
 
     <style>
-        /* Bubble Animation */
-        .bubble {
-            position: absolute;
-            background: rgba(255, 255, 255, 0.3);
-            border-radius: 50%;
-            box-shadow: inset 0 0 10px rgba(255, 255, 255, 0.5);
-            animation: float-bubble 8s infinite ease-in-out;
+        .bg-animation {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
             z-index: 0;
+            overflow: hidden;
+            pointer-events: none;
         }
 
-        @keyframes float-bubble {
-            0%, 100% { transform: translateY(0) scale(1); opacity: 0.3; }
-            50% { transform: translateY(-20px) scale(1.1); opacity: 0.6; }
+        .bubble {
+            position: absolute;
+            bottom: -150px;
+            border-radius: 50%;
+            animation: foamRise 20s infinite ease-in-out;
+            opacity: 0;
+            border: 2px solid rgba(255, 255, 255, 0.4);
+        }
+
+        .bubble::before {
+            content: '';
+            position: absolute;
+            top: 15%;
+            left: 20%;
+            width: 35%;
+            height: 35%;
+            background: radial-gradient(circle at 30% 30%, 
+                rgba(255, 255, 255, 0.9) 0%, 
+                rgba(255, 255, 255, 0.4) 40%,
+                transparent 70%);
+            border-radius: 50%;
+            filter: blur(3px);
+        }
+
+        .bubble::after {
+            content: '';
+            position: absolute;
+            bottom: 20%;
+            right: 25%;
+            width: 20%;
+            height: 20%;
+            background: radial-gradient(circle, 
+                rgba(255, 255, 255, 0.6), 
+                transparent 60%);
+            border-radius: 50%;
+            filter: blur(2px);
+        }
+
+        @keyframes foamRise {
+            0% {
+                bottom: -150px;
+                opacity: 0;
+                transform: translateX(0) scale(0.8);
+            }
+            5% {
+                opacity: 0.8;
+            }
+            15% {
+                transform: translateX(20px) scale(1);
+            }
+            30% {
+                transform: translateX(-15px) scale(0.95);
+            }
+            45% {
+                transform: translateX(25px) scale(1.05);
+            }
+            60% {
+                transform: translateX(-10px) scale(0.9);
+            }
+            75% {
+                transform: translateX(15px) scale(0.95);
+            }
+            85% {
+                opacity: 0.8;
+            }
+            100% {
+                bottom: 120%;
+                opacity: 0;
+                transform: translateX(var(--drift)) scale(0.7);
+            }
         }
 
         /* Custom Scrollbar */
@@ -246,4 +309,49 @@
             }
         }
     </style>
+
+    <script>
+        function createBubbles() {
+            const animation = document.getElementById('bgAnimation');
+            
+            if (!animation) return;
+            
+            for (let i = 0; i < 30; i++) {
+                const bubble = document.createElement('div');
+                bubble.className = 'bubble';
+                const size = Math.random() * 100 + 40;
+                const drift = (Math.random() - 0.5) * 200;
+                
+                bubble.style.width = size + 'px';
+                bubble.style.height = size + 'px';
+                bubble.style.left = Math.random() * 100 + '%';
+                
+                bubble.style.background = `radial-gradient(circle at 35% 35%, 
+                    rgba(255, 255, 255, 0.9) 0%, 
+                    rgba(230, 245, 255, 0.7) 30%,
+                    rgba(200, 235, 255, 0.5) 50%,
+                    rgba(150, 220, 255, 0.3) 70%,
+                    rgba(100, 200, 255, 0.15) 100%)`;
+                
+                bubble.style.animationDuration = (Math.random() * 10 + 15) + 's';
+                bubble.style.animationDelay = Math.random() * 10 + 's';
+                bubble.style.setProperty('--drift', drift + 'px');
+                
+                bubble.style.boxShadow = `
+                    inset -8px -8px 20px rgba(100, 200, 255, 0.3),
+                    inset 8px 8px 25px rgba(255, 255, 255, 0.6),
+                    0 0 30px rgba(255, 255, 255, 0.3),
+                    0 8px 30px rgba(5, 191, 219, 0.2)
+                `;
+                
+                animation.appendChild(bubble);
+            }
+        }
+
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', createBubbles);
+        } else {
+            createBubbles();
+        }
+    </script>
 </x-layout.layout>
