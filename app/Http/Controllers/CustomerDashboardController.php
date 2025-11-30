@@ -2,36 +2,34 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\SystemSetting;
 use Illuminate\Http\Request;
 
 class CustomerDashboardController extends Controller
 {
-    /**
-     * Display customer dashboard.
-     */
     public function index()
     {
         $user = auth()->user();
         $customer = $user->customer;
 
-        // If no customer profile, redirect to check-in
         if (!$customer) {
             return redirect()->route('checkin')
                 ->with('info', 'Silakan check-in terlebih dahulu.');
         }
 
-        // Get recent visit history (last 10)
         $recentVisits = $customer->visitHistories()
             ->orderBy('visited_at', 'desc')
             ->take(10)
             ->get();
 
+        $threshold = SystemSetting::rewardPointsThreshold();
+
         return view('dashboard.customer', [
             'customer' => $customer,
             'user' => $user,
             'recentVisits' => $recentVisits,
-            'pointsToReward' => max(0, 5 - $customer->current_points),
-            'hasReward' => $customer->current_points >= 5,
+            'pointsToReward' => max(0, $threshold - $customer->current_points),
+            'hasReward' => $customer->current_points >= $threshold,
         ]);
     }
 }

@@ -3,6 +3,7 @@
 namespace App\Filament\Widgets;
 
 use App\Models\Customer;
+use App\Models\SystemSetting;
 use Filament\Tables;
 use Filament\Tables\Table;
 use Filament\Widgets\TableWidget as BaseWidget;
@@ -15,16 +16,17 @@ class ReadyForRewardTableWidget extends BaseWidget
 
     public function table(Table $table): Table
     {
+        $threshold = SystemSetting::rewardPointsThreshold();
+        
         return $table
             ->query(
-                Customer::query()
-                    ->where('current_points', '>=', 5)
-                    ->with('user')
-                    ->orderByDesc('current_points')
+                Customer::with('user')
+                    ->where('current_points', '>=', $threshold)
+                    ->orderBy('current_points', 'desc')
                     ->orderByDesc('last_visit_at')
             )
-            ->heading('🎁 Customers Ready for Reward')
-            ->description('Customers with 5+ points eligible for discount')
+            ->heading('Customers Ready for Reward')
+            ->description("Customers with {$threshold}+ points eligible for discount")
             ->columns([
                 Tables\Columns\TextColumn::make('user.name')
                     ->label('Customer Name')

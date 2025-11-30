@@ -4,6 +4,7 @@ namespace App\Filament\Widgets;
 
 use App\Models\Customer;
 use App\Models\VisitHistory;
+use App\Models\SystemSetting;
 use Filament\Widgets\StatsOverviewWidget as BaseWidget;
 use Filament\Widgets\StatsOverviewWidget\Stat;
 
@@ -22,14 +23,17 @@ class LoyaltyStatsWidget extends BaseWidget
         
         $totalPointsGiven = Customer::sum('total_visits');
         
-        $customersReadyForReward = Customer::where('current_points', '>=', 5)->count();
+        $threshold = SystemSetting::rewardPointsThreshold();
+        $customersReadyForReward = Customer::where('current_points', '>=', $threshold)->count();
+
+        $totalPoints = Customer::sum('current_points');
+        $totalVisits = Customer::sum('total_visits');
         
         return [
             Stat::make('Total Customers', $totalCustomers)
-                ->description($customersThisMonth . ' new this month')
-                ->descriptionIcon('heroicon-m-user-group')
-                ->color('success')
-                ->chart([7, 12, 18, 22, 28, 34, $totalCustomers]),
+                ->description('All registered customers')
+                ->descriptionIcon('heroicon-m-users')
+                ->color('success'),
             
             Stat::make('Visits Today', $visitsToday)
                 ->description($visitsThisWeek . ' this week')
@@ -38,7 +42,7 @@ class LoyaltyStatsWidget extends BaseWidget
                 ->chart([5, 8, 12, 15, 18, 22, $visitsToday]),
             
             Stat::make('Ready for Reward', $customersReadyForReward)
-                ->description('Customers with 5+ points')
+                ->description("Customers with {$threshold}+ points")
                 ->descriptionIcon('heroicon-m-gift')
                 ->color('warning'),
         ];

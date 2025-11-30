@@ -38,6 +38,7 @@ class VisitHistoryResource extends Resource
     public static function table(Table $table): Table
     {
         return $table
+            ->modifyQueryUsing(fn (Builder $query) => $query->with('customer.user'))
             ->columns([
                 Tables\Columns\TextColumn::make('customer.user.name')
                     ->label('Customer')
@@ -117,10 +118,11 @@ class VisitHistoryResource extends Resource
             ])
             ->bulkActions([
                 Tables\Actions\BulkActionGroup::make([
-                    // No delete action - preserve audit trail
                 ]),
             ])
-            ->defaultSort('visited_at', 'desc');
+            ->defaultSort('visited_at', 'desc')
+            ->defaultPaginationPageOption(25)
+            ->deferLoading();
     }
 
     public static function getRelations(): array

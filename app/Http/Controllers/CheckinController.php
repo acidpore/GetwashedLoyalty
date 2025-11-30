@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Customer;
+use App\Models\SystemSetting;
 use App\Models\User;
 use App\Models\VisitHistory;
 use App\Services\WhatsAppService;
@@ -42,8 +43,8 @@ class CheckinController extends Controller
             $user = $this->findOrCreateUser($normalizedPhone, $validated['name']);
             $customer = $this->findOrCreateCustomer($user->id);
             
-            // Check if customer already earned reward (5 points) BEFORE adding new points
-            $hadReward = $customer->current_points >= 5;
+            $threshold = SystemSetting::rewardPointsThreshold();
+            $hadReward = $customer->current_points >= $threshold;
             
             // If customer had reward, reset points first before adding new point
             if ($hadReward) {
@@ -53,8 +54,7 @@ class CheckinController extends Controller
             // Now add the new point
             $this->processCheckin($customer, $request->ip());
             
-            // Determine what to show to user
-            $hasReward = $customer->current_points >= 5;
+            $hasReward = $customer->current_points >= $threshold;
             $pointsToShow = $customer->current_points;
             
             $this->sendNotification($normalizedPhone, $user->name, $customer->current_points);
@@ -139,9 +139,10 @@ class CheckinController extends Controller
 
     private function sendNotification(string $phone, string $name, int $points): void
     {
-        $message = $points >= 5
+        $threshold = SystemSetting::rewardPointsThreshold();
+        $message = $points >= $threshold
             ? "🎉 SELAMAT {$name}!\n\nKamu dapat DISKON!\n\nTunjukkan pesan ini ke kasir.\n\nTerima kasih sudah setia dengan Getwashed! 🚗✨"
-            : "Halo {$name}! 👋\n\nTerima kasih telah mencuci di Getwashed.\nPoin kamu: {$points}/5\n\nKumpulkan " . (5 - $points) . " poin lagi! 🎁\n\nSampai jumpa! 🚗";
+            : "Halo {$name}! 👋\n\nTerima kasih telah mencuci di Getwashed.\nPoin kamu: {$points}/{$threshold}\n\nKumpulkan " . ($threshold - $points) . " poin lagi! 🎁\n\nSampai jumpa! 🚗";
 
         $this->whatsappService->sendMessage($phone, $message);
     }
