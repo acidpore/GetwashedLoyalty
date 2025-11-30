@@ -1,357 +1,156 @@
-<x-layout.layout title="Getwashed Loyalty - Cuci Mobil Pasti Untung" bgClass="bg-slate-50">
-    <div class="relative overflow-hidden min-h-screen">
-        <div class="absolute inset-0 z-0">
-            <img src="{{ asset('6874275.jpg') }}" alt="Background" class="w-full h-full object-cover opacity-60">
-            <div class="absolute inset-0 bg-gradient-to-b from-white/80 via-white/60 to-blue-50/90"></div>
-            
-            <div class="bg-animation" id="bgAnimation"></div>
-        </div>
-
-        <div class="absolute bottom-0 left-0 w-full overflow-hidden leading-none z-0">
-            <svg class="relative block w-[calc(100%+1.3px)] h-[150px]" data-name="Layer 1" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 120" preserveAspectRatio="none">
-                <path d="M321.39,56.44c58-10.79,114.16-30.13,172-41.86,82.39-16.72,168.19-17.73,250.45-.39C823.78,31,906.67,72,985.66,92.83c70.05,18.48,146.53,26.09,214.34,3V0H0V27.35A600.21,600.21,0,0,0,321.39,56.44Z" class="fill-blue-50/50"></path>
-            </svg>
-        </div>
-
-        <div class="container mx-auto px-4 py-12 relative z-10">
-            <header class="text-center mb-12 z-pattern-hero">
-                <div class="inline-flex items-center justify-center p-4 bg-white/30 backdrop-blur-md rounded-full shadow-lg shadow-blue-100/50 mb-6 border border-white/50">
-                    <svg class="w-12 h-12 text-blue-600 drop-shadow-sm" fill="currentColor" viewBox="0 0 24 24">
-                        <circle cx="12" cy="12" r="10" opacity="0.2"/>
-                        <circle cx="8" cy="8" r="2"/>
-                        <circle cx="16" cy="10" r="2.5"/>
-                        <circle cx="10" cy="16" r="1.5"/>
-                    </svg>
-                </div>
-                <h1 class="text-5xl md:text-7xl font-extrabold text-slate-800 mb-4 tracking-tight drop-shadow-sm">
-                    Getwashed <span class="text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-cyan-500">Loyalty</span>
-                </h1>
-                <p class="text-lg md:text-2xl text-slate-600 font-light max-w-2xl mx-auto leading-relaxed">
-                    Cuci bersih, poin melimpah. <span class="font-semibold text-blue-600">Lebih hemat, lebih kilap.</span>
-                </p>
-            </header>
-
-            <div class="max-w-md mx-auto bg-white/40 backdrop-blur-xl rounded-[2.5rem] shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-white/60 p-8 mb-16 relative overflow-hidden z-pattern-cta">
-                <div class="text-center mb-8">
-                    <h2 class="text-2xl font-bold text-slate-700">Mulai Kumpulkan Poin</h2>
-                    <p class="text-slate-400 text-sm">Scan QR code di kasir sekarang</p>
-                </div>
-
-                <div class="space-y-4">
-
-                    @auth
-                        @if(auth()->user()->isAdmin())
-                            <div class="flex justify-center">
-                                <x-buttons.animated-button href="{{ url('/admin') }}" text="Admin Dashboard" />
-                            </div>
-                        @else
-                            <div class="flex justify-center">
-                                <x-buttons.animated-button href="{{ route('customer.dashboard') }}" text="Lihat Poin Saya" />
-                            </div>
-                        @endif
-                        
-                        <form method="POST" action="{{ route('logout') }}">
-                            @csrf
-                            <button type="submit" class="w-full text-center text-red-400 hover:text-red-500 text-sm font-semibold py-2">
-                                Logout
-                            </button>
-                        </form>
-                    @else
-                        <div class="flex justify-center">
-                            <x-buttons.animated-button href="{{ route('login') }}" text="Login Member" />
-                        </div>
-                    @endauth
-                </div>
-            </div>
-
-            <div class="mb-20 z-pattern-steps">
-                <div class="text-center mb-12">
-                    <h3 class="text-2xl md:text-3xl font-semibold text-slate-800 mb-3 tracking-tight">Cara Kerjanya</h3>
-                    <p class="text-slate-500 text-sm md:text-base max-w-2xl mx-auto">Tiga langkah mudah untuk mulai mengumpulkan poin loyalitas</p>
-                </div>
-                <div class="grid md:grid-cols-3 gap-8 max-w-5xl mx-auto mobile-z-pattern">
-                    @foreach([
-                        ['number' => '01', 'title' => 'Scan QR', 'desc' => 'Scan kode QR yang tersedia di kasir'],
-                        ['number' => '02', 'title' => 'Isi Data', 'desc' => 'Lengkapi informasi nama dan nomor WhatsApp'],
-                        ['number' => '03', 'title' => 'Dapatkan Poin', 'desc' => 'Kumpulkan poin dan raih reward menarik']
-                    ] as $step)
-                        <div class="bg-white/40 backdrop-blur-md p-8 rounded-2xl border border-white/50 shadow-sm hover:shadow-md transition-all duration-300 z-pattern-item group hover:-translate-y-1">
-                            <div class="flex items-start gap-4 mb-4">
-                                <div class="flex-shrink-0 w-12 h-12 rounded-xl bg-white/60 flex items-center justify-center shadow-sm border border-white/50">
-                                    <span class="text-lg font-bold text-blue-600 group-hover:scale-110 transition-transform">{{ $step['number'] }}</span>
-                                </div>
-                                <div class="flex-1">
-                                    <h4 class="text-lg font-bold text-slate-800 mb-2 tracking-tight">{{ $step['title'] }}</h4>
-                                    <p class="text-slate-600 text-sm leading-relaxed font-light">{{ $step['desc'] }}</p>
-                                </div>
-                            </div>
-                        </div>
-                    @endforeach
-                </div>
-            </div>
-
-            <div class="max-w-5xl mx-auto mb-16 z-pattern-features">
-                <div class="bg-white/30 backdrop-blur-xl rounded-3xl border border-white/40 shadow-[0_8px_30px_rgb(0,0,0,0.04)] p-8 md:p-12 relative overflow-hidden">
-                    <div class="absolute inset-0 bg-gradient-to-br from-white/40 to-transparent pointer-events-none"></div>
-                    <div class="relative z-10">
-                        <div class="text-center mb-12">
-                            <h3 class="text-2xl md:text-3xl font-bold text-slate-800 mb-3 tracking-tight">Keunggulan Program</h3>
-                            <p class="text-slate-600 text-sm md:text-base font-light">Sistem loyalitas yang dirancang untuk kemudahan Anda</p>
-                        </div>
-                    <div class="grid md:grid-cols-3 gap-8 mobile-z-pattern-alt">
-                        @foreach([
-                            ['icon' => 'lightning', 'title' => 'Otomatis', 'desc' => 'Poin terakumulasi secara real-time'],
-                            ['icon' => 'phone', 'title' => '100% Digital', 'desc' => 'Tidak memerlukan kartu fisik'],
-                            ['icon' => 'gift', 'title' => 'Reward Transparan', 'desc' => 'Benefit jelas setiap 5 kunjungan']
-                        ] as $index => $feature)
-                            <div class="text-center z-pattern-item group">
-                                <div class="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-white/50 border border-white/60 mb-6 group-hover:border-blue-300 group-hover:bg-blue-50/50 transition-all duration-300 shadow-sm group-hover:shadow-md group-hover:-translate-y-1">
-                                    @if($feature['icon'] == 'lightning')
-                                        <svg class="w-7 h-7 text-slate-700 group-hover:text-blue-600 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M13 10V3L4 14h7v7l9-11h-7z"/>
-                                        </svg>
-                                    @elseif($feature['icon'] == 'phone')
-                                        <svg class="w-7 h-7 text-slate-700 group-hover:text-blue-600 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                            <rect x="5" y="2" width="14" height="20" rx="2" stroke-width="1.5"/>
-                                            <path d="M12 18h.01" stroke-linecap="round" stroke-width="1.5"/>
-                                        </svg>
-                                    @else
-                                        <svg class="w-7 h-7 text-slate-700 group-hover:text-blue-600 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M12 8v13m0-13V6a2 2 0 112 2h-2zm0 0V5.5A2.5 2.5 0 109.5 8H12zm-7 4h14M5 12a2 2 0 110-4h14a2 2 0 110 4M5 12v7a2 2 0 002 2h10a2 2 0 002-2v-7"/>
-                                        </svg>
-                                    @endif
-                                </div>
-                                <h5 class="text-lg font-bold text-slate-800 mb-2 tracking-tight">{{ $feature['title'] }}</h5>
-                                <p class="text-slate-600 text-sm leading-relaxed font-light">{{ $feature['desc'] }}</p>
-                            </div>
-                        @endforeach
-                    </div>
-                    </div>
-                </div>
-            </div>
-
-            <footer class="text-center mt-16 text-slate-400 text-sm font-medium">
-                <p>&copy; 2025 Getwashed Loyalty. <br class="md:hidden">Fresh & Clean Experience.</p>
-            </footer>
-        </div>
-    </div>
-
+<!DOCTYPE html>
+<html class="dark" lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Getwashed Loyalty</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons+Round" rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com?plugins=forms,typography"></script>
+    <script>
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        primary: "#1d91f4",
+                        "background-light": "#f0f7ff",
+                        "background-dark": "#0a1929",
+                    },
+                    fontFamily: {
+                        display: ["Poppins", "sans-serif"],
+                    },
+                    borderRadius: {
+                        DEFAULT: "1.5rem",
+                    },
+                },
+            },
+        };
+    </script>
     <style>
-        .bg-animation {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            z-index: 0;
-            overflow: hidden;
-            pointer-events: none;
-        }
-
-        .bubble {
-            position: absolute;
-            bottom: -150px;
-            border-radius: 50%;
-            animation: foamRise 20s infinite ease-in-out;
-            opacity: 0;
-            border: 2px solid rgba(255, 255, 255, 0.4);
-        }
-
-        .bubble::before {
-            content: '';
-            position: absolute;
-            top: 15%;
-            left: 20%;
-            width: 35%;
-            height: 35%;
-            background: radial-gradient(circle at 30% 30%, 
-                rgba(255, 255, 255, 0.9) 0%, 
-                rgba(255, 255, 255, 0.4) 40%,
-                transparent 70%);
-            border-radius: 50%;
-            filter: blur(3px);
-        }
-
-        .bubble::after {
-            content: '';
-            position: absolute;
-            bottom: 20%;
-            right: 25%;
-            width: 20%;
-            height: 20%;
-            background: radial-gradient(circle, 
-                rgba(255, 255, 255, 0.6), 
-                transparent 60%);
-            border-radius: 50%;
-            filter: blur(2px);
-        }
-
-        @keyframes foamRise {
-            0% {
-                bottom: -150px;
-                opacity: 0;
-                transform: translateX(0) scale(0.8);
-            }
-            5% {
-                opacity: 0.8;
-            }
-            15% {
-                transform: translateX(20px) scale(1);
-            }
-            30% {
-                transform: translateX(-15px) scale(0.95);
-            }
-            45% {
-                transform: translateX(25px) scale(1.05);
-            }
-            60% {
-                transform: translateX(-10px) scale(0.9);
-            }
-            75% {
-                transform: translateX(15px) scale(0.95);
-            }
-            85% {
-                opacity: 0.8;
-            }
-            100% {
-                bottom: 120%;
-                opacity: 0;
-                transform: translateX(var(--drift)) scale(0.7);
-            }
-        }
-
-        /* Custom Scrollbar */
-        ::-webkit-scrollbar {
-            width: 8px;
-        }
-        ::-webkit-scrollbar-track {
-            background: #f1f5f9;
-        }
-        ::-webkit-scrollbar-thumb {
-            background: #cbd5e1;
-            border-radius: 4px;
-        }
-        ::-webkit-scrollbar-thumb:hover {
-            background: #94a3b8;
-        }
-        @media (max-width: 768px) {
-            .mobile-z-pattern {
-                display: flex;
-                flex-direction: column;
-                align-items: stretch;
-            }
-            
-            .mobile-z-pattern .z-pattern-item:nth-child(1) {
-                align-self: flex-start;
-                margin-right: auto;
-                width: 85%;
-            }
-            
-            .mobile-z-pattern .z-pattern-item:nth-child(2) {
-                align-self: flex-end;
-                margin-left: auto;
-                width: 85%;
-            }
-            
-            .mobile-z-pattern .z-pattern-item:nth-child(3) {
-                align-self: flex-start;
-                margin-right: auto;
-                width: 85%;
-            }
-
-            .mobile-z-pattern-alt {
-                display: flex;
-                flex-direction: column;
-                align-items: center;
-            }
-            
-            .mobile-z-pattern-alt .z-pattern-item {
-                width: 90%;
-                max-width: 320px;
-            }
-
-            .z-pattern-hero {
-                animation: slideInLeft 0.6s ease-out;
-            }
-            
-            .z-pattern-cta {
-                animation: slideInRight 0.8s ease-out;
-            }
-            
-            .z-pattern-steps {
-                animation: slideInLeft 1s ease-out;
-            }
-            
-            .z-pattern-features {
-                animation: slideInRight 1.2s ease-out;
-            }
-        }
-
-        @keyframes slideInLeft {
-            from {
-                opacity: 0;
-                transform: translateX(-30px);
-            }
-            to {
-                opacity: 1;
-                transform: translateX(0);
-            }
-        }
-
-        @keyframes slideInRight {
-            from {
-                opacity: 0;
-                transform: translateX(30px);
-            }
-            to {
-                opacity: 1;
-                transform: translateX(0);
-            }
+        body {
+            font-family: 'Poppins', sans-serif;
+            min-height: max(884px, 100dvh);
         }
     </style>
+</head>
+<body class="bg-background-light dark:bg-background-dark font-display">
+    
+    <section class="relative min-h-screen w-full max-w-md mx-auto flex flex-col items-center justify-between overflow-hidden">
+        <div class="absolute -top-40 -left-40 w-80 h-80 bg-primary/20 dark:bg-primary/10 rounded-full blur-3xl"></div>
+        <div class="absolute top-1/4 -right-20 w-60 h-60 bg-blue-300/20 dark:bg-blue-300/10 rounded-full blur-3xl"></div>
+        <div class="absolute bottom-1/4 -left-20 w-52 h-52 bg-primary/10 dark:bg-primary/5 rounded-full blur-3xl"></div>
+        
+        <div class="w-full flex flex-col items-center pt-20 px-6 z-10 text-center flex-grow justify-center">
+            <div class="mb-6 w-24 h-24 flex items-center justify-center bg-white/50 dark:bg-slate-800/50 rounded-full shadow-lg backdrop-blur-sm">
+                <div class="w-20 h-20 flex items-center justify-center bg-white/70 dark:bg-slate-700/70 rounded-full">
+                    <span class="material-icons-round text-primary" style="font-size: 48px;">local_car_wash</span>
+                </div>
+            </div>
+            <h1 class="text-4xl font-bold text-slate-800 dark:text-slate-100">Getwashed</h1>
+            <h2 class="text-5xl font-extrabold text-primary -mt-2">Loyalty</h2>
+            <p class="mt-4 text-slate-600 dark:text-slate-400">
+                Cuci bersih, poin melimpah. 
+                <span class="font-semibold text-primary">Lebih hemat,</span>
+                <span class="font-semibold text-primary">lebih kilap.</span>
+            </p>
+        </div>
+        
+        <div class="w-full px-6 pb-8 z-10">
+            <div class="bg-white/50 dark:bg-slate-800/40 p-8 rounded-3xl shadow-lg backdrop-blur-md text-center">
+                <h3 class="text-xl font-bold text-slate-800 dark:text-slate-100">Mulai Kumpulkan Poin</h3>
+                <p class="mt-1 text-slate-500 dark:text-slate-400 text-sm">Scan QR code di kasir sekarang</p>
+                
+                @auth
+                    @if(auth()->user()->isAdmin())
+                        <a class="mt-6 w-full inline-flex items-center justify-center px-6 py-3 border-2 border-primary text-primary font-semibold rounded-full hover:bg-primary/10 transition-colors duration-300" href="{{ url('/admin') }}">
+                            Admin Dashboard
+                            <span class="material-icons-round ml-2">arrow_forward</span>
+                        </a>
+                    @else
+                        <a class="mt-6 w-full inline-flex items-center justify-center px-6 py-3 border-2 border-primary text-primary font-semibold rounded-full hover:bg-primary/10 transition-colors duration-300" href="{{ route('customer.dashboard') }}">
+                            Lihat Poin Saya
+                            <span class="material-icons-round ml-2">arrow_forward</span>
+                        </a>
+                    @endif
+                    
+                    <form method="POST" action="{{ route('logout') }}">
+                        @csrf
+                        <button type="submit" class="mt-4 inline-block text-red-500 dark:text-red-400 font-semibold hover:underline">
+                            Logout
+                        </button>
+                    </form>
+                @else
+                    <a class="mt-6 w-full inline-flex items-center justify-center px-6 py-3 border-2 border-primary text-primary font-semibold rounded-full hover:bg-primary/10 transition-colors duration-300" href="{{ route('login') }}">
+                        Login Member
+                        <span class="material-icons-round ml-2">arrow_forward</span>
+                    </a>
+                @endauth
+            </div>
+        </div>
+    </section>
 
-    <script>
-        function createBubbles() {
-            const animation = document.getElementById('bgAnimation');
-            
-            if (!animation) return;
-            
-            for (let i = 0; i < 30; i++) {
-                const bubble = document.createElement('div');
-                bubble.className = 'bubble';
-                const size = Math.random() * 100 + 40;
-                const drift = (Math.random() - 0.5) * 200;
-                
-                bubble.style.width = size + 'px';
-                bubble.style.height = size + 'px';
-                bubble.style.left = Math.random() * 100 + '%';
-                
-                bubble.style.background = `radial-gradient(circle at 35% 35%, 
-                    rgba(255, 255, 255, 0.9) 0%, 
-                    rgba(230, 245, 255, 0.7) 30%,
-                    rgba(200, 235, 255, 0.5) 50%,
-                    rgba(150, 220, 255, 0.3) 70%,
-                    rgba(100, 200, 255, 0.15) 100%)`;
-                
-                bubble.style.animationDuration = (Math.random() * 10 + 15) + 's';
-                bubble.style.animationDelay = Math.random() * 10 + 's';
-                bubble.style.setProperty('--drift', drift + 'px');
-                
-                bubble.style.boxShadow = `
-                    inset -8px -8px 20px rgba(100, 200, 255, 0.3),
-                    inset 8px 8px 25px rgba(255, 255, 255, 0.6),
-                    0 0 30px rgba(255, 255, 255, 0.3),
-                    0 8px 30px rgba(5, 191, 219, 0.2)
-                `;
-                
-                animation.appendChild(bubble);
-            }
-        }
+    <section class="relative min-h-screen w-full max-w-md mx-auto flex flex-col items-center justify-center overflow-hidden px-6 py-12">
+        <div class="absolute top-10 -right-40 w-72 h-72 bg-blue-400/20 dark:bg-blue-400/10 rounded-full blur-3xl"></div>
+        <div class="absolute bottom-20 -left-32 w-64 h-64 bg-primary/15 dark:bg-primary/8 rounded-full blur-3xl"></div>
+        
+        <div class="w-full z-10">
+            <h3 class="text-3xl font-bold text-slate-800 dark:text-slate-100 text-center mb-12">Cara Kerjanya</h3>
+            <div class="space-y-6">
+                @foreach([
+                    ['number' => '01', 'title' => 'Scan QR', 'desc' => 'Scan kode QR yang tersedia di kasir'],
+                    ['number' => '02', 'title' => 'Isi Data', 'desc' => 'Lengkapi informasi nama dan nomor WhatsApp'],
+                    ['number' => '03', 'title' => 'Dapatkan Poin', 'desc' => 'Kumpulkan poin dan raih reward menarik']
+                ] as $step)
+                    <div class="bg-white/40 dark:bg-slate-800/30 backdrop-blur-md p-6 rounded-2xl shadow-sm border border-white/30 dark:border-slate-700/50">
+                        <div class="flex items-start gap-4">
+                            <div class="flex-shrink-0 w-14 h-14 rounded-xl bg-primary/20 dark:bg-primary/30 flex items-center justify-center">
+                                <span class="text-xl font-bold text-primary">{{ $step['number'] }}</span>
+                            </div>
+                            <div class="flex-1">
+                                <h4 class="text-lg font-bold text-slate-800 dark:text-slate-100 mb-1">{{ $step['title'] }}</h4>
+                                <p class="text-slate-600 dark:text-slate-400 text-sm">{{ $step['desc'] }}</p>
+                            </div>
+                        </div>
+                    </div>
+                @endforeach
+            </div>
+        </div>
+    </section>
 
-        if (document.readyState === 'loading') {
-            document.addEventListener('DOMContentLoaded', createBubbles);
-        } else {
-            createBubbles();
-        }
-    </script>
-</x-layout.layout>
+    <section class="relative min-h-screen w-full max-w-md mx-auto flex flex-col items-center justify-center overflow-hidden px-6 py-12">
+        <div class="absolute -top-20 -left-40 w-80 h-80 bg-primary/20 dark:bg-primary/10 rounded-full blur-3xl"></div>
+        <div class="absolute bottom-32 -right-28 w-72 h-72 bg-blue-300/20 dark:bg-blue-300/10 rounded-full blur-3xl"></div>
+        
+        <div class="w-full z-10">
+            <h3 class="text-3xl font-bold text-slate-800 dark:text-slate-100 text-center mb-12">Keunggulan Program</h3>
+            <div class="space-y-6">
+                @foreach([
+                    ['icon' => 'flash_on', 'title' => 'Otomatis', 'desc' => 'Poin terakumulasi secara real-time'],
+                    ['icon' => 'phone_android', 'title' => '100% Digital', 'desc' => 'Tidak memerlukan kartu fisik'],
+                    ['icon' => 'card_giftcard', 'title' => 'Reward Transparan', 'desc' => 'Benefit jelas setiap 5 kunjungan']
+                ] as $feature)
+                    <div class="bg-white/40 dark:bg-slate-800/30 backdrop-blur-md p-6 rounded-2xl shadow-sm border border-white/30 dark:border-slate-700/50">
+                        <div class="flex items-start gap-4">
+                            <div class="flex-shrink-0 w-14 h-14 rounded-xl bg-primary/20 dark:bg-primary/30 flex items-center justify-center">
+                                <span class="material-icons-round text-primary text-3xl">{{ $feature['icon'] }}</span>
+                            </div>
+                            <div class="flex-1">
+                                <h4 class="text-lg font-bold text-slate-800 dark:text-slate-100 mb-1">{{ $feature['title'] }}</h4>
+                                <p class="text-slate-600 dark:text-slate-400 text-sm">{{ $feature['desc'] }}</p>
+                            </div>
+                        </div>
+                    </div>
+                @endforeach
+            </div>
+
+            <footer class="w-full text-center mt-16">
+                <p class="text-slate-500 dark:text-slate-400 text-sm">&copy; 2025 Getwashed Loyalty. Fresh & Clean Experience.</p>
+            </footer>
+        </div>
+    </section>
+
+</body>
+</html>
