@@ -44,12 +44,46 @@ class WhatsAppService
         }
     }
 
-    public function sendBulk(array $recipients): array
+    public function sendBatch(array $messages): array
     {
+        if ($this->provider === 'local') {
+            return $this->sendBatchViaLocal($messages);
+        }
+
+        // Fallback for other providers (sequential)
         return array_map(
             fn($r) => ['phone' => $r['phone'], 'success' => $this->sendMessage($r['phone'], $r['message'])],
-            $recipients
+            $messages
         );
+    }
+
+    private function sendBatchViaLocal(array $messages): array
+    {
+        try {
+            $localUrl = config('services.whatsapp.local_url');
+            
+            $response = Http::timeout(30)
+                ->post("{$localUrl}/send-batch", [
+                    'messages' => $messages,
+                ]);
+
+            if (!$response->successful()) {
+                Log::error('WhatsApp batch failed', ['error' => $response->body()]);
+                return [
+                    'success' => false,
+                    'error' => $response->json('message') ?? 'Local service unavailable'
+                ];
+            }
+
+            return [
+                'success' => true,
+                'count' => $response->json('count')
+            ];
+
+        } catch (\Exception $e) {
+            Log::error('WhatsApp batch exception', ['error' => $e->getMessage()]);
+            return ['success' => false, 'error' => $e->getMessage()];
+        }
     }
 
     private function isConfigured(): bool

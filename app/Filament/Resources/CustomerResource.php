@@ -182,7 +182,7 @@ class CustomerResource extends Resource
                             ->helperText('Format: Phone, Name, Current Points, Total Visits'),
                     ])
                     ->action(function (array $data) {
-                        $file = storage_path('app/' . $data['file']);
+                        $file = \Illuminate\Support\Facades\Storage::disk('public')->path($data['file']);
                         
                         $request = new \Illuminate\Http\Request();
                         $request->files->set('file', new \Illuminate\Http\UploadedFile($file, basename($file), 'text/csv', null, true));

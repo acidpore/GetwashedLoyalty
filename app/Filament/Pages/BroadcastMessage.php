@@ -15,6 +15,7 @@ use Filament\Forms\Form;
 use Filament\Notifications\Notification;
 use Filament\Pages\Page;
 use Filament\Support\Exceptions\Halt;
+use App\Services\WhatsAppService;
 
 class BroadcastMessage extends Page
 {
@@ -28,9 +29,7 @@ class BroadcastMessage extends Page
 
     protected static string $view = 'filament.pages.broadcast-message';
 
-    public ?string $message = null;
-    public ?string $target_filter = 'all';
-    public bool $test_mode = false;
+    public ?array $data = [];
 
     public function mount(): void
     {
@@ -54,19 +53,40 @@ class BroadcastMessage extends Page
                 Section::make('Target Audience')
                     ->schema([
                         Select::make('target_filter')
-                            ->label('Send To')
-                            ->required()
+                            ->label('Filter Customers')
                             ->options([
                                 'all' => 'All Customers',
                                 'has_reward' => 'Customers with Rewards',
                                 'active' => 'Active Customers (Last 30 Days)',
                             ])
                             ->default('all')
-                            ->reactive(),
+                            ->live()
+                            ->afterStateUpdated(function ($state, $set) {
+                                $recipients = $this->getRecipientsByFilter($state);
+                                $set('recipients', $recipients->pluck('id')->toArray());
+                            }),
+
+                        \Filament\Forms\Components\CheckboxList::make('recipients')
+                            ->label('Select Recipients')
+                            ->options(function ($get) {
+                                // Show options based on current filter or all if not set
+                                return $this->getRecipientsByFilter($get('target_filter') ?? 'all')
+                                    ->mapWithKeys(function ($customer) {
+                                        return [$customer->id => "{$customer->user->name} ({$customer->user->phone})"];
+                                    });
+                            })
+                            ->default(function () {
+                                return $this->getRecipientsByFilter('all')->pluck('id')->toArray();
+                            })
+                            ->searchable()
+                            ->bulkToggleable()
+                            ->columns(2)
+                            ->required(),
 
                         Toggle::make('test_mode')
                             ->label('Test Mode')
                             ->helperText('Send to only 5 customers for testing')
+                            ->default(false)
                             ->reactive(),
                     ]),
 
@@ -75,7 +95,10 @@ class BroadcastMessage extends Page
                         Placeholder::make('cost_summary')
                             ->label('')
                             ->content(function ($get) {
-                                $count = $this->getRecipientCount($get('target_filter'), $get('test_mode'));
+                                $count = count($get('recipients') ?? []);
+                                if ($get('test_mode')) {
+                                    $count = min($count, 5);
+                                }
                                 $cost = $count * Broadcast::COST_PER_MESSAGE;
                                 
                                 return view('filament.components.cost-summary', [
@@ -89,11 +112,28 @@ class BroadcastMessage extends Page
             ->statePath('data');
     }
 
-    public function send(): void
+    public function send(WhatsAppService $whatsappService): void
     {
         $data = $this->form->getState();
 
-        $recipients = $this->getRecipients($data['target_filter'], $data['test_mode']);
+        // Get selected customers
+        $recipientIds = $data['recipients'] ?? [];
+        
+        if (empty($recipientIds)) {
+             Notification::make()
+                ->title('No recipients selected')
+                ->warning()
+                ->send();
+            return;
+        }
+
+        $query = Customer::with('user')->whereIn('id', $recipientIds);
+
+        if ($data['test_mode']) {
+            $query->limit(5);
+        }
+
+        $recipients = $query->get();
 
         if ($recipients->isEmpty()) {
             Notification::make()
@@ -108,46 +148,67 @@ class BroadcastMessage extends Page
             'target_filter' => $data['target_filter'],
             'total_recipients' => $recipients->count(),
             'estimated_cost' => $recipients->count() * Broadcast::COST_PER_MESSAGE,
-            'status' => 'queued',
+            'status' => 'sending',
             'sent_by' => auth()->id(),
             'sent_at' => now(),
         ]);
 
-        foreach ($recipients as $customer) {
-            SendBroadcastJob::dispatch($broadcast, $customer, $data['message'])
-                ->delay(now()->addMilliseconds(100));
+        // Prepare batch payload
+        $messages = $recipients->map(function ($customer) use ($data) {
+            return [
+                'phone' => $customer->user->phone,
+                'message' => $this->personalizeMessage($data['message'], $customer),
+            ];
+        })->toArray();
+
+        // Send batch
+        $result = $whatsappService->sendBatch($messages);
+
+        if ($result['success']) {
+            $broadcast->update([
+                'status' => 'sent',
+                'sent_count' => $recipients->count(),
+            ]);
+
+            Notification::make()
+                ->title('Broadcast sent successfully')
+                ->body("Sent to {$recipients->count()} customers")
+                ->success()
+                ->send();
+        } else {
+            $broadcast->update(['status' => 'failed']);
+            
+            Notification::make()
+                ->title('Broadcast failed')
+                ->body($result['error'] ?? 'Unknown error')
+                ->danger()
+                ->send();
         }
-
-        $broadcast->update(['status' => 'sending']);
-
-        Notification::make()
-            ->title('Broadcast queued successfully')
-            ->body("Sending to {$recipients->count()} customers")
-            ->success()
-            ->send();
 
         $this->form->fill();
     }
 
-    private function getRecipientCount(string $filter, bool $testMode): int
+    private function personalizeMessage(string $message, Customer $customer): string
     {
-        return $this->getRecipients($filter, $testMode)->count();
+        return str_replace(
+            ['{name}', '{points}', '{visits}'],
+            [
+                $customer->user->name,
+                $customer->current_points,
+                $customer->total_visits
+            ],
+            $message
+        );
     }
 
-    private function getRecipients(string $filter, bool $testMode)
+    private function getRecipientsByFilter(?string $filter)
     {
         $query = Customer::with('user');
 
-        $query = match ($filter) {
-            'has_reward' => $query->where('current_points', '>=', SystemSetting::rewardPointsThreshold()),
-            'active' => $query->where('last_visit_at', '>=', now()->subDays(30)),
-            default => $query,
+        return match ($filter) {
+            'has_reward' => $query->where('current_points', '>=', SystemSetting::rewardPointsThreshold())->get(),
+            'active' => $query->where('last_visit_at', '>=', now()->subDays(30))->get(),
+            default => $query->get(),
         };
-
-        if ($testMode) {
-            $query->limit(5);
-        }
-
-        return $query->get();
     }
 }

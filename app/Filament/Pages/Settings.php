@@ -23,11 +23,13 @@ class Settings extends Page
 
     protected static string $view = 'filament.pages.settings';
 
-    public ?int $reward_points_threshold = null;
+    public ?array $data = [];
 
     public function mount(): void
     {
-        $this->reward_points_threshold = SystemSetting::rewardPointsThreshold();
+        $this->form->fill([
+            'reward_points_threshold' => SystemSetting::rewardPointsThreshold(),
+        ]);
     }
 
     public function form(Form $form): Form
@@ -72,7 +74,7 @@ class Settings extends Page
             'Number of points required to earn a reward'
         );
 
-        $this->reward_points_threshold = $data['reward_points_threshold'];
+
 
         Notification::make()
             ->title('Settings saved successfully')
