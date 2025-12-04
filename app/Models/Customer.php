@@ -13,15 +13,21 @@ class Customer extends Model
 
     protected $fillable = [
         'user_id',
-        'current_points',
-        'total_visits',
-        'last_visit_at',
+        'carwash_points',
+        'carwash_total_visits',
+        'carwash_last_visit_at',
+        'coffeeshop_points',
+        'coffeeshop_total_visits',
+        'coffeeshop_last_visit_at',
     ];
 
     protected $casts = [
-        'last_visit_at' => 'datetime',
-        'current_points' => 'integer',
-        'total_visits' => 'integer',
+        'carwash_last_visit_at' => 'datetime',
+        'coffeeshop_last_visit_at' => 'datetime',
+        'carwash_points' => 'integer',
+        'carwash_total_visits' => 'integer',
+        'coffeeshop_points' => 'integer',
+        'coffeeshop_total_visits' => 'integer',
     ];
 
     public function user(): BelongsTo
@@ -34,25 +40,67 @@ class Customer extends Model
         return $this->hasMany(VisitHistory::class);
     }
 
-    public function hasEarnedReward(): bool
+    public function getPoints(string $loyaltyType): int
     {
-        return $this->current_points >= SystemSetting::rewardPointsThreshold();
+        return match($loyaltyType) {
+            'carwash' => $this->carwash_points,
+            'coffeeshop' => $this->coffeeshop_points,
+            default => 0,
+        };
     }
 
-    public function pointsUntilReward(): int
+    public function hasReward(string $loyaltyType): bool
     {
-        return max(0, SystemSetting::rewardPointsThreshold() - $this->current_points);
+        $threshold = match($loyaltyType) {
+            'carwash' => SystemSetting::get('carwash_reward_threshold', 5),
+            'coffeeshop' => SystemSetting::get('coffeeshop_reward_threshold', 5),
+            default => 5,
+        };
+
+        return $this->getPoints($loyaltyType) >= $threshold;
     }
 
-    public function addPoints(int $points = 1): void
+    public function pointsUntilReward(string $loyaltyType): int
     {
-        $this->increment('current_points', $points);
-        $this->increment('total_visits');
-        $this->update(['last_visit_at' => now()]);
+        $threshold = match($loyaltyType) {
+            'carwash' => SystemSetting::get('carwash_reward_threshold', 5),
+            'coffeeshop' => SystemSetting::get('coffeeshop_reward_threshold', 5),
+            default => 5,
+        };
+
+        return max(0, $threshold - $this->getPoints($loyaltyType));
     }
 
-    public function resetPoints(): void
+    public function addPoints(string $loyaltyType, int $points = 1): void
     {
-        $this->update(['current_points' => 0]);
+        match($loyaltyType) {
+            'carwash' => $this->addCarwashPoints($points),
+            'coffeeshop' => $this->addCoffeeshopPoints($points),
+            default => null,
+        };
+    }
+
+    public function resetPoints(string $loyaltyType): void
+    {
+        match($loyaltyType) {
+            'carwash' => $this->update(['carwash_points' => 0]),
+            'coffeeshop' => $this->update(['coffeeshop_points' => 0]),
+            default => null,
+        };
+    }
+
+    private function addCarwashPoints(int $points = 1): void
+    {
+        $this->increment('carwash_points', $points);
+        $this->increment('carwash_total_visits');
+        $this->update(['carwash_last_visit_at' => now()]);
+    }
+
+    private function addCoffeeshopPoints(int $points = 1): void
+    {
+        $this->increment('coffeeshop_points', $points);
+        $this->increment('coffeeshop_total_visits');
+        $this->update(['coffeeshop_last_visit_at' => now()]);
     }
 }
+

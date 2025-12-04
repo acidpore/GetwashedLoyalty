@@ -17,14 +17,11 @@ use Illuminate\Database\Eloquent\SoftDeletingScope;
 class CustomerResource extends Resource
 {
     protected static ?string $model = Customer::class;
-
     protected static ?string $navigationIcon = 'heroicon-o-users';
-
-    protected static ?string $navigationLabel = 'Customers';
-
+    protected static ?string $navigationLabel = 'All Customers';
+    protected static ?string $navigationGroup = 'Management';
+    protected static ?int $navigationSort = 31;
     protected static ?string $modelLabel = 'Customer';
-
-    protected static ?int $navigationSort = 1;
 
     public static function form(Form $form): Form
     {
@@ -40,23 +37,36 @@ class CustomerResource extends Resource
                             ->label('User Account')
                             ->helperText('Link to user account'),
                         
-                        Forms\Components\TextInput::make('current_points')
+                        Forms\Components\TextInput::make('carwash_points')
                             ->numeric()
                             ->default(0)
                             ->minValue(0)
-                            ->label('Current Points')
-                            ->helperText('Active points for rewards'),
+                            ->label('Car Wash Points'),
                         
-                        Forms\Components\TextInput::make('total_visits')
+                        Forms\Components\TextInput::make('carwash_total_visits')
                             ->numeric()
                             ->default(0)
                             ->minValue(0)
-                            ->label('Total Visits')
-                            ->helperText('Lifetime visit count'),
+                            ->label('Car Wash Visits'),
                         
-                        Forms\Components\DateTimePicker::make('last_visit_at')
-                            ->label('Last Visit')
-                            ->displayFormat('d/m/Y H:i')
+                        Forms\Components\DateTimePicker::make('carwash_last_visit_at')
+                            ->label('Last Car Wash')
+                            ->nullable(),
+                        
+                        Forms\Components\TextInput::make('coffeeshop_points')
+                            ->numeric()
+                            ->default(0)
+                            ->minValue(0)
+                            ->label('Coffee Shop Points'),
+                        
+                        Forms\Components\TextInput::make('coffeeshop_total_visits')
+                            ->numeric()
+                            ->default(0)
+                            ->minValue(0)
+                            ->label('Coffee Shop Visits'),
+                        
+                        Forms\Components\DateTimePicker::make('coffeeshop_last_visit_at')
+                            ->label('Last Coffee Shop')
                             ->nullable(),
                     ])->columns(2),
             ]);
@@ -79,27 +89,37 @@ class CustomerResource extends Resource
                     ->copyMessage('Phone copied!')
                     ->icon('heroicon-m-phone'),
                 
-                Tables\Columns\TextColumn::make('current_points')
-                    ->label('Points')
+                Tables\Columns\TextColumn::make('carwash_points')
+                    ->label('Car Wash')
                     ->sortable()
                     ->badge()
-                    ->color(fn (int $state): string => match (true) {
-                        $state >= SystemSetting::rewardPointsThreshold() => 'success',
-                        $state >= 3 => 'warning',
-                        default => 'gray',
-                    }),
+                    ->color(fn (int $state): string => $state >= SystemSetting::carwashRewardThreshold() ? 'success' : 'gray'),
                 
-                Tables\Columns\TextColumn::make('total_visits')
-                    ->label('Total Visits')
+                Tables\Columns\TextColumn::make('coffeeshop_points')
+                    ->label('Coffee Shop')
                     ->sortable()
-                    ->icon('heroicon-m-chart-bar'),
+                    ->badge()
+                    ->color(fn (int $state): string => $state >= SystemSetting::coffeeshopRewardThreshold() ? 'success' : 'gray'),
                 
-                Tables\Columns\TextColumn::make('last_visit_at')
-                    ->label('Last Visit')
-                    ->dateTime('d/m/Y H:i')
+                Tables\Columns\TextColumn::make('carwash_total_visits')
+                    ->label('CW Visits')
+                    ->sortable(),
+                
+                Tables\Columns\TextColumn::make('coffeeshop_total_visits')
+                    ->label('CS Visits')
+                    ->sortable(),
+                
+                Tables\Columns\TextColumn::make('carwash_last_visit_at')
+                    ->label('Last CW')
+                    ->dateTime('d/m/Y')
                     ->sortable()
-                    ->since()
-                    ->description(fn ($record) => $record->last_visit_at?->format('d/m/Y H:i')),
+                    ->toggleable(),
+                
+                Tables\Columns\TextColumn::make('coffeeshop_last_visit_at')
+                    ->label('Last CS')
+                    ->dateTime('d/m/Y')
+                    ->sortable()
+                    ->toggleable(),
                 
                 Tables\Columns\TextColumn::make('created_at')
                     ->label('Joined')
@@ -108,44 +128,40 @@ class CustomerResource extends Resource
                     ->toggleable(isToggledHiddenByDefault: true),
             ])
             ->filters([
-                Tables\Filters\Filter::make('has_reward')
-                    ->label('Ready for Reward')
-                    ->query(fn (Builder $query): Builder => $query->where('current_points', '>=', SystemSetting::rewardPointsThreshold())),
+                Tables\Filters\Filter::make('has_carwash_reward')
+                    ->label('Ready for Car Wash Reward')
+                    ->query(fn (Builder $query): Builder => $query->where('carwash_points', '>=', SystemSetting::carwashRewardThreshold())),
                 
-                Tables\Filters\Filter::make('active_customers')
-                    ->label('Active (Last 30 Days)')
-                    ->query(fn (Builder $query): Builder => $query->where('last_visit_at', '>=', now()->subDays(30))),
+                Tables\Filters\Filter::make('has_coffeeshop_reward')
+                    ->label('Ready for Coffee Shop Reward')
+                    ->query(fn (Builder $query): Builder => $query->where('coffeeshop_points', '>=', SystemSetting::coffeeshopRewardThreshold())),
                 
-                Tables\Filters\SelectFilter::make('points_range')
-                    ->label('Points Range')
-                    ->options(function () {
-                        $threshold = SystemSetting::rewardPointsThreshold();
-                        return [
-                            '0-2' => '0-2 points',
-                            '3-4' => '3-4 points',
-                            "{$threshold}+" => "{$threshold}+ points (Reward)",
-                        ];
-                    })
-                    ->query(function (Builder $query, array $data): Builder {
-                        $threshold = SystemSetting::rewardPointsThreshold();
-                        return match ($data['value'] ?? null) {
-                            '0-2' => $query->whereBetween('current_points', [0, 2]),
-                            '3-4' => $query->whereBetween('current_points', [3, 4]),
-                            "{$threshold}+" => $query->where('current_points', '>=', $threshold),
-                            default => $query,
-                        };
-                    }),
+                Tables\Filters\Filter::make('active_carwash')
+                    ->label('Active Car Wash (Last 30 Days)')
+                    ->query(fn (Builder $query): Builder => $query->where('carwash_last_visit_at', '>=', now()->subDays(30))),
+                
+                Tables\Filters\Filter::make('active_coffeeshop')
+                    ->label('Active Coffee Shop (Last 30 Days)')
+                    ->query(fn (Builder $query): Builder => $query->where('coffeeshop_last_visit_at', '>=', now()->subDays(30))),
             ])
             ->actions([
                 Tables\Actions\ViewAction::make(),
                 Tables\Actions\EditAction::make(),
-                Tables\Actions\Action::make('reset_points')
-                    ->label('Reset Points')
+                Tables\Actions\Action::make('reset_carwash')
+                    ->label('Reset Car Wash')
                     ->icon('heroicon-o-arrow-path')
                     ->color('warning')
                     ->requiresConfirmation()
-                    ->action(fn (Customer $record) => $record->resetPoints())
-                    ->visible(fn (Customer $record) => $record->current_points > 0),
+                    ->action(fn (Customer $record) => $record->resetPoints('carwash'))
+                    ->visible(fn (Customer $record) => $record->carwash_points > 0),
+                
+                Tables\Actions\Action::make('reset_coffeeshop')
+                    ->label('Reset Coffee Shop')
+                    ->icon('heroicon-o-arrow-path')
+                    ->color('warning')
+                    ->requiresConfirmation()
+                    ->action(fn (Customer $record) => $record->resetPoints('coffeeshop'))
+                    ->visible(fn (Customer $record) => $record->coffeeshop_points > 0),
             ])
             ->headerActions([
                 Tables\Actions\Action::make('download_template')
@@ -217,7 +233,7 @@ class CustomerResource extends Resource
                     Tables\Actions\DeleteBulkAction::make(),
                 ]),
             ])
-            ->defaultSort('last_visit_at', 'desc')
+            ->defaultSort('carwash_last_visit_at', 'desc')
             ->defaultPaginationPageOption(25)
             ->deferLoading();
     }

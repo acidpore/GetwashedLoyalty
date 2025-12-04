@@ -3,13 +3,15 @@
 namespace App\Filament\Widgets;
 
 use App\Models\Customer;
+use App\Models\QrCode;
 use App\Models\VisitHistory;
-use App\Models\SystemSetting;
 use Filament\Widgets\StatsOverviewWidget as BaseWidget;
 use Filament\Widgets\StatsOverviewWidget\Stat;
 
 class LoyaltyStatsWidget extends BaseWidget
 {
+    protected static ?string $pollingInterval = null;
+
     protected function getStats(): array
     {
         $totalCustomers = Customer::count();
@@ -21,29 +23,26 @@ class LoyaltyStatsWidget extends BaseWidget
             now()->endOfWeek()
         ])->count();
         
-        $totalPointsGiven = Customer::sum('total_visits');
+        $totalCarwashVisits = Customer::sum('carwash_total_visits');
+        $totalCoffeeshopVisits = Customer::sum('coffeeshop_total_visits');
+        $totalVisits = $totalCarwashVisits + $totalCoffeeshopVisits;
         
-        $threshold = SystemSetting::rewardPointsThreshold();
-        $customersReadyForReward = Customer::where('current_points', '>=', $threshold)->count();
-
-        $totalPoints = Customer::sum('current_points');
-        $totalVisits = Customer::sum('total_visits');
+        $totalQrCodes = QrCode::where('is_active', true)->count();
         
         return [
             Stat::make('Total Customers', $totalCustomers)
-                ->description('All registered customers')
-                ->descriptionIcon('heroicon-m-users')
+                ->description("{$customersThisMonth} new this month")
+                ->icon('heroicon-o-users')
                 ->color('success'),
             
-            Stat::make('Visits Today', $visitsToday)
-                ->description($visitsThisWeek . ' this week')
-                ->descriptionIcon('heroicon-m-calendar-days')
-                ->color('info')
-                ->chart([5, 8, 12, 15, 18, 22, $visitsToday]),
+            Stat::make('Total Visits', $totalVisits)
+                ->description("{$visitsToday} today, {$visitsThisWeek} this week")
+                ->icon('heroicon-o-calendar')
+                ->color('info'),
             
-            Stat::make('Ready for Reward', $customersReadyForReward)
-                ->description("Customers with {$threshold}+ points")
-                ->descriptionIcon('heroicon-m-gift')
+            Stat::make('Active QR Codes', $totalQrCodes)
+                ->description('Permanent and one-time codes')
+                ->icon('heroicon-o-qr-code')
                 ->color('warning'),
         ];
     }

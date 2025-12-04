@@ -3,9 +3,10 @@
 namespace App\Http\Controllers;
 
 use App\Models\Customer;
-use App\Models\SystemSetting;
+use App\Models\QrCode;
 use App\Models\User;
 use App\Models\VisitHistory;
+use App\Services\QrCodeService;
 use App\Services\WhatsAppService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -14,12 +15,26 @@ use Illuminate\Support\Facades\Log;
 class CheckinController extends Controller
 {
     public function __construct(
-        private WhatsAppService $whatsappService
+        private WhatsAppService $whatsappService,
+        private QrCodeService $qrCodeService
     ) {}
 
-    public function index()
+    public function index(Request $request)
     {
-        return view('checkin');
+        $loyaltyType = $this->detectLoyaltyType($request);
+        $qrCode = null;
+
+        if ($request->has('code')) {
+            $qrCode = $this->qrCodeService->validateQrCode($request->code);
+            
+            if (!$qrCode) {
+                return redirect()->route('home')->with('error', 'QR Code tidak valid atau sudah kadaluarsa');
+            }
+
+            $loyaltyType = $qrCode->loyalty_type;
+        }
+
+        return view('checkin', compact('loyaltyType', 'qrCode'));
     }
 
     public function store(Request $request)
@@ -27,44 +42,45 @@ class CheckinController extends Controller
         $validated = $request->validate([
             'name' => 'required|string|min:3|max:255',
             'phone' => 'required|string|min:10|max:15',
+            'loyalty_type' => 'required|in:carwash,coffeeshop,both',
+            'qr_code' => 'nullable|string',
         ]);
 
         $normalizedPhone = $this->normalizePhone($validated['phone']);
-
-        // Temporarily disabled for testing - allow multiple check-ins
-        // if ($this->isRecentCheckIn($normalizedPhone, $request->ip())) {
-        //     return back()->with('error', 'Anda sudah check-in dalam 1 jam terakhir.');
-        // }
-
+        $loyaltyType = $validated['loyalty_type'];
 
         try {
             DB::beginTransaction();
 
             $user = $this->findOrCreateUser($normalizedPhone, $validated['name']);
             $customer = $this->findOrCreateCustomer($user->id);
-            
-            $threshold = SystemSetting::rewardPointsThreshold();
-            $hadReward = $customer->current_points >= $threshold;
-            
-            // If customer had reward, reset points first before adding new point
-            if ($hadReward) {
-                $customer->resetPoints();
+
+            if ($loyaltyType === 'both') {
+                $this->processMultiLoyaltyCheckin($customer, $request->ip());
+            } else {
+                $this->processSingleLoyaltyCheckin($customer, $loyaltyType, $request->ip());
             }
-            
-            // Now add the new point
-            $this->processCheckin($customer, $request->ip());
-            
-            $hasReward = $customer->current_points >= $threshold;
-            $pointsToShow = $customer->current_points;
-            
-            $this->sendNotification($normalizedPhone, $user->name, $customer->current_points);
+
+            if ($validated['qr_code']) {
+                $this->qrCodeService->incrementScan($validated['qr_code']);
+            }
+
+            $this->whatsappService->sendLoyaltyNotification(
+                $normalizedPhone,
+                $user->name,
+                $customer->fresh(),
+                $loyaltyType
+            );
 
             DB::commit();
 
             return redirect()->route('success', [
-                'points' => $pointsToShow,
                 'name' => $user->name,
-                'reward' => $hasReward,
+                'loyalty_type' => $loyaltyType,
+                'carwash_points' => $customer->carwash_points,
+                'coffeeshop_points' => $customer->coffeeshop_points,
+                'carwash_reward' => $customer->hasReward('carwash'),
+                'coffeeshop_reward' => $customer->hasReward('coffeeshop'),
             ]);
 
         } catch (\Exception $e) {
@@ -72,6 +88,55 @@ class CheckinController extends Controller
             Log::error('Check-in failed', ['error' => $e->getMessage()]);
             return back()->with('error', 'Terjadi kesalahan. Silakan coba lagi.');
         }
+    }
+
+    private function detectLoyaltyType(Request $request): string
+    {
+        if ($request->has('code')) {
+            $qr = QrCode::where('code', $request->code)->first();
+            return $qr?->loyalty_type ?? 'carwash';
+        }
+
+        return $request->get('type', 'carwash');
+    }
+
+    private function processSingleLoyaltyCheckin(Customer $customer, string $type, string $ip): void
+    {
+        if ($customer->hasReward($type)) {
+            $customer->resetPoints($type);
+        }
+
+        $customer->addPoints($type);
+
+        VisitHistory::create([
+            'customer_id' => $customer->id,
+            'loyalty_type' => $type,
+            'points_earned' => 1,
+            'visited_at' => now(),
+            'ip_address' => $ip,
+        ]);
+    }
+
+    private function processMultiLoyaltyCheckin(Customer $customer, string $ip): void
+    {
+        if ($customer->hasReward('carwash')) {
+            $customer->resetPoints('carwash');
+        }
+
+        if ($customer->hasReward('coffeeshop')) {
+            $customer->resetPoints('coffeeshop');
+        }
+
+        $customer->addPoints('carwash');
+        $customer->addPoints('coffeeshop');
+
+        VisitHistory::create([
+            'customer_id' => $customer->id,
+            'loyalty_type' => 'both',
+            'points_earned' => 2,
+            'visited_at' => now(),
+            'ip_address' => $ip,
+        ]);
     }
 
     private function normalizePhone(string $phone): string
@@ -87,20 +152,6 @@ class CheckinController extends Controller
         }
 
         return $phone;
-    }
-
-    private function isRecentCheckIn(string $phone, string $ip): bool
-    {
-        $user = User::where('phone', $phone)->first();
-        
-        if (!$user?->customer) {
-            return false;
-        }
-
-        return VisitHistory::where('customer_id', $user->customer->id)
-            ->where('ip_address', $ip)
-            ->where('visited_at', '>=', now()->subHour())
-            ->exists();
     }
 
     private function findOrCreateUser(string $phone, string $name): User
@@ -121,29 +172,12 @@ class CheckinController extends Controller
     {
         return Customer::firstOrCreate(
             ['user_id' => $userId],
-            ['current_points' => 0, 'total_visits' => 0]
+            [
+                'carwash_points' => 0,
+                'carwash_total_visits' => 0,
+                'coffeeshop_points' => 0,
+                'coffeeshop_total_visits' => 0,
+            ]
         );
-    }
-
-    private function processCheckin(Customer $customer, string $ip): void
-    {
-        $customer->addPoints();
-
-        VisitHistory::create([
-            'customer_id' => $customer->id,
-            'points_earned' => 1,
-            'visited_at' => now(),
-            'ip_address' => $ip,
-        ]);
-    }
-
-    private function sendNotification(string $phone, string $name, int $points): void
-    {
-        $threshold = SystemSetting::rewardPointsThreshold();
-        $message = $points >= $threshold
-            ? "🎉 SELAMAT {$name}!\n\nKamu dapat DISKON!\n\nTunjukkan pesan ini ke kasir.\n\nTerima kasih sudah setia dengan Getwashed! 🚗✨"
-            : "Halo {$name}! 👋\n\nTerima kasih telah mencuci di Getwashed.\nPoin kamu: {$points}/{$threshold}\n\nKumpulkan " . ($threshold - $points) . " poin lagi! 🎁\n\nSampai jumpa! 🚗";
-
-        $this->whatsappService->sendMessage($phone, $message);
     }
 }

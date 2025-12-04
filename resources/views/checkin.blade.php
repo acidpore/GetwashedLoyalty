@@ -55,9 +55,7 @@
     <div class="min-h-screen flex flex-col p-4">
         <header class="w-full">
             <a href="{{ route('home') }}" class="inline-flex items-center gap-2 px-4 py-2 bg-card-light dark:bg-card-dark rounded-lg shadow-sm">
-                <span class="material-symbols-outlined text-primary text-xl">
-                    arrow_back
-                </span>
+                <span class="material-symbols-outlined text-primary text-xl">arrow_back</span>
                 <span class="text-text-light dark:text-text-dark font-medium">Kembali</span>
             </a>
         </header>
@@ -66,12 +64,23 @@
             <div class="w-full max-w-md bg-card-light dark:bg-card-dark rounded-2xl p-6 md:p-8 shadow-lg">
                 <div class="flex flex-col items-center text-center">
                     <div class="w-16 h-16 bg-gradient-to-br from-blue-400 to-primary rounded-xl flex items-center justify-center mb-6 shadow-md">
-                        <span class="material-symbols-outlined text-white text-4xl">
-                            check_circle
-                        </span>
+                        <span class="material-symbols-outlined text-white text-4xl">check_circle</span>
                     </div>
                     <h1 class="text-2xl font-bold text-text-light dark:text-text-dark">Check-In Sekarang</h1>
-                    <p class="text-subtext-light dark:text-subtext-dark mt-2 mb-8">Isi data di bawah untuk dapatkan poin</p>
+                    <p class="text-subtext-light dark:text-subtext-dark mt-2 mb-2">
+                        @if($loyaltyType === 'carwash')
+                            Car Wash Loyalty
+                        @elseif($loyaltyType === 'coffeeshop')
+                            Coffee Shop Loyalty
+                        @else
+                            Car Wash + Coffee Shop
+                        @endif
+                    </p>
+                    @if($loyaltyType === 'both')
+                        <div class="flex items-center gap-2 mb-4 px-3 py-1 bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-300 rounded-lg text-sm font-medium">
+                            Double Points
+                        </div>
+                    @endif
                 </div>
 
                 @if(session('success'))
@@ -88,6 +97,10 @@
 
                 <form method="POST" action="{{ route('checkin.store') }}" class="space-y-6">
                     @csrf
+                    <input type="hidden" name="loyalty_type" value="{{ $loyaltyType }}">
+                    @if($qrCode)
+                        <input type="hidden" name="qr_code" value="{{ $qrCode->code }}">
+                    @endif
 
                     <div>
                         <label class="block text-sm font-medium text-text-light dark:text-text-dark mb-2" for="full-name">Nama Lengkap</label>
@@ -118,17 +131,13 @@
                         class="w-full flex items-center justify-center gap-2 bg-button-primary text-white font-semibold py-3 px-4 rounded-lg shadow-md hover:bg-emerald-700 transition-colors" 
                         type="submit"
                     >
-                        <span class="material-symbols-outlined">
-                            auto_awesome
-                        </span>
+                        <span class="material-symbols-outlined">auto_awesome</span>
                         Dapatkan Poin Sekarang!
                     </button>
                 </form>
 
                 <div class="mt-6 flex items-start gap-3 p-4 bg-info-bg-light dark:bg-info-bg-dark rounded-lg">
-                    <span class="material-symbols-outlined text-info-text-light dark:text-info-text-dark mt-0.5">
-                        info
-                    </span>
+                    <span class="material-symbols-outlined text-info-text-light dark:text-info-text-dark mt-0.5">info</span>
                     <p class="text-sm text-info-text-light dark:text-info-text-dark">Poin akan langsung masuk dan notifikasi dikirim ke WhatsApp Anda</p>
                 </div>
             </div>

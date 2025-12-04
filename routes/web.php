@@ -50,5 +50,6 @@ Route::middleware('auth')->group(function () {
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
 });
 
-// Note: Filament admin routes are auto-registered at /admin
+Route::get('/qr/preview/{code}', [\App\Http\Controllers\QrCodeController::class, 'preview'])->name('qr.preview');
+Route::get('/qr/download/{code}', [\App\Http\Controllers\QrCodeController::class, 'download'])->name('qr.download');
 

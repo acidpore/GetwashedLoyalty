@@ -45,6 +45,26 @@ class SystemSetting extends Model
         return (int) self::get('reward_points_threshold', 5);
     }
 
+    public static function carwashRewardThreshold(): int
+    {
+        return (int) self::get('carwash_reward_threshold', 5);
+    }
+
+    public static function coffeeshopRewardThreshold(): int
+    {
+        return (int) self::get('coffeeshop_reward_threshold', 5);
+    }
+
+    public static function carwashRewardMessage(): string
+    {
+        return self::get('carwash_reward_message', 'DISKON CAR WASH');
+    }
+
+    public static function coffeeshopRewardMessage(): string
+    {
+        return self::get('coffeeshop_reward_message', 'GRATIS KOPI');
+    }
+
     public static function clearCache(): void
     {
         Cache::flush();

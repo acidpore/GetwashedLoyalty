@@ -16,16 +16,12 @@ use Illuminate\Database\Eloquent\SoftDeletingScope;
 class VisitHistoryResource extends Resource
 {
     protected static ?string $model = VisitHistory::class;
-
     protected static ?string $navigationIcon = 'heroicon-o-clock';
-
-    protected static ?string $navigationLabel = 'Visit History';
-
+    protected static ?string $navigationLabel = 'All Visit History';
+    protected static ?string $navigationGroup = 'Management';
+    protected static ?int $navigationSort = 32;
     protected static ?string $modelLabel = 'Visit';
-
     protected static ?string $pluralModelLabel = 'Visit Histories';
-
-    protected static ?int $navigationSort = 2;
 
     public static function form(Form $form): Form
     {

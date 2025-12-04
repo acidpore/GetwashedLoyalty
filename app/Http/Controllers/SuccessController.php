@@ -6,20 +6,22 @@ use Illuminate\Http\Request;
 
 class SuccessController extends Controller
 {
-    /**
-     * Display the success page after check-in.
-     */
     public function index(Request $request)
     {
-        // Validate query parameters
-        $points = $request->query('points', 0);
         $name = $request->query('name', 'Customer');
-        $reward = $request->query('reward', false);
+        $loyaltyType = $request->query('loyalty_type', 'carwash');
+        $carwashPoints = (int) $request->query('carwash_points', 0);
+        $coffeeshopPoints = (int) $request->query('coffeeshop_points', 0);
+        $carwashReward = filter_var($request->query('carwash_reward', false), FILTER_VALIDATE_BOOLEAN);
+        $coffeeshopReward = filter_var($request->query('coffeeshop_reward', false), FILTER_VALIDATE_BOOLEAN);
 
-        return view('success', [
-            'points' => $points,
-            'name' => $name,
-            'hasReward' => filter_var($reward, FILTER_VALIDATE_BOOLEAN),
-        ]);
+        return view('success', compact(
+            'name',
+            'loyaltyType',
+            'carwashPoints',
+            'coffeeshopPoints',
+            'carwashReward',
+            'coffeeshopReward'
+        ));
     }
 }

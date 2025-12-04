@@ -1,74 +1,124 @@
-<x-layout.layout title="Berhasil! - Getwashed Loyalty" bg-class="bg-gradient-to-br from-purple-50 to-pink-100">
-    <div class="min-h-screen flex items-center justify-center p-4">
-        <div class="w-full max-w-md">
-            <div class="bg-white rounded-3xl shadow-2xl p-8 text-center">
-                <div class="mb-6">
-                    <div class="w-24 h-24 mx-auto mb-4 rounded-full {{ $hasReward ? 'bg-gradient-to-br from-purple-400 to-pink-500 animate-bounce' : 'bg-gradient-to-br from-green-400 to-emerald-500' }} flex items-center justify-center shadow-lg">
-                        @if($hasReward)
-                            <svg class="w-12 h-12 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v13m0-13V6a2 2 0 112 2h-2zm0 0V5.5A2.5 2.5 0 109.5 8H12zm-7 4h14M5 12a2 2 0 110-4h14a2 2 0 110 4M5 12v7a2 2 0 002 2h10a2 2 0 002-2v-7"/>
-                            </svg>
+<!DOCTYPE html>
+<html class="dark" lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Check-In Success - Getwashed Loyalty</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined" rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com?plugins=forms,typography"></script>
+    <script>
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        primary: "#4285F4",
+                        "background-light": "#E6F4EA",
+                        "background-dark": "#18181b",
+                        "card-light": "#FFFFFF",
+                        "card-dark": "#27272a",
+                        "text-light": "#3f3f46",
+                        "text-dark": "#d4d4d8",
+                        "subtext-light": "#71717a",
+                        "subtext-dark": "#a1a1aa",
+                        "border-light": "#e4e4e7",
+                        "border-dark": "#3f3f46",
+                    },
+                   fontFamily: {
+                        display: ["Poppins", "sans-serif"],
+                    },
+                },
+            },
+        };
+    </script>
+</head>
+<body class="bg-background-light dark:bg-background-dark font-display">
+    <div class="min-h-screen flex flex-col p-4">
+        <main class="flex-grow flex items-center justify-center">
+            <div class="w-full max-w-md space-y-4">
+                @php
+                    $showReward = $carwashReward || $coffeeshopReward;
+                @endphp
+
+                @if($showReward)
+                    <div class="bg-gradient-to-br from-green-400 to-emerald-600 rounded-2xl p-8 shadow-2xl text-center text-white">
+                        <div class="text-6xl mb-4">SELAMAT</div>
+                        <h1 class="text-3xl font-bold mb-2">{{ $name }}!</h1>
+                        <p class="text-xl mb-6">Kamu Dapat Reward!</p>
+                        
+                        @if($carwashReward && $coffeeshopReward)
+                            <div class="space-y-2">
+                                <div class="bg-white/20 backdrop-blur-sm rounded-lg p-3">
+                                    <p class="font-semibold">DISKON CAR WASH</p>
+                                </div>
+                                <div class="bg-white/20 backdrop-blur-sm rounded-lg p-3">
+                                    <p class="font-semibold">GRATIS KOPI</p>
+                                </div>
+                            </div>
+                        @elseif($carwashReward)
+                            <div class="bg-white/20 backdrop-blur-sm rounded-lg p-4">
+                                <p class="text-2xl font-bold">DISKON CAR WASH</p>
+                            </div>
                         @else
-                            <svg class="w-12 h-12 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
-                            </svg>
+                            <div class="bg-white/20 backdrop-blur-sm rounded-lg p-4">
+                                <p class="text-2xl font-bold">GRATIS KOPI</p>
+                            </div>
+                        @endif
+
+                        <p class="mt-6 text-sm opacity-90">Tunjukkan pesan ini ke kasir</p>
+                    </div>
+                @else
+                    <div class="bg-card-light dark:bg-card-dark rounded-2xl p-8 shadow-lg text-center">
+                        <div class="w-20 h-20 bg-gradient-to-br from-blue-400 to-primary rounded-full flex items-center justify-center mx-auto mb-6">
+                            <span class="material-symbols-outlined text-white text-5xl">done</span>
+                        </div>
+                        <h1 class="text-2xl font-bold text-text-light dark:text-text-dark mb-2">Check-In Berhasil!</h1>
+                        <p class="text-subtext-light dark:text-subtext-dark mb-8">Terima kasih, {{ $name }}</p>
+                    </div>
+                @endif
+
+                @if($loyaltyType === 'both' || $loyaltyType === 'carwash')
+                    <div class="bg-card-light dark:bg-card-dark rounded-xl p-6 shadow">
+                        <div class="flex justify-between items-center mb-4">
+                            <h3 class="font-semibold text-text-light dark:text-text-dark">Car Wash Loyalty</h3>
+                            <span class="text-2xl font-bold text-primary">{{ $carwashPoints }}/5</span>
+                        </div>
+                        <div class="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-3">
+                            <div class="bg-gradient-to-r from-blue-400 to-primary h-3 rounded-full transition-all" style="width: {{ ($carwashPoints / 5) * 100 }}%"></div>
+                        </div>
+                        @if(!$carwashReward)
+                            <p class="text-sm text-subtext-light dark:text-subtext-dark mt-2">{{ 5 - $carwashPoints }} poin lagi untuk reward</p>
                         @endif
                     </div>
-                    <h1 class="text-3xl font-bold {{ $hasReward ? 'text-purple-900' : 'text-gray-800' }} mb-2">
-                        {{ $hasReward ? 'SELAMAT ' . strtoupper($name) . '!' : 'Terima Kasih ' . $name . '!' }}
-                    </h1>
-                    <p class="text-lg {{ $hasReward ? 'text-purple-700 font-semibold' : 'text-gray-600' }}">
-                        {{ $hasReward ? 'Kamu Dapat DISKON!' : 'Poin Berhasil Ditambahkan' }}
-                    </p>
-                </div>
+                @endif
 
-                <div class="mb-8 p-6 bg-gradient-to-r from-purple-100 to-pink-100 rounded-2xl">
-                    <div class="text-5xl font-bold {{ $hasReward ? 'text-purple-900' : 'text-gray-800' }} mb-2">
-                        {{ $hasReward ? '5/5' : $points . '/5' }}
-                    </div>
-                    <p class="{{ $hasReward ? 'text-purple-700 font-semibold' : 'text-gray-600' }}">
-                        {{ $hasReward ? 'Poin Tercapai!' : 'Poin Kamu Sekarang' }}
-                    </p>
-                </div>
-
-                @unless($hasReward)
-                    <div class="mb-8">
-                        <div class="w-full bg-gray-200 rounded-full h-4 overflow-hidden">
-                            <div 
-                                class="bg-gradient-to-r from-purple-500 to-pink-500 h-4 rounded-full transition-all duration-1000"
-                                style="width: {{ ($points / 5) * 100 }}%"
-                            ></div>
+                @if($loyaltyType === 'both' || $loyaltyType === 'coffeeshop')
+                    <div class="bg-card-light dark:bg-card-dark rounded-xl p-6 shadow">
+                        <div class="flex justify-between items-center mb-4">
+                            <h3 class="font-semibold text-text-light dark:text-text-dark">Coffee Shop Loyalty</h3>
+                            <span class="text-2xl font-bold text-amber-600">{{ $coffeeshopPoints }}/5</span>
                         </div>
-                        <p class="mt-2 text-sm text-gray-600">Kurang {{ 5 - $points }} poin lagi untuk diskon!</p>
+                        <div class="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-3">
+                            <div class="bg-gradient-to-r from-amber-400 to-amber-600 h-3 rounded-full transition-all" style="width: {{ ($coffeeshopPoints / 5) * 100 }}%"></div>
+                        </div>
+                        @if(!$coffeeshopReward)
+                            <p class="text-sm text-subtext-light dark:text-subtext-dark mt-2">{{ 5 - $coffeeshopPoints }} poin lagi untuk reward</p>
+                        @endif
                     </div>
-                @endunless
+                @endif
 
-                <div class="mb-6 p-4 bg-green-50 border-2 border-green-200 rounded-xl">
-                    <div class="flex items-center justify-center gap-2 mb-2">
-                        <svg class="w-6 h-6 text-green-600" fill="currentColor" viewBox="0 0 24 24">
-                            <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/>
-                        </svg>
-                        <span class="font-semibold text-green-700">Notifikasi WhatsApp</span>
-                    </div>
-                    <p class="text-sm text-green-700">Pesan konfirmasi akan dikirim ke WhatsApp dalam beberapa detik</p>
+                <div class="flex gap-3">
+                    <a href="{{ route('home') }}" class="flex-1 bg-gray-200 dark:bg-gray-700 text-text-light dark:text-text-dark font-semibold py-3 px-4 rounded-lg text-center hover:bg-gray-300 dark:hover:bg-gray-600 transition-colors">
+                        Selesai
+                    </a>
                 </div>
 
-                <div class="space-y-3">
-                    <a href="{{ route('home') }}" class="flex items-center justify-center gap-2 w-full bg-purple-600 hover:bg-purple-700 text-white font-bold py-3 rounded-xl transition">
-                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/>
-                        </svg>
-                        <span>Kembali ke Beranda</span>
-                    </a>
-                    <a href="{{ route('checkin') }}" class="block w-full bg-gray-200 hover:bg-gray-300 text-gray-800 font-semibold py-3 rounded-xl transition">
-                        ↻ Check-In Lagi
-                    </a>
+                <div class="bg-info-bg-light dark:bg-info-bg-dark rounded-lg p-4 text-center">
+                    <p class="text-sm text-info-text-light dark:text-info-text-dark">Notifikasi telah dikirim ke WhatsApp Anda</p>
                 </div>
             </div>
-
-            <p class="text-center text-sm text-gray-600 mt-6">
-                Terima kasih sudah setia dengan Getwashed!
-            </p>
-        </div>
+        </main>
     </div>
-</x-layout.layout>
+</body>
+</html>

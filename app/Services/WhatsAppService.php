@@ -44,6 +44,88 @@ class WhatsAppService
         }
     }
 
+    public function sendLoyaltyNotification(string $phone, string $name, $customer, string $loyaltyType): bool
+    {
+        $message = $this->buildLoyaltyMessage($name, $customer, $loyaltyType);
+        return $this->sendMessage($phone, $message);
+    }
+
+    private function buildLoyaltyMessage(string $name, $customer, string $loyaltyType): string
+    {
+        $carwashThreshold = \App\Models\SystemSetting::carwashRewardThreshold();
+        $coffeeshopThreshold = \App\Models\SystemSetting::coffeeshopRewardThreshold();
+
+        $carwashReward = $customer->hasReward('carwash');
+        $coffeeshopReward = $customer->hasReward('coffeeshop');
+
+        if ($carwashReward && $coffeeshopReward) {
+            return $this->buildBothRewardsMessage($name,$customer, $carwashThreshold, $coffeeshopThreshold);
+        }
+
+        if ($carwashReward) {
+            return $this->buildCarwashRewardMessage($name, $customer, $coffeeshopThreshold);
+        }
+
+        if ($coffeeshopReward) {
+            return $this->buildCoffeeshopRewardMessage($name, $customer, $carwashThreshold);
+        }
+
+        return match($loyaltyType) {
+            'carwash' => $this->buildCarwashProgressMessage($name, $customer, $carwashThreshold),
+            'coffeeshop' => $this->buildCoffeeshopProgressMessage($name, $customer, $coffeeshopThreshold),
+            'both' => $this->buildBothProgressMessage($name, $customer, $carwashThreshold, $coffeeshopThreshold),
+            default => "Halo {$name}! Check-in berhasil. Terima kasih!",
+        };
+    }
+
+    private function buildCarwashProgressMessage(string $name, $customer, int $threshold): string
+    {
+        $points = $customer->carwash_points;
+        $remaining = $threshold - $points;
+
+        return "Halo {$name}!\n\nCheck-in Car Wash Berhasil!\n\nPoin Car Wash: {$points}/{$threshold}\n\nKumpulkan {$remaining} poin lagi untuk DISKON!\n\nTerima kasih!";
+    }
+
+    private function buildCoffeeshopProgressMessage(string $name, $customer, int $threshold): string
+    {
+        $points = $customer->coffeeshop_points;
+        $remaining = $threshold - $points;
+
+        return "Halo {$name}!\n\nCheck-in Coffee Shop Berhasil!\n\nPoin Coffee Shop: {$points}/{$threshold}\n\nKumpulkan {$remaining} poin lagi untuk GRATIS KOPI!\n\nTerima kasih!";
+    }
+
+    private function buildBothProgressMessage(string $name, $customer, int $carwashThreshold, int $coffeeshopThreshold): string
+    {
+        $carwashPoints = $customer->carwash_points;
+        $coffeeshopPoints = $customer->coffeeshop_points;
+
+        return "Halo {$name}!\n\nCheck-in Berhasil!\n\nCar Wash: {$carwashPoints}/{$carwashThreshold}\nCoffee Shop: {$coffeeshopPoints}/{$coffeeshopThreshold}\n\nDouble poin!\n\nTerima kasih!";
+    }
+
+    private function buildCarwashRewardMessage(string $name, $customer, int $coffeeshopThreshold): string
+    {
+        $coffeeshopPoints = $customer->coffeeshop_points;
+        $message = \App\Models\SystemSetting::carwashRewardMessage();
+
+        return "SELAMAT {$name}!\n\nKamu dapat {$message}!\n\nTunjukkan pesan ini ke kasir.\n\nPoin Car Wash direset ke 0\nPoin Coffee Shop: {$coffeeshopPoints}/{$coffeeshopThreshold}\n\nTerima kasih sudah setia!";
+    }
+
+    private function buildCoffeeshopRewardMessage(string $name, $customer, int $carwashThreshold): string
+    {
+        $carwashPoints = $customer->carwash_points;
+        $message = \App\Models\SystemSetting::coffeeshopRewardMessage();
+
+        return "SELAMAT {$name}!\n\nKamu dapat {$message}!\n\nTunjukkan pesan ini ke kasir.\n\nPoin Coffee Shop direset ke 0\nPoin Car Wash: {$carwashPoints}/{$carwashThreshold}\n\nTerima kasih sudah setia!";
+    }
+
+    private function buildBothRewardsMessage(string $name, $customer, int $carwashThreshold, int $coffeeshopThreshold): string
+    {
+        $carwashMessage = \App\Models\SystemSetting::carwashRewardMessage();
+        $coffeeshopMessage = \App\Models\SystemSetting::coffeeshopRewardMessage();
+
+        return "DOUBLE REWARD!\n\nSELAMAT {$name}!\n\n{$carwashMessage}!\n{$coffeeshopMessage}!\n\nTunjukkan pesan ini ke kasir untuk klaim BOTH rewards!\n\nKedua poin direset ke 0.\n\nTerima kasih!";
+    }
+
     public function sendBatch(array $messages): array
     {
         if ($this->provider === 'local') {
