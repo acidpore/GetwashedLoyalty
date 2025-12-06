@@ -32,4 +32,23 @@ class CustomerDashboardController extends Controller
             'hasReward' => $customer->current_points >= $threshold,
         ]);
     }
+    public function magicLogin(Request $request, string $token)
+    {
+        $customer = \App\Models\Customer::where('dashboard_token', $token)->first();
+
+        if (!$customer) {
+            return redirect()->route('login')
+                ->with('error', 'Token tidak valid.');
+        }
+
+        if ($customer->token_expires_at && $customer->token_expires_at->isPast()) {
+            return redirect()->route('login')
+                ->with('error', 'Link sudah kadaluarsa. Silakan login manual.');
+        }
+
+        // Auto login
+        \Illuminate\Support\Facades\Auth::login($customer->user);
+
+        return redirect()->route('customer.dashboard');
+    }
 }
