@@ -60,7 +60,7 @@ class SystemSetting extends Model
         return self::get('carwash_reward_message', 'DISKON CAR WASH');
     }
 
-    public function coffeeshopRewardMessage(): string
+    public static function coffeeshopRewardMessage(): string
     {
         return self::get('coffeeshop_reward_message', 'GRATIS KOPI');
     }
