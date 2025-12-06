@@ -147,4 +147,20 @@ class QrCode extends Model
         }
         $this->setAttribute('loyalty_types', $types);
     }
+
+    // Mutator to filter out zero/null thresholds
+    public function setThresholdsAttribute($value): void
+    {
+        if (!is_array($value)) {
+            $this->attributes['thresholds'] = null;
+            return;
+        }
+
+        // Filter out null, 0, and empty string values
+        $filtered = array_filter($value, function($threshold) {
+            return $threshold !== null && $threshold !== '' && $threshold !== 0 && $threshold !== '0';
+        });
+
+        $this->attributes['thresholds'] = !empty($filtered) ? json_encode($filtered) : null;
+    }
 }

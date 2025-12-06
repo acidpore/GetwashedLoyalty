@@ -31,10 +31,13 @@ class QrCodeResource extends Resource
                             // Column 1: Cuci Mobil
                             Forms\Components\Group::make([
                                 Forms\Components\Checkbox::make('has_carwash')
-                                    ->label('Cuci Mobil'),
+                                    ->label('Cuci Mobil')
+                                    ->live()
+                                    ->dehydrated(false),
                                 Forms\Components\TextInput::make('thresholds.carwash')
                                     ->label('Threshold')
                                     ->numeric()
+                                    ->minValue(1)
                                     ->placeholder('e.g., 10')
                                     ->visible(fn (Forms\Get $get) => $get('has_carwash')),
                             ]),
@@ -42,10 +45,13 @@ class QrCodeResource extends Resource
                             // Column 2: Cuci Motor
                             Forms\Components\Group::make([
                                 Forms\Components\Checkbox::make('has_motorwash')
-                                    ->label('Cuci Motor'),
+                                    ->label('Cuci Motor')
+                                    ->live()
+                                    ->dehydrated(false),
                                 Forms\Components\TextInput::make('thresholds.motorwash')
                                     ->label('Threshold')
                                     ->numeric()
+                                    ->minValue(1)
                                     ->placeholder('e.g., 10')
                                     ->visible(fn (Forms\Get $get) => $get('has_motorwash')),
                             ]),
@@ -53,15 +59,28 @@ class QrCodeResource extends Resource
                             // Column 3: Coffee Shop
                             Forms\Components\Group::make([
                                 Forms\Components\Checkbox::make('has_coffeeshop')
-                                    ->label('Coffee Shop'),
+                                    ->label('Coffee Shop')
+                                    ->live()
+                                    ->dehydrated(false),
                                 Forms\Components\TextInput::make('thresholds.coffeeshop')
                                     ->label('Threshold')
                                     ->numeric()
+                                    ->minValue(1)
                                     ->placeholder('e.g., 5')
                                     ->visible(fn (Forms\Get $get) => $get('has_coffeeshop')),
                             ]),
                         ])
                         ->columnSpanFull(),
+                    
+                    // Hidden field to collect loyalty_types from checkboxes
+                    Forms\Components\Hidden::make('loyalty_types')
+                        ->dehydrateStateUsing(function (Forms\Get $get) {
+                            $types = [];
+                            if ($get('has_carwash')) $types[] = 'carwash';
+                            if ($get('has_motorwash')) $types[] = 'motorwash';
+                            if ($get('has_coffeeshop')) $types[] = 'coffeeshop';
+                            return $types;
+                        }),
                     
                     Forms\Components\Select::make('qr_type')
                         ->label('QR Type')
