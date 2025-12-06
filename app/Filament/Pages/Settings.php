@@ -31,8 +31,10 @@ class Settings extends Page implements HasForms
     {
         $this->form->fill([
             'carwash_reward_threshold' => SystemSetting::carwashRewardThreshold(),
+            'motorwash_reward_threshold' => SystemSetting::motorwashRewardThreshold(),
             'coffeeshop_reward_threshold' => SystemSetting::coffeeshopRewardThreshold(),
             'carwash_reward_message' => SystemSetting::carwashRewardMessage(),
+            'motorwash_reward_message' => SystemSetting::motorwashRewardMessage(),
             'coffeeshop_reward_message' => SystemSetting::coffeeshopRewardMessage(),
         ]);
     }
@@ -44,12 +46,17 @@ class Settings extends Page implements HasForms
                 Section::make('Current Configuration')
                     ->description('Overview of active loyalty program settings')
                     ->schema([
-                        Grid::make(2)
+                        Grid::make(3)
                             ->schema([
                                 Placeholder::make('current_carwash')
                                     ->label('Car Wash Threshold')
                                     ->content(fn () => SystemSetting::carwashRewardThreshold() . ' points')
                                     ->extraAttributes(['class' => 'text-xl font-bold text-blue-600']),
+                                
+                                Placeholder::make('current_motorwash')
+                                    ->label('Motor Wash Threshold')
+                                    ->content(fn () => SystemSetting::motorwashRewardThreshold() . ' points')
+                                    ->extraAttributes(['class' => 'text-xl font-bold text-purple-600']),
                                 
                                 Placeholder::make('current_coffeeshop')
                                     ->label('Coffee Shop Threshold')
@@ -79,6 +86,28 @@ class Settings extends Page implements HasForms
                             ->maxLength(100)
                             ->required()
                             ->default('DISKON CAR WASH'),
+                    ])
+                    ->columns(2),
+                
+                Section::make('Motor Wash Loyalty')
+                    ->description('Configure motor wash loyalty program')
+                    ->schema([
+                        TextInput::make('motorwash_reward_threshold')
+                            ->label('Reward Points Threshold')
+                            ->helperText('Number of points needed for motor wash reward')
+                            ->numeric()
+                            ->minValue(1)
+                            ->maxValue(100)
+                            ->required()
+                            ->suffix('points')
+                            ->default(5),
+                        
+                        TextInput::make('motorwash_reward_message')
+                            ->label('Reward Message')
+                            ->helperText('Text shown when reward is achieved')
+                            ->maxLength(100)
+                            ->required()
+                            ->default('DISKON CUCI MOTOR'),
                     ])
                     ->columns(2),
                 
@@ -127,6 +156,12 @@ class Settings extends Page implements HasForms
         );
 
         SystemSetting::set(
+            'motorwash_reward_threshold',
+            $data['motorwash_reward_threshold'],
+            'Points required for motor wash reward'
+        );
+
+        SystemSetting::set(
             'coffeeshop_reward_threshold',
             $data['coffeeshop_reward_threshold'],
             'Points required for coffee shop reward'
@@ -136,6 +171,12 @@ class Settings extends Page implements HasForms
             'carwash_reward_message',
             $data['carwash_reward_message'],
             'Reward message for car wash loyalty'
+        );
+
+        SystemSetting::set(
+            'motorwash_reward_message',
+            $data['motorwash_reward_message'],
+            'Reward message for motor wash loyalty'
         );
 
         SystemSetting::set(
