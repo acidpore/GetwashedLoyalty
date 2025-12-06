@@ -33,6 +33,12 @@ class QrCode extends Model
         'scan_count' => 'integer',
     ];
 
+    protected $appends = [
+        'has_carwash',
+        'has_motorwash',
+        'has_coffeeshop',
+    ];
+
     public function creator(): BelongsTo
     {
         return $this->belongsTo(User::class, 'created_by');
