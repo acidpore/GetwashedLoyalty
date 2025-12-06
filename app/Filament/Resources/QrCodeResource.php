@@ -26,16 +26,42 @@ class QrCodeResource extends Resource
         return $form->schema([
             Forms\Components\Section::make('QR Code Configuration')
                 ->schema([
-                    Forms\Components\CheckboxList::make('loyalty_types')
-                        ->label('Loyalty Programs')
-                        ->options([
-                            'carwash' => 'Cuci Mobil',
-                            'motorwash' => 'Cuci Motor',
-                            'coffeeshop' => 'Coffee Shop',
+                    Forms\Components\Grid::make(3)
+                        ->schema([
+                            // Column 1: Cuci Mobil
+                            Forms\Components\Group::make([
+                                Forms\Components\Checkbox::make('has_carwash')
+                                    ->label('Cuci Mobil'),
+                                Forms\Components\TextInput::make('thresholds.carwash')
+                                    ->label('Threshold')
+                                    ->numeric()
+                                    ->placeholder('e.g., 10')
+                                    ->visible(fn (Forms\Get $get) => $get('has_carwash')),
+                            ]),
+                            
+                            // Column 2: Cuci Motor
+                            Forms\Components\Group::make([
+                                Forms\Components\Checkbox::make('has_motorwash')
+                                    ->label('Cuci Motor'),
+                                Forms\Components\TextInput::make('thresholds.motorwash')
+                                    ->label('Threshold')
+                                    ->numeric()
+                                    ->placeholder('e.g., 10')
+                                    ->visible(fn (Forms\Get $get) => $get('has_motorwash')),
+                            ]),
+                            
+                            // Column 3: Coffee Shop
+                            Forms\Components\Group::make([
+                                Forms\Components\Checkbox::make('has_coffeeshop')
+                                    ->label('Coffee Shop'),
+                                Forms\Components\TextInput::make('thresholds.coffeeshop')
+                                    ->label('Threshold')
+                                    ->numeric()
+                                    ->placeholder('e.g., 5')
+                                    ->visible(fn (Forms\Get $get) => $get('has_coffeeshop')),
+                            ]),
                         ])
-                        ->required()
-                        ->columns(3)
-                        ->helperText('Pilih satu atau lebih program untuk QR Code ini'),
+                        ->columnSpanFull(),
                     
                     Forms\Components\Select::make('qr_type')
                         ->label('QR Type')

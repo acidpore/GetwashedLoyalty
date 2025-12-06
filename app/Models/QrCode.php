@@ -21,10 +21,12 @@ class QrCode extends Model
         'expires_at',
         'scan_count',
         'created_by',
+        'thresholds',
     ];
 
     protected $casts = [
         'loyalty_types' => 'array',
+        'thresholds' => 'array',
         'is_active' => 'boolean',
         'is_used' => 'boolean',
         'expires_at' => 'datetime',
@@ -88,5 +90,55 @@ class QrCode extends Model
     public function hasLoyaltyType(string $type): bool
     {
         return in_array($type, $this->loyalty_types ?? []);
+    }
+
+    // Accessors for individual loyalty program checkboxes
+    public function getHasCarwashAttribute(): bool
+    {
+        return $this->hasLoyaltyType('carwash');
+    }
+
+    public function getHasMotorwashAttribute(): bool
+    {
+        return $this->hasLoyaltyType('motorwash');
+    }
+
+    public function getHasCoffeeshopAttribute(): bool
+    {
+        return $this->hasLoyaltyType('coffeeshop');
+    }
+
+    // Mutators for individual loyalty program checkboxes
+    public function setHasCarwashAttribute($value): void
+    {
+        $types = $this->loyalty_types ?? [];
+        if ($value && !in_array('carwash', $types)) {
+            $types[] = 'carwash';
+        } elseif (!$value) {
+            $types = array_values(array_diff($types, ['carwash']));
+        }
+        $this->attributes['loyalty_types'] = json_encode($types);
+    }
+
+    public function setHasMotorwashAttribute($value): void
+    {
+        $types = $this->loyalty_types ?? [];
+        if ($value && !in_array('motorwash', $types)) {
+            $types[] = 'motorwash';
+        } elseif (!$value) {
+            $types = array_values(array_diff($types, ['motorwash']));
+        }
+        $this->attributes['loyalty_types'] = json_encode($types);
+    }
+
+    public function setHasCoffeeshopAttribute($value): void
+    {
+        $types = $this->loyalty_types ?? [];
+        if ($value && !in_array('coffeeshop', $types)) {
+            $types[] = 'coffeeshop';
+        } elseif (!$value) {
+            $types = array_values(array_diff($types, ['coffeeshop']));
+        }
+        $this->attributes['loyalty_types'] = json_encode($types);
     }
 }
