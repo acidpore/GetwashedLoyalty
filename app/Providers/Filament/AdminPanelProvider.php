@@ -6,6 +6,7 @@ use Filament\Http\Middleware\Authenticate;
 use Filament\Http\Middleware\AuthenticateSession;
 use Filament\Http\Middleware\DisableBladeIconComponents;
 use Filament\Http\Middleware\DispatchServingFilamentEvent;
+use Filament\Navigation\NavigationGroup;
 use Filament\Pages;
 use Filament\Panel;
 use Filament\PanelProvider;
@@ -32,9 +33,10 @@ class AdminPanelProvider extends PanelProvider
             ])
             ->sidebarCollapsibleOnDesktop()
             ->navigationGroups([
-                'Car Wash',
-                'Coffee Shop',
-                'Management',
+                NavigationGroup::make('Car Wash')->collapsible(),
+                NavigationGroup::make('Motor Wash')->collapsible(),
+                NavigationGroup::make('Coffee Shop')->collapsible(),
+                NavigationGroup::make('Management')->collapsible(),
             ])
             ->discoverResources(in: app_path('Filament/Resources'), for: 'App\\Filament\\Resources')
             ->discoverPages(in: app_path('Filament/Pages'), for: 'App\\Filament\\Pages')

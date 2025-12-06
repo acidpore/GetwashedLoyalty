@@ -38,35 +38,35 @@
         <main class="flex-grow flex items-center justify-center">
             <div class="w-full max-w-md space-y-4">
                 @php
-                    $showReward = $carwashReward || $coffeeshopReward;
+                    $showReward = $carwashReward || $motorwashReward || $coffeeshopReward;
+                    $loyaltyTypesArray = explode(',', request('loyalty_types', ''));
                 @endphp
 
                 @if($showReward)
                     <div class="bg-gradient-to-br from-green-400 to-emerald-600 rounded-2xl p-8 shadow-2xl text-center text-white">
-                        <div class="text-6xl mb-4">SELAMAT</div>
+                        <div class="text-6xl mb-4">🎉 SELAMAT 🎉</div>
                         <h1 class="text-3xl font-bold mb-2">{{ $name }}!</h1>
                         <p class="text-xl mb-6">Kamu Dapat Reward!</p>
                         
-                        @if($carwashReward && $coffeeshopReward)
-                            <div class="space-y-2">
+                        <div class="space-y-2">
+                            @if($carwashReward)
                                 <div class="bg-white/20 backdrop-blur-sm rounded-lg p-3">
-                                    <p class="font-semibold">DISKON CAR WASH</p>
+                                    <p class="font-semibold">🚗 DISKON CUCI MOBIL</p>
                                 </div>
+                            @endif
+                            @if($motorwashReward)
                                 <div class="bg-white/20 backdrop-blur-sm rounded-lg p-3">
-                                    <p class="font-semibold">GRATIS KOPI</p>
+                                    <p class="font-semibold">🏍️ DISKON CUCI MOTOR</p>
                                 </div>
-                            </div>
-                        @elseif($carwashReward)
-                            <div class="bg-white/20 backdrop-blur-sm rounded-lg p-4">
-                                <p class="text-2xl font-bold">DISKON CAR WASH</p>
-                            </div>
-                        @else
-                            <div class="bg-white/20 backdrop-blur-sm rounded-lg p-4">
-                                <p class="text-2xl font-bold">GRATIS KOPI</p>
-                            </div>
-                        @endif
+                            @endif
+                            @if($coffeeshopReward)
+                                <div class="bg-white/20 backdrop-blur-sm rounded-lg p-3">
+                                    <p class="font-semibold">☕ GRATIS KOPI</p>
+                                </div>
+                            @endif
+                        </div>
 
-                        <p class="mt-6 text-sm opacity-90">Tunjukkan pesan ini ke kasir</p>
+                        <p class="mt-6 text-sm opacity-90">Tunjukkan pesan WhatsApp ke kasir</p>
                     </div>
                 @else
                     <div class="bg-card-light dark:bg-card-dark rounded-2xl p-8 shadow-lg text-center">
@@ -78,14 +78,16 @@
                     </div>
                 @endif
 
-                @if($loyaltyType === 'both' || $loyaltyType === 'carwash')
+                @if(in_array('carwash', $loyaltyTypesArray) || count($loyaltyTypesArray) === 0)
                     <div class="bg-card-light dark:bg-card-dark rounded-xl p-6 shadow">
                         <div class="flex justify-between items-center mb-4">
-                            <h3 class="font-semibold text-text-light dark:text-text-dark">Car Wash Loyalty</h3>
-                            <span class="text-2xl font-bold text-primary">{{ $carwashPoints }}/5</span>
+                            <h3 class="font-semibold text-text-light dark:text-text-dark flex items-center gap-2">
+                                <span>🚗</span> Cuci Mobil
+                            </h3>
+                            <span class="text-2xl font-bold text-blue-600">{{ $carwashPoints }}/5</span>
                         </div>
                         <div class="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-3">
-                            <div class="bg-gradient-to-r from-blue-400 to-primary h-3 rounded-full transition-all" style="width: {{ ($carwashPoints / 5) * 100 }}%"></div>
+                            <div class="bg-gradient-to-r from-blue-400 to-blue-600 h-3 rounded-full transition-all" style="width: {{ ($carwashPoints / 5) * 100 }}%"></div>
                         </div>
                         @if(!$carwashReward)
                             <p class="text-sm text-subtext-light dark:text-subtext-dark mt-2">{{ 5 - $carwashPoints }} poin lagi untuk reward</p>
@@ -93,10 +95,29 @@
                     </div>
                 @endif
 
-                @if($loyaltyType === 'both' || $loyaltyType === 'coffeeshop')
+                @if(in_array('motorwash', $loyaltyTypesArray))
                     <div class="bg-card-light dark:bg-card-dark rounded-xl p-6 shadow">
                         <div class="flex justify-between items-center mb-4">
-                            <h3 class="font-semibold text-text-light dark:text-text-dark">Coffee Shop Loyalty</h3>
+                            <h3 class="font-semibold text-text-light dark:text-text-dark flex items-center gap-2">
+                                <span>🏍️</span> Cuci Motor
+                            </h3>
+                            <span class="text-2xl font-bold text-purple-600">{{ $motorwashPoints }}/5</span>
+                        </div>
+                        <div class="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-3">
+                            <div class="bg-gradient-to-r from-purple-400 to-purple-600 h-3 rounded-full transition-all" style="width: {{ ($motorwashPoints / 5) * 100 }}%"></div>
+                        </div>
+                        @if(!$motorwashReward)
+                            <p class="text-sm text-subtext-light dark:text-subtext-dark mt-2">{{ 5 - $motorwashPoints }} poin lagi untuk reward</p>
+                        @endif
+                    </div>
+                @endif
+
+                @if(in_array('coffeeshop', $loyaltyTypesArray) || count($loyaltyTypesArray) === 0)
+                    <div class="bg-card-light dark:bg-card-dark rounded-xl p-6 shadow">
+                        <div class="flex justify-between items-center mb-4">
+                            <h3 class="font-semibold text-text-light dark:text-text-dark flex items-center gap-2">
+                                <span>☕</span> Coffee Shop
+                            </h3>
                             <span class="text-2xl font-bold text-amber-600">{{ $coffeeshopPoints }}/5</span>
                         </div>
                         <div class="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-3">
@@ -115,7 +136,7 @@
                 </div>
 
                 <div class="bg-info-bg-light dark:bg-info-bg-dark rounded-lg p-4 text-center">
-                    <p class="text-sm text-info-text-light dark:text-info-text-dark">Notifikasi telah dikirim ke WhatsApp Anda</p>
+                    <p class="text-sm text-info-text-light dark:text-info-text-dark">✅ Notifikasi + Link Dashboard telah dikirim ke WhatsApp Anda</p>
                 </div>
             </div>
         </main>

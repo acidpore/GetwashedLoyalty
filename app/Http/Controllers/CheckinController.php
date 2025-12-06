@@ -21,7 +21,7 @@ class CheckinController extends Controller
 
     public function index(Request $request)
     {
-        $loyaltyType = $this->detectLoyaltyType($request);
+        $loyaltyTypes = $this->detectLoyaltyTypes($request);
         $qrCode = null;
 
         if ($request->has('code')) {
@@ -31,10 +31,10 @@ class CheckinController extends Controller
                 return redirect()->route('home')->with('error', 'QR Code tidak valid atau sudah kadaluarsa');
             }
 
-            $loyaltyType = $qrCode->loyalty_type;
+            $loyaltyTypes = $qrCode->loyalty_types ?? ['carwash'];
         }
 
-        return view('checkin', compact('loyaltyType', 'qrCode'));
+        return view('checkin', compact('loyaltyTypes', 'qrCode'));
     }
 
     public function store(Request $request)
@@ -42,12 +42,13 @@ class CheckinController extends Controller
         $validated = $request->validate([
             'name' => 'required|string|min:3|max:255',
             'phone' => 'required|string|min:10|max:15',
-            'loyalty_type' => 'required|in:carwash,coffeeshop,both',
+            'loyalty_types' => 'required|array',
+            'loyalty_types.*' => 'in:carwash,motorwash,coffeeshop',
             'qr_code' => 'nullable|string',
         ]);
 
         $normalizedPhone = $this->normalizePhone($validated['phone']);
-        $loyaltyType = $validated['loyalty_type'];
+        $loyaltyTypes = $validated['loyalty_types'];
 
         try {
             DB::beginTransaction();
@@ -55,31 +56,47 @@ class CheckinController extends Controller
             $user = $this->findOrCreateUser($normalizedPhone, $validated['name']);
             $customer = $this->findOrCreateCustomer($user->id);
 
-            if ($loyaltyType === 'both') {
-                $this->processMultiLoyaltyCheckin($customer, $request->ip());
-            } else {
-                $this->processSingleLoyaltyCheckin($customer, $loyaltyType, $request->ip());
+            $pointsEarned = 0;
+            foreach ($loyaltyTypes as $type) {
+                if ($customer->hasReward($type)) {
+                    $customer->resetPoints($type);
+                }
+                $customer->addPoints($type);
+                $pointsEarned++;
             }
+
+            VisitHistory::create([
+                'customer_id' => $customer->id,
+                'loyalty_types' => $loyaltyTypes,
+                'points_earned' => $pointsEarned,
+                'visited_at' => now(),
+                'ip_address' => $request->ip(),
+            ]);
 
             if ($validated['qr_code']) {
                 $this->qrCodeService->incrementScan($validated['qr_code']);
             }
 
+            $dashboardLink = $customer->fresh()->generateMagicLink();
+
             $this->whatsappService->sendLoyaltyNotification(
                 $normalizedPhone,
                 $user->name,
                 $customer->fresh(),
-                $loyaltyType
+                $loyaltyTypes,
+                $dashboardLink
             );
 
             DB::commit();
 
             return redirect()->route('success', [
                 'name' => $user->name,
-                'loyalty_type' => $loyaltyType,
+                'loyalty_types' => implode(',', $loyaltyTypes),
                 'carwash_points' => $customer->carwash_points,
+                'motorwash_points' => $customer->motorwash_points,
                 'coffeeshop_points' => $customer->coffeeshop_points,
                 'carwash_reward' => $customer->hasReward('carwash'),
+                'motorwash_reward' => $customer->hasReward('motorwash'),
                 'coffeeshop_reward' => $customer->hasReward('coffeeshop'),
             ]);
 
@@ -90,14 +107,15 @@ class CheckinController extends Controller
         }
     }
 
-    private function detectLoyaltyType(Request $request): string
+    private function detectLoyaltyTypes(Request $request): array
     {
         if ($request->has('code')) {
             $qr = QrCode::where('code', $request->code)->first();
-            return $qr?->loyalty_type ?? 'carwash';
+            return $qr?->loyalty_types ?? ['carwash'];
         }
 
-        return $request->get('type', 'carwash');
+        $type = $request->get('type', 'carwash');
+        return [$type];
     }
 
     private function processSingleLoyaltyCheckin(Customer $customer, string $type, string $ip): void
@@ -110,7 +128,7 @@ class CheckinController extends Controller
 
         VisitHistory::create([
             'customer_id' => $customer->id,
-            'loyalty_type' => $type,
+            'loyalty_types' => [$type],
             'points_earned' => 1,
             'visited_at' => now(),
             'ip_address' => $ip,
@@ -132,7 +150,7 @@ class CheckinController extends Controller
 
         VisitHistory::create([
             'customer_id' => $customer->id,
-            'loyalty_type' => 'both',
+            'loyalty_types' => ['carwash', 'coffeeshop'],
             'points_earned' => 2,
             'visited_at' => now(),
             'ip_address' => $ip,
@@ -175,6 +193,8 @@ class CheckinController extends Controller
             [
                 'carwash_points' => 0,
                 'carwash_total_visits' => 0,
+                'motorwash_points' => 0,
+                'motorwash_total_visits' => 0,
                 'coffeeshop_points' => 0,
                 'coffeeshop_total_visits' => 0,
             ]

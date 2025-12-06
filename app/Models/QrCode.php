@@ -12,7 +12,7 @@ class QrCode extends Model
 
     protected $fillable = [
         'code',
-        'loyalty_type',
+        'loyalty_types',
         'qr_type',
         'name',
         'location',
@@ -24,6 +24,7 @@ class QrCode extends Model
     ];
 
     protected $casts = [
+        'loyalty_types' => 'array',
         'is_active' => 'boolean',
         'is_used' => 'boolean',
         'expires_at' => 'datetime',
@@ -66,13 +67,26 @@ class QrCode extends Model
         return true;
     }
 
-    public function getLoyaltyTypeLabel(): string
+    public function getLoyaltyTypesString(): string
     {
-        return match($this->loyalty_type) {
-            'carwash' => 'Car Wash',
-            'coffeeshop' => 'Coffee Shop',
-            'both' => 'Both',
-            default => 'Unknown',
-        };
+        if (empty($this->loyalty_types)) {
+            return 'None';
+        }
+
+        $labels = array_map(function($type) {
+            return match($type) {
+                'carwash' => 'Cuci Mobil',
+                'motorwash' => 'Cuci Motor',
+                'coffeeshop' => 'Coffee Shop',
+                default => ucfirst($type),
+            };
+        }, $this->loyalty_types);
+
+        return implode(', ', $labels);
+    }
+
+    public function hasLoyaltyType(string $type): bool
+    {
+        return in_array($type, $this->loyalty_types ?? []);
     }
 }

@@ -13,7 +13,7 @@ class VisitHistory extends Model
 
     protected $fillable = [
         'customer_id',
-        'loyalty_type',
+        'loyalty_types',
         'points_earned',
         'visited_at',
         'ip_address',
@@ -21,7 +21,7 @@ class VisitHistory extends Model
 
     protected $casts = [
         'visited_at' => 'datetime',
-        'loyalty_type' => 'string',
+        'loyalty_types' => 'array',
         'points_earned' => 'integer',
     ];
 
@@ -32,20 +32,22 @@ class VisitHistory extends Model
 
     public function scopeCarwash(Builder $query): void
     {
-        $query->whereIn('loyalty_type', ['carwash', 'both']);
+        $query->whereJsonContains('loyalty_types', 'carwash');
+    }
+
+    public function scopeMotorwash(Builder $query): void
+    {
+        $query->whereJsonContains('loyalty_types', 'motorwash');
     }
 
     public function scopeCoffeeshop(Builder $query): void
     {
-        $query->whereIn('loyalty_type', ['coffeeshop', 'both']);
+        $query->whereJsonContains('loyalty_types', 'coffeeshop');
     }
 
     public function scopeByLoyaltyType(Builder $query, string $type): void
     {
-        if ($type === 'both') {
-            $query->where('loyalty_type', 'both');
-        } else {
-            $query->whereIn('loyalty_type', [$type, 'both']);
-        }
+        $query->whereJsonContains('loyalty_types', $type);
     }
+
 }

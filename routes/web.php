@@ -32,6 +32,10 @@ Route::middleware('guest')->group(function () {
     Route::post('/login/admin', [LoginController::class, 'adminLogin'])->name('login.admin');
 });
 
+// Magic Link Login (from WhatsApp)
+Route::get('/dashboard/magic/{token}', [CustomerDashboardController::class, 'magicLogin'])
+    ->name('customer.magic.login');
+
 // Logout
 Route::post('/logout', [LoginController::class, 'logout'])->name('logout')->middleware('auth');
 

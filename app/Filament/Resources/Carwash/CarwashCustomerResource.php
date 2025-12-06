@@ -17,7 +17,7 @@ class CarwashCustomerResource extends Resource
     protected static ?string $navigationIcon = 'heroicon-o-user-group';
     protected static ?string $navigationLabel = 'Customers';
     protected static ?string $navigationGroup = 'Car Wash';
-    protected static ?int $navigationSort = 10;
+    protected static ?int $navigationSort = 30;
     protected static ?string $modelLabel = 'Car Wash Customer';
     protected static ?string $pluralModelLabel = 'Car Wash Customers';
 

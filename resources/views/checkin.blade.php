@@ -67,18 +67,28 @@
                         <span class="material-symbols-outlined text-white text-4xl">check_circle</span>
                     </div>
                     <h1 class="text-2xl font-bold text-text-light dark:text-text-dark">Check-In Sekarang</h1>
-                    <p class="text-subtext-light dark:text-subtext-dark mt-2 mb-2">
-                        @if($loyaltyType === 'carwash')
-                            Car Wash Loyalty
-                        @elseif($loyaltyType === 'coffeeshop')
-                            Coffee Shop Loyalty
-                        @else
-                            Car Wash + Coffee Shop
-                        @endif
-                    </p>
-                    @if($loyaltyType === 'both')
-                        <div class="flex items-center gap-2 mb-4 px-3 py-1 bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-300 rounded-lg text-sm font-medium">
-                            Double Points
+                    
+                    <div class="mt-3 mb-4 flex flex-wrap gap-2 justify-center">
+                        @foreach($loyaltyTypes as $type)
+                            @if($type === 'carwash')
+                                <span class="px-3 py-1 bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 rounded-lg text-sm font-medium">
+                                    🚗 Cuci Mobil
+                                </span>
+                            @elseif($type === 'motorwash')
+                                <span class="px-3 py-1 bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-300 rounded-lg text-sm font-medium">
+                                    🏍️ Cuci Motor
+                                </span>
+                            @elseif($type === 'coffeeshop')
+                                <span class="px-3 py-1 bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-300 rounded-lg text-sm font-medium">
+                                    ☕ Coffee Shop
+                                </span>
+                            @endif
+                        @endforeach
+                    </div>
+
+                    @if(count($loyaltyTypes) > 1)
+                        <div class="flex items-center gap-2 px-3 py-1 bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-300 rounded-lg text-sm font-medium">
+                            🎁 {{ count($loyaltyTypes) }}x Poin!
                         </div>
                     @endif
                 </div>
@@ -95,9 +105,11 @@
                     </div>
                 @endif
 
-                <form method="POST" action="{{ route('checkin.store') }}" class="space-y-6">
+                <form method="POST" action="{{ route('checkin.store') }}" class="space-y-6 mt-6">
                     @csrf
-                    <input type="hidden" name="loyalty_type" value="{{ $loyaltyType }}">
+                    @foreach($loyaltyTypes as $type)
+                        <input type="hidden" name="loyalty_types[]" value="{{ $type }}">
+                    @endforeach
                     @if($qrCode)
                         <input type="hidden" name="qr_code" value="{{ $qrCode->code }}">
                     @endif
@@ -138,7 +150,7 @@
 
                 <div class="mt-6 flex items-start gap-3 p-4 bg-info-bg-light dark:bg-info-bg-dark rounded-lg">
                     <span class="material-symbols-outlined text-info-text-light dark:text-info-text-dark mt-0.5">info</span>
-                    <p class="text-sm text-info-text-light dark:text-info-text-dark">Poin akan langsung masuk dan notifikasi dikirim ke WhatsApp Anda</p>
+                    <p class="text-sm text-info-text-light dark:text-info-text-dark">Poin akan langsung masuk dan notifikasi + link dashboard dikirim ke WhatsApp Anda</p>
                 </div>
             </div>
         </main>

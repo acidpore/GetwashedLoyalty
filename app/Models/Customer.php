@@ -16,16 +16,25 @@ class Customer extends Model
         'carwash_points',
         'carwash_total_visits',
         'carwash_last_visit_at',
+        'motorwash_points',
+        'motorwash_total_visits',
+        'motorwash_last_visit_at',
         'coffeeshop_points',
         'coffeeshop_total_visits',
         'coffeeshop_last_visit_at',
+        'dashboard_token',
+        'token_expires_at',
     ];
 
     protected $casts = [
         'carwash_last_visit_at' => 'datetime',
+        'motorwash_last_visit_at' => 'datetime',
         'coffeeshop_last_visit_at' => 'datetime',
+        'token_expires_at' => 'datetime',
         'carwash_points' => 'integer',
         'carwash_total_visits' => 'integer',
+        'motorwash_points' => 'integer',
+        'motorwash_total_visits' => 'integer',
         'coffeeshop_points' => 'integer',
         'coffeeshop_total_visits' => 'integer',
     ];
@@ -44,6 +53,7 @@ class Customer extends Model
     {
         return match($loyaltyType) {
             'carwash' => $this->carwash_points,
+            'motorwash' => $this->motorwash_points,
             'coffeeshop' => $this->coffeeshop_points,
             default => 0,
         };
@@ -53,6 +63,7 @@ class Customer extends Model
     {
         $threshold = match($loyaltyType) {
             'carwash' => SystemSetting::get('carwash_reward_threshold', 5),
+            'motorwash' => SystemSetting::get('motorwash_reward_threshold', 5),
             'coffeeshop' => SystemSetting::get('coffeeshop_reward_threshold', 5),
             default => 5,
         };
@@ -64,6 +75,7 @@ class Customer extends Model
     {
         $threshold = match($loyaltyType) {
             'carwash' => SystemSetting::get('carwash_reward_threshold', 5),
+            'motorwash' => SystemSetting::get('motorwash_reward_threshold', 5),
             'coffeeshop' => SystemSetting::get('coffeeshop_reward_threshold', 5),
             default => 5,
         };
@@ -75,6 +87,7 @@ class Customer extends Model
     {
         match($loyaltyType) {
             'carwash' => $this->addCarwashPoints($points),
+            'motorwash' => $this->addMotorwashPoints($points),
             'coffeeshop' => $this->addCoffeeshopPoints($points),
             default => null,
         };
@@ -84,6 +97,7 @@ class Customer extends Model
     {
         match($loyaltyType) {
             'carwash' => $this->update(['carwash_points' => 0]),
+            'motorwash' => $this->update(['motorwash_points' => 0]),
             'coffeeshop' => $this->update(['coffeeshop_points' => 0]),
             default => null,
         };
@@ -96,11 +110,30 @@ class Customer extends Model
         $this->update(['carwash_last_visit_at' => now()]);
     }
 
+    private function addMotorwashPoints(int $points = 1): void
+    {
+        $this->increment('motorwash_points', $points);
+        $this->increment('motorwash_total_visits');
+        $this->update(['motorwash_last_visit_at' => now()]);
+    }
+
     private function addCoffeeshopPoints(int $points = 1): void
     {
         $this->increment('coffeeshop_points', $points);
         $this->increment('coffeeshop_total_visits');
         $this->update(['coffeeshop_last_visit_at' => now()]);
+    }
+
+    public function generateMagicLink(): string
+    {
+        $token = \Illuminate\Support\Str::random(64);
+        
+        $this->update([
+            'dashboard_token' => $token,
+            'token_expires_at' => now()->addDays(7),
+        ]);
+        
+        return route('customer.magic.login', ['token' => $token]);
     }
 }
 

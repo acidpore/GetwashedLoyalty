@@ -25,7 +25,7 @@
         <div class="space-y-3 mb-6">
             <div class="flex justify-between py-2 border-b">
                 <span class="font-medium text-gray-700">Type:</span>
-                <span class="text-gray-900">{{ $qrCode->getLoyaltyTypeLabel() }}</span>
+                <span class="text-gray-900">{{ $qrCode->getLoyaltyTypesString() }}</span>
             </div>
             <div class="flex justify-between py-2 border-b">
                 <span class="font-medium text-gray-700">Code:</span>

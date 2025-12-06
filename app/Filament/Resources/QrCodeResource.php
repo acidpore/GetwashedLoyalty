@@ -17,7 +17,7 @@ class QrCodeResource extends Resource
     protected static ?string $navigationIcon = 'heroicon-o-qr-code';
     protected static ?string $navigationLabel = 'QR Code Manager';
     protected static ?string $navigationGroup = 'Management';
-    protected static ?int $navigationSort = 30;
+    protected static ?int $navigationSort = 61;
     protected static ?string $modelLabel = 'QR Code';
     protected static ?string $pluralModelLabel = 'QR Codes';
 
@@ -26,15 +26,16 @@ class QrCodeResource extends Resource
         return $form->schema([
             Forms\Components\Section::make('QR Code Configuration')
                 ->schema([
-                    Forms\Components\Select::make('loyalty_type')
-                        ->label('Loyalty Type')
+                    Forms\Components\CheckboxList::make('loyalty_types')
+                        ->label('Loyalty Programs')
                         ->options([
-                            'carwash' => 'Car Wash Only',
-                            'coffeeshop' => 'Coffee Shop Only',
-                            'both' => 'Both (Combined)',
+                            'carwash' => 'Cuci Mobil',
+                            'motorwash' => 'Cuci Motor',
+                            'coffeeshop' => 'Coffee Shop',
                         ])
                         ->required()
-                        ->default('carwash'),
+                        ->columns(3)
+                        ->helperText('Pilih satu atau lebih program untuk QR Code ini'),
                     
                     Forms\Components\Select::make('qr_type')
                         ->label('QR Type')
@@ -77,18 +78,21 @@ class QrCodeResource extends Resource
                     ->copyable()
                     ->fontFamily('mono'),
                 
-                Tables\Columns\BadgeColumn::make('loyalty_type')
-                    ->label('Type')
-                    ->colors([
-                        'primary' => 'carwash',
-                        'warning' => 'coffeeshop',
-                        'success' => 'both',
-                    ])
-                    ->formatStateUsing(fn ($state) => match($state) {
-                        'carwash' => 'Car Wash',
-                        'coffeeshop' => 'Coffee Shop',
-                        'both' => 'Both',
-                    }),
+                Tables\Columns\TextColumn::make('loyalty_types')
+                    ->label('Programs')
+                    ->formatStateUsing(function ($state) {
+                        if (!is_array($state) || empty($state)) {
+                            return '—';
+                        }
+                        
+                        return collect($state)->map(fn($type) => match($type) {
+                            'carwash' => 'Cuci Mobil',
+                            'motorwash' => 'Cuci Motor',
+                            'coffeeshop' => 'Coffee Shop',
+                            default => ucfirst($type),
+                        })->join(', ');
+                    })
+                    ->wrap(),
                 
                 Tables\Columns\TextColumn::make('name')
                     ->label('Name')
@@ -101,7 +105,7 @@ class QrCodeResource extends Resource
                     ->default('—'),
                 
                 Tables\Columns\BadgeColumn::make('qr_type')
-                    ->label('QR Type')
+                    ->label('Type')
                     ->colors([
                         'success' => 'permanent',
                         'warning' => 'onetime',
@@ -122,13 +126,6 @@ class QrCodeResource extends Resource
                     ->sortable(),
             ])
             ->filters([
-                Tables\Filters\SelectFilter::make('loyalty_type')
-                    ->options([
-                        'carwash' => 'Car Wash',
-                        'coffeeshop' => 'Coffee Shop',
-                        'both' => 'Both',
-                    ]),
-                
                 Tables\Filters\SelectFilter::make('qr_type')
                     ->options([
                         'permanent' => 'Permanent',
@@ -142,25 +139,31 @@ class QrCodeResource extends Resource
                     ->falseLabel('Inactive Only'),
             ])
             ->actions([
-                Tables\Actions\ViewAction::make()
-                    ->label('View QR')
-                    ->icon('heroicon-o-eye'),
-                
-                Tables\Actions\Action::make('view_url')
-                    ->label('View URL')
-                    ->icon('heroicon-o-link')
-                    ->url(fn (QrCode $record) => $record->url)
-                    ->openUrlInNewTab(),
+                Tables\Actions\ActionGroup::make([
+                    Tables\Actions\ViewAction::make()
+                        ->label('View QR')
+                        ->icon('heroicon-o-eye'),
+                    
+                    Tables\Actions\Action::make('view_url')
+                        ->label('View URL')
+                        ->icon('heroicon-o-link')
+                        ->url(fn (QrCode $record) => $record->url)
+                        ->openUrlInNewTab(),
+                    
+                    Tables\Actions\Action::make('toggle_active')
+                        ->label(fn (QrCode $record) => $record->is_active ? 'Deactivate' : 'Activate')
+                        ->icon('heroicon-o-power')
+                        ->color(fn (QrCode $record) => $record->is_active ? 'danger' : 'success')
+                        ->action(fn (QrCode $record) => $record->update(['is_active' => !$record->is_active]))
+                        ->requiresConfirmation(),
+                ])
+                ->label('Aksi')
+                ->icon('heroicon-m-ellipsis-vertical')
+                ->size('sm')
+                ->color('primary')
+                ->button(),
                 
                 Tables\Actions\EditAction::make(),
-                
-                Tables\Actions\Action::make('toggle_active')
-                    ->label(fn (QrCode $record) => $record->is_active ? 'Deactivate' : 'Activate')
-                    ->icon('heroicon-o-power')
-                    ->color(fn (QrCode $record) => $record->is_active ? 'danger' : 'success')
-                    ->action(fn (QrCode $record) => $record->update(['is_active' => !$record->is_active]))
-                    ->requiresConfirmation(),
-                
                 Tables\Actions\DeleteAction::make(),
             ])
             ->defaultSort('created_at', 'desc');
@@ -177,19 +180,15 @@ class QrCodeResource extends Resource
                             ->copyable()
                             ->icon('heroicon-o-clipboard'),
                         
-                        \Filament\Infolists\Components\TextEntry::make('loyalty_type')
-                            ->label('Loyalty Type')
-                            ->badge()
-                            ->color(fn ($state) => match($state) {
-                                'carwash' => 'primary',
-                                'coffeeshop' => 'warning',
-                                'both' => 'success',
-                            })
-                            ->formatStateUsing(fn ($state) => match($state) {
-                                'carwash' => 'Car Wash',
+                        \Filament\Infolists\Components\TextEntry::make('loyalty_types')
+                            ->label('Loyalty Programs')
+                            ->formatStateUsing(fn ($state) => collect($state)->map(fn($type) => match($type) {
+                                'carwash' => 'Cuci Mobil',
+                                'motorwash' => 'Cuci Motor',
                                 'coffeeshop' => 'Coffee Shop',
-                                'both' => 'Both',
-                            }),
+                                default => $type,
+                            })->join(', '))
+                            ->badge(),
                         
                         \Filament\Infolists\Components\TextEntry::make('qr_type')
                             ->label('QR Type')
