@@ -106,19 +106,29 @@ class QrCodeResource extends Resource
                 
                 Tables\Columns\TextColumn::make('loyalty_types')
                     ->label('Programs')
-                    ->formatStateUsing(function ($state) {
-                        if (!is_array($state) || empty($state)) {
-                            return '—';
+                    ->getStateUsing(function ($record) {
+                        $types = $record->getAttributes()['loyalty_types'] ?? null;
+                        
+                        if (!$types) {
+                            return ['—'];
                         }
                         
-                        return collect($state)->map(fn($type) => match($type) {
+                        $decoded = is_string($types) ? json_decode($types, true) : $types;
+                        
+                        if (!is_array($decoded) || empty($decoded)) {
+                            return ['—'];
+                        }
+                        
+                        return collect($decoded)->map(fn($type) => match($type) {
                             'carwash' => 'Cuci Mobil',
                             'motorwash' => 'Cuci Motor',
                             'coffeeshop' => 'Coffee Shop',
                             default => ucfirst($type),
-                        })->join(', ');
+                        })->toArray();
                     })
-                    ->wrap(),
+                    ->badge()
+                    ->separator(','),
+
                 
                 Tables\Columns\TextColumn::make('name')
                     ->label('Name')
@@ -208,6 +218,7 @@ class QrCodeResource extends Resource
                         
                         \Filament\Infolists\Components\TextEntry::make('loyalty_types')
                             ->label('Loyalty Programs')
+                            ->state(fn ($record) => $record->loyalty_types)
                             ->formatStateUsing(fn ($state) => collect($state)->map(fn($type) => match($type) {
                                 'carwash' => 'Cuci Mobil',
                                 'motorwash' => 'Cuci Motor',

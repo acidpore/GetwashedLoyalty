@@ -123,7 +123,7 @@ class QrCode extends Model
         } elseif (!$value) {
             $types = array_values(array_diff($types, ['carwash']));
         }
-        $this->attributes['loyalty_types'] = json_encode($types);
+        $this->setAttribute('loyalty_types', $types);
     }
 
     public function setHasMotorwashAttribute($value): void
@@ -134,7 +134,7 @@ class QrCode extends Model
         } elseif (!$value) {
             $types = array_values(array_diff($types, ['motorwash']));
         }
-        $this->attributes['loyalty_types'] = json_encode($types);
+        $this->setAttribute('loyalty_types', $types);
     }
 
     public function setHasCoffeeshopAttribute($value): void
@@ -145,6 +145,6 @@ class QrCode extends Model
         } elseif (!$value) {
             $types = array_values(array_diff($types, ['coffeeshop']));
         }
-        $this->attributes['loyalty_types'] = json_encode($types);
+        $this->setAttribute('loyalty_types', $types);
     }
 }
