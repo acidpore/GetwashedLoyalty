@@ -6,6 +6,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Support\Facades\Cache;
 
 class Customer extends Model
 {
@@ -39,6 +40,23 @@ class Customer extends Model
         'coffeeshop_total_visits' => 'integer',
     ];
 
+    protected static function boot()
+    {
+        parent::boot();
+        
+        static::created(fn () => self::clearDashboardCache());
+        static::updated(fn () => self::clearDashboardCache());
+        static::deleted(fn () => self::clearDashboardCache());
+    }
+
+    public static function clearDashboardCache(): void
+    {
+        Cache::forget('dashboard_loyalty_stats');
+        Cache::forget('dashboard_carwash_stats');
+        Cache::forget('dashboard_coffeeshop_stats');
+        Cache::forget('dashboard_motorwash_stats');
+    }
+
     public function user(): BelongsTo
     {
         return $this->belongsTo(User::class);
@@ -62,9 +80,9 @@ class Customer extends Model
     public function hasReward(string $loyaltyType): bool
     {
         $threshold = match($loyaltyType) {
-            'carwash' => SystemSetting::get('carwash_reward_threshold', 5),
-            'motorwash' => SystemSetting::get('motorwash_reward_threshold', 5),
-            'coffeeshop' => SystemSetting::get('coffeeshop_reward_threshold', 5),
+            'carwash' => SystemSetting::carwashRewardThreshold(),
+            'motorwash' => SystemSetting::motorwashRewardThreshold(),
+            'coffeeshop' => SystemSetting::coffeeshopRewardThreshold(),
             default => 5,
         };
 
@@ -74,9 +92,9 @@ class Customer extends Model
     public function pointsUntilReward(string $loyaltyType): int
     {
         $threshold = match($loyaltyType) {
-            'carwash' => SystemSetting::get('carwash_reward_threshold', 5),
-            'motorwash' => SystemSetting::get('motorwash_reward_threshold', 5),
-            'coffeeshop' => SystemSetting::get('coffeeshop_reward_threshold', 5),
+            'carwash' => SystemSetting::carwashRewardThreshold(),
+            'motorwash' => SystemSetting::motorwashRewardThreshold(),
+            'coffeeshop' => SystemSetting::coffeeshopRewardThreshold(),
             default => 5,
         };
 
@@ -136,4 +154,3 @@ class Customer extends Model
         return route('customer.magic.login', ['token' => $token]);
     }
 }
-

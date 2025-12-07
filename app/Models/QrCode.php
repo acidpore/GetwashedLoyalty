@@ -5,6 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Support\Facades\Cache;
 
 class QrCode extends Model
 {
@@ -32,6 +33,16 @@ class QrCode extends Model
         'expires_at' => 'datetime',
         'scan_count' => 'integer',
     ];
+
+    protected static function boot()
+    {
+        parent::boot();
+        
+        static::created(fn () => Cache::forget('dashboard_loyalty_stats'));
+        static::updated(fn () => Cache::forget('dashboard_loyalty_stats'));
+        static::deleted(fn () => Cache::forget('dashboard_loyalty_stats'));
+    }
+
 
     protected $appends = [
         'has_carwash',

@@ -6,6 +6,7 @@ use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Support\Facades\Cache;
 
 class VisitHistory extends Model
 {
@@ -24,6 +25,14 @@ class VisitHistory extends Model
         'loyalty_types' => 'array',
         'points_earned' => 'integer',
     ];
+
+    protected static function boot()
+    {
+        parent::boot();
+        
+        static::created(fn () => Cache::forget('dashboard_loyalty_stats'));
+        static::deleted(fn () => Cache::forget('dashboard_loyalty_stats'));
+    }
 
     public function customer(): BelongsTo
     {
@@ -49,5 +58,4 @@ class VisitHistory extends Model
     {
         $query->whereJsonContains('loyalty_types', $type);
     }
-
 }

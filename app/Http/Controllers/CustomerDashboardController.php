@@ -10,6 +10,11 @@ class CustomerDashboardController extends Controller
     public function index()
     {
         $user = auth()->user();
+        
+        if ($user->isAdmin()) {
+            return redirect('/admin');
+        }
+        
         $customer = $user->customer;
 
         if (!$customer) {
