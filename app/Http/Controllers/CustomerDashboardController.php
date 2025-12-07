@@ -27,14 +27,44 @@ class CustomerDashboardController extends Controller
             ->take(10)
             ->get();
 
-        $threshold = SystemSetting::rewardPointsThreshold();
+        $loyaltyPrograms = [
+            [
+                'name' => 'Car Wash',
+                'type' => 'carwash',
+                'points' => $customer->carwash_points,
+                'threshold' => SystemSetting::carwashRewardThreshold(),
+                'message' => SystemSetting::carwashRewardMessage(),
+                'has_reward' => $customer->hasReward('carwash'),
+                'icon' => 'car',
+                'gradient' => 'from-blue-400 to-blue-600',
+            ],
+            [
+                'name' => 'Motor Wash',
+                'type' => 'motorwash',
+                'points' => $customer->motorwash_points,
+                'threshold' => SystemSetting::motorwashRewardThreshold(),
+                'message' => SystemSetting::motorwashRewardMessage(),
+                'has_reward' => $customer->hasReward('motorwash'),
+                'icon' => 'motorcycle',
+                'gradient' => 'from-orange-400 to-red-500',
+            ],
+            [
+                'name' => 'Coffee Shop',
+                'type' => 'coffeeshop',
+                'points' => $customer->coffeeshop_points,
+                'threshold' => SystemSetting::coffeeshopRewardThreshold(),
+                'message' => SystemSetting::coffeeshopRewardMessage(),
+                'has_reward' => $customer->hasReward('coffeeshop'),
+                'icon' => 'coffee',
+                'gradient' => 'from-emerald-400 to-teal-600',
+            ],
+        ];
 
         return view('dashboard.customer', [
             'customer' => $customer,
             'user' => $user,
             'recentVisits' => $recentVisits,
-            'pointsToReward' => max(0, $threshold - $customer->current_points),
-            'hasReward' => $customer->current_points >= $threshold,
+            'loyaltyPrograms' => $loyaltyPrograms,
         ]);
     }
     public function magicLogin(Request $request, string $token)
