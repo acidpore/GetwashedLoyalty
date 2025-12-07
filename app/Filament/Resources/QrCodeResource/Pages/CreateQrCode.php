@@ -13,6 +13,16 @@ class CreateQrCode extends CreateRecord
 
     protected function mutateFormDataBeforeCreate(array $data): array
     {
+        if (empty($data['loyalty_types'])) {
+            Notification::make()
+                ->danger()
+                ->title('Validation Error')
+                ->body('Pilih minimal satu program loyalty (Cuci Mobil, Cuci Motor, atau Coffee Shop)')
+                ->send();
+            
+            $this->halt();
+        }
+        
         $qrCodeService = app(QrCodeService::class);
         $data['code'] = $qrCodeService->generateUniqueCode();
         $data['created_by'] = auth()->id();

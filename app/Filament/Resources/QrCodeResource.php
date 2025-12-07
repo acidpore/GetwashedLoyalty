@@ -95,10 +95,7 @@ class QrCodeResource extends Resource
                             if ($get('has_motorwash')) $types[] = 'motorwash';
                             if ($get('has_coffeeshop')) $types[] = 'coffeeshop';
                             return $types;
-                        })
-                        ->required()
-                        ->rule('array')
-                        ->rule('min:1'),
+                        }),
                     
                     Forms\Components\TextInput::make('name')
                         ->label('QR Name')
