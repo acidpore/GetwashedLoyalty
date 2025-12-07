@@ -123,23 +123,53 @@ class Customer extends Model
 
     private function addCarwashPoints(int $points = 1): void
     {
-        $this->increment('carwash_points', $points);
+        $currentPoints = $this->carwash_points;
+        $threshold = SystemSetting::carwashRewardThreshold();
+        $newPoints = $currentPoints + $points;
+
+        if ($newPoints > $threshold) {
+            $newPoints = $threshold;
+        }
+
+        $this->update([
+            'carwash_points' => $newPoints,
+            'carwash_last_visit_at' => now()
+        ]);
         $this->increment('carwash_total_visits');
-        $this->update(['carwash_last_visit_at' => now()]);
     }
 
     private function addMotorwashPoints(int $points = 1): void
     {
-        $this->increment('motorwash_points', $points);
+        $currentPoints = $this->motorwash_points;
+        $threshold = SystemSetting::motorwashRewardThreshold();
+        $newPoints = $currentPoints + $points;
+
+        if ($newPoints > $threshold) {
+            $newPoints = $threshold;
+        }
+
+        $this->update([
+            'motorwash_points' => $newPoints,
+            'motorwash_last_visit_at' => now()
+        ]);
         $this->increment('motorwash_total_visits');
-        $this->update(['motorwash_last_visit_at' => now()]);
     }
 
     private function addCoffeeshopPoints(int $points = 1): void
     {
-        $this->increment('coffeeshop_points', $points);
+        $currentPoints = $this->coffeeshop_points;
+        $threshold = SystemSetting::coffeeshopRewardThreshold();
+        $newPoints = $currentPoints + $points;
+
+        if ($newPoints > $threshold) {
+            $newPoints = $threshold;
+        }
+
+        $this->update([
+            'coffeeshop_points' => $newPoints,
+            'coffeeshop_last_visit_at' => now()
+        ]);
         $this->increment('coffeeshop_total_visits');
-        $this->update(['coffeeshop_last_visit_at' => now()]);
     }
 
     public function generateMagicLink(): string
