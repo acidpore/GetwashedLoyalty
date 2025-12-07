@@ -25,7 +25,7 @@ class BroadcastMessage extends Page
 
     protected static ?string $title = 'WhatsApp Broadcast';
 
-    protected static ?int $navigationSort = 50;
+    protected static ?int $navigationSort = 20;
 
     protected static string $view = 'filament.pages.broadcast-message';
 

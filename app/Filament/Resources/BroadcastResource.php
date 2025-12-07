@@ -15,7 +15,7 @@ class BroadcastResource extends Resource
     protected static ?string $navigationIcon = 'heroicon-o-chat-bubble-left-right';
     protected static ?string $navigationLabel = 'Broadcast Messages';
     protected static ?string $navigationGroup = 'Management';
-    protected static ?int $navigationSort = 33;
+    protected static ?int $navigationSort = 62;
     protected static ?string $modelLabel = 'Broadcast';
 
     public static function form(Form $form): Form

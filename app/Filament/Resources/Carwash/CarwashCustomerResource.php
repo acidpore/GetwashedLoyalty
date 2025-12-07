@@ -99,6 +99,95 @@ class CarwashCustomerResource extends Resource
                     })
                     ->requiresConfirmation(),
             ])
+            ->headerActions([
+                Tables\Actions\Action::make('import')
+                    ->label('Import CSV')
+                    ->icon('heroicon-o-arrow-up-tray')
+                    ->color('primary')
+                    ->form([
+                        Forms\Components\FileUpload::make('file')
+                            ->label('Upload CSV File')
+                            ->acceptedFileTypes(['text/csv', 'text/plain'])
+                            ->required()
+                            ->helperText('Format: Name, Phone, Points, Total Visits'),
+                    ])
+                    ->action(function (array $data) {
+                        $file = storage_path('app/public/' . $data['file']);
+                        $imported = 0;
+                        $errors = [];
+
+                        if (($handle = fopen($file, 'r')) !== false) {
+                            $header = fgetcsv($handle);
+                            
+                            while (($row = fgetcsv($handle)) !== false) {
+                                try {
+                                    $user = \App\Models\User::firstOrCreate(
+                                        ['phone' => $row[1]],
+                                        ['name' => $row[0]]
+                                    );
+                                    
+                                    $customer = Customer::firstOrCreate(['user_id' => $user->id]);
+                                    $customer->carwash_points = $row[2] ?? 0;
+                                    $customer->carwash_total_visits = $row[3] ?? 0;
+                                    $customer->save();
+                                    
+                                    $imported++;
+                                } catch (\Exception $e) {
+                                    $errors[] = "Row error: {$row[0]} - {$e->getMessage()}";
+                                }
+                            }
+                            fclose($handle);
+                        }
+
+                        \Filament\Notifications\Notification::make()
+                            ->title('Import Completed')
+                            ->body("Imported {$imported} customers" . (count($errors) > 0 ? ". Errors: " . implode(', ', array_slice($errors, 0, 3)) : ''))
+                            ->success()
+                            ->send();
+                    }),
+                    
+                Tables\Actions\Action::make('export')
+                    ->label('Export CSV')
+                    ->icon('heroicon-o-arrow-down-tray')
+                    ->color('success')
+                    ->action(function () {
+                        $customers = Customer::with('user')
+                            ->where('carwash_total_visits', '>', 0)
+                            ->orderBy('carwash_last_visit_at', 'desc')
+                            ->get();
+
+                        $headers = [
+                            'Content-Type' => 'text/csv',
+                            'Content-Disposition' => 'attachment; filename="carwash_customers_' . now()->format('Y-m-d') . '.csv"',
+                        ];
+
+                        $callback = function () use ($customers) {
+                            $handle = fopen('php://output', 'w');
+                            fputcsv($handle, ['Name', 'Phone', 'Points', 'Total Visits', 'Last Visit']);
+                            
+                            foreach ($customers as $customer) {
+                                fputcsv($handle, [
+                                    $customer->user->name,
+                                    $customer->user->phone,
+                                    $customer->carwash_points,
+                                    $customer->carwash_total_visits,
+                                    $customer->carwash_last_visit_at?->format('Y-m-d H:i:s') ?? '',
+                                ]);
+                            }
+                            
+                            fclose($handle);
+                        };
+
+                        return response()->stream($callback, 200, $headers);
+                    }),
+                    
+                Tables\Actions\Action::make('export_pdf')
+                    ->label('Print PDF')
+                    ->icon('heroicon-o-printer')
+                    ->color('danger')
+                    ->url(fn () => route('pdf.customers.carwash'))
+                    ->openUrlInNewTab(),
+            ])
             ->defaultSort('carwash_last_visit_at', 'desc')
             ->modifyQueryUsing(fn ($query) => $query->where('carwash_total_visits', '>', 0));
     }

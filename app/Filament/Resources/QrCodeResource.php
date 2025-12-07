@@ -17,7 +17,7 @@ class QrCodeResource extends Resource
     protected static ?string $navigationIcon = 'heroicon-o-qr-code';
     protected static ?string $navigationLabel = 'QR Code Manager';
     protected static ?string $navigationGroup = 'Management';
-    protected static ?int $navigationSort = 61;
+    protected static ?int $navigationSort = 63;
     protected static ?string $modelLabel = 'QR Code';
     protected static ?string $pluralModelLabel = 'QR Codes';
 
@@ -26,62 +26,6 @@ class QrCodeResource extends Resource
         return $form->schema([
             Forms\Components\Section::make('QR Code Configuration')
                 ->schema([
-                    Forms\Components\Grid::make(3)
-                        ->schema([
-                            // Column 1: Cuci Mobil
-                            Forms\Components\Group::make([
-                                Forms\Components\Checkbox::make('has_carwash')
-                                    ->label('Cuci Mobil')
-                                    ->live()
-                                    ->dehydrated(false),
-                                Forms\Components\TextInput::make('thresholds.carwash')
-                                    ->label('Threshold')
-                                    ->numeric()
-                                    ->minValue(1)
-                                    ->placeholder('e.g., 10')
-                                    ->visible(fn (Forms\Get $get) => $get('has_carwash')),
-                            ]),
-                            
-                            // Column 2: Cuci Motor
-                            Forms\Components\Group::make([
-                                Forms\Components\Checkbox::make('has_motorwash')
-                                    ->label('Cuci Motor')
-                                    ->live()
-                                    ->dehydrated(false),
-                                Forms\Components\TextInput::make('thresholds.motorwash')
-                                    ->label('Threshold')
-                                    ->numeric()
-                                    ->minValue(1)
-                                    ->placeholder('e.g., 10')
-                                    ->visible(fn (Forms\Get $get) => $get('has_motorwash')),
-                            ]),
-                            
-                            // Column 3: Coffee Shop
-                            Forms\Components\Group::make([
-                                Forms\Components\Checkbox::make('has_coffeeshop')
-                                    ->label('Coffee Shop')
-                                    ->live()
-                                    ->dehydrated(false),
-                                Forms\Components\TextInput::make('thresholds.coffeeshop')
-                                    ->label('Threshold')
-                                    ->numeric()
-                                    ->minValue(1)
-                                    ->placeholder('e.g., 5')
-                                    ->visible(fn (Forms\Get $get) => $get('has_coffeeshop')),
-                            ]),
-                        ])
-                        ->columnSpanFull(),
-                    
-                    // Hidden field to collect loyalty_types from checkboxes
-                    Forms\Components\Hidden::make('loyalty_types')
-                        ->dehydrateStateUsing(function (Forms\Get $get) {
-                            $types = [];
-                            if ($get('has_carwash')) $types[] = 'carwash';
-                            if ($get('has_motorwash')) $types[] = 'motorwash';
-                            if ($get('has_coffeeshop')) $types[] = 'coffeeshop';
-                            return $types;
-                        }),
-                    
                     Forms\Components\Select::make('qr_type')
                         ->label('QR Type')
                         ->options([
@@ -90,15 +34,80 @@ class QrCodeResource extends Resource
                         ])
                         ->default('permanent')
                         ->required()
-                        ->live(),
+                        ->live()
+                        ->helperText(fn (Forms\Get $get) => $get('qr_type') === 'onetime' 
+                            ? 'One-time QR codes can only be used once and you can set custom points per scan.'
+                            : 'Permanent QR codes can be used multiple times and will always give 1 point per scan.'),
+                    
+                    Forms\Components\Grid::make(3)
+                        ->schema([
+                            Forms\Components\Group::make([
+                                Forms\Components\Checkbox::make('has_carwash')
+                                    ->label('Cuci Mobil')
+                                    ->live()
+                                    ->dehydrated(false),
+                                Forms\Components\TextInput::make('thresholds.carwash')
+                                    ->label('Points per Scan (Optional)')
+                                    ->numeric()
+                                    ->minValue(1)
+                                    ->maxValue(100)
+                                    ->placeholder('Default: 1')
+                                    ->helperText('Kosongkan untuk default 1 poin')
+                                    ->visible(fn (Forms\Get $get) => $get('has_carwash') && $get('qr_type') === 'onetime'),
+                            ]),
+                            
+                            Forms\Components\Group::make([
+                                Forms\Components\Checkbox::make('has_motorwash')
+                                    ->label('Cuci Motor')
+                                    ->live()
+                                    ->dehydrated(false),
+                                Forms\Components\TextInput::make('thresholds.motorwash')
+                                    ->label('Points per Scan (Optional)')
+                                    ->numeric()
+                                    ->minValue(1)
+                                    ->maxValue(100)
+                                    ->placeholder('Default: 1')
+                                    ->helperText('Kosongkan untuk default 1 poin')
+                                    ->visible(fn (Forms\Get $get) => $get('has_motorwash') && $get('qr_type') === 'onetime'),
+                            ]),
+                            
+                            Forms\Components\Group::make([
+                                Forms\Components\Checkbox::make('has_coffeeshop')
+                                    ->label('Coffee Shop')
+                                    ->live()
+                                    ->dehydrated(false),
+                                Forms\Components\TextInput::make('thresholds.coffeeshop')
+                                    ->label('Points per Scan (Optional)')
+                                    ->numeric()
+                                    ->minValue(1)
+                                    ->maxValue(100)
+                                    ->placeholder('Default: 1')
+                                    ->helperText('Kosongkan untuk default 1 poin')
+                                    ->visible(fn (Forms\Get $get) => $get('has_coffeeshop') && $get('qr_type') === 'onetime'),
+                            ]),
+                        ])
+                        ->columnSpanFull(),
+                    
+                    Forms\Components\Hidden::make('loyalty_types')
+                        ->dehydrateStateUsing(function (Forms\Get $get) {
+                            $types = [];
+                            if ($get('has_carwash')) $types[] = 'carwash';
+                            if ($get('has_motorwash')) $types[] = 'motorwash';
+                            if ($get('has_coffeeshop')) $types[] = 'coffeeshop';
+                            return $types;
+                        })
+                        ->required()
+                        ->rule('array')
+                        ->rule('min:1'),
                     
                     Forms\Components\TextInput::make('name')
                         ->label('QR Name')
                         ->placeholder('e.g., Main Entrance QR')
-                        ->maxLength(255),
+                        ->maxLength(255)
+                        ->required(),
                     
                     Forms\Components\TextInput::make('location')
-                        ->label('Location')
+                        ->label('Location (Optional)')
                         ->placeholder('e.g., Jakarta Selatan Branch')
                         ->maxLength(255),
                     

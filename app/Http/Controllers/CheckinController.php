@@ -56,19 +56,27 @@ class CheckinController extends Controller
             $user = $this->findOrCreateUser($normalizedPhone, $validated['name']);
             $customer = $this->findOrCreateCustomer($user->id);
 
-            $pointsEarned = 0;
+            $qrCode = null;
+            if ($validated['qr_code']) {
+                $qrCode = $this->qrCodeService->validateQrCode($validated['qr_code']);
+            }
+
+            $totalPointsEarned = 0;
             foreach ($loyaltyTypes as $type) {
+                $pointsToAdd = $qrCode ? $qrCode->getPointsPerScan($type) : 1;
+                
                 if ($customer->hasReward($type)) {
                     $customer->resetPoints($type);
                 }
-                $customer->addPoints($type);
-                $pointsEarned++;
+                
+                $customer->addPoints($type, $pointsToAdd);
+                $totalPointsEarned += $pointsToAdd;
             }
 
             VisitHistory::create([
                 'customer_id' => $customer->id,
                 'loyalty_types' => $loyaltyTypes,
-                'points_earned' => $pointsEarned,
+                'points_earned' => $totalPointsEarned,
                 'visited_at' => now(),
                 'ip_address' => $request->ip(),
             ]);
