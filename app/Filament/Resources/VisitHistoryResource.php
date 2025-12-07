@@ -27,7 +27,32 @@ class VisitHistoryResource extends Resource
     {
         return $form
             ->schema([
-                // Read-only resource, no form needed
+                Forms\Components\Section::make('Visit Details')
+                    ->schema([
+                        Forms\Components\Grid::make(2)
+                            ->schema([
+                                Forms\Components\Placeholder::make('customer_name')
+                                    ->label('Customer')
+                                    ->content(fn (VisitHistory $record): ?string => $record->customer?->user?->name),
+
+                                Forms\Components\Placeholder::make('phone_number')
+                                    ->label('Phone Number')
+                                    ->content(fn (VisitHistory $record): ?string => $record->customer?->user?->phone),
+
+                                Forms\Components\TagsInput::make('loyalty_types')
+                                    ->label('Loyalty Programs')
+                                    ->columnSpanFull(),
+
+                                Forms\Components\TextInput::make('points_earned')
+                                    ->label('Points Earned'),
+
+                                Forms\Components\DateTimePicker::make('visited_at')
+                                    ->label('Check-In Time'),
+                                
+                                Forms\Components\TextInput::make('ip_address')
+                                    ->label('IP Address'),
+                            ]),
+                    ]),
             ]);
     }
 
