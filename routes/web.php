@@ -14,8 +14,10 @@ use Illuminate\Support\Facades\Route;
 |--------------------------------------------------------------------------
 */
 
-// Landing Page
 Route::get('/', [HomeController::class, 'index'])->name('home');
+Route::get('/old-landing', function () {
+    return view('landing');
+})->name('old.landing');
 
 // Check-in Flow (QR Scan)
 Route::get('/checkin', [CheckinController::class, 'index'])->name('checkin');
