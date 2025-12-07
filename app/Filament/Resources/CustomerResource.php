@@ -68,6 +68,22 @@ class CustomerResource extends Resource
                         Forms\Components\DateTimePicker::make('coffeeshop_last_visit_at')
                             ->label('Last Coffee Shop')
                             ->nullable(),
+
+                        Forms\Components\TextInput::make('motorwash_points')
+                            ->numeric()
+                            ->default(0)
+                            ->minValue(0)
+                            ->label('Motor Wash Points'),
+
+                        Forms\Components\TextInput::make('motorwash_total_visits')
+                            ->numeric()
+                            ->default(0)
+                            ->minValue(0)
+                            ->label('Motor Wash Visits'),
+
+                        Forms\Components\DateTimePicker::make('motorwash_last_visit_at')
+                            ->label('Last Motor Wash')
+                            ->nullable(),
                     ])->columns(2),
             ]);
     }
@@ -100,6 +116,12 @@ class CustomerResource extends Resource
                     ->sortable()
                     ->badge()
                     ->color(fn (int $state): string => $state >= SystemSetting::coffeeshopRewardThreshold() ? 'success' : 'gray'),
+
+                Tables\Columns\TextColumn::make('motorwash_points')
+                    ->label('Motor Wash')
+                    ->sortable()
+                    ->badge()
+                    ->color(fn (int $state): string => $state >= SystemSetting::motorwashRewardThreshold() ? 'success' : 'gray'),
                 
                 Tables\Columns\TextColumn::make('carwash_total_visits')
                     ->label('CW Visits')
@@ -107,6 +129,10 @@ class CustomerResource extends Resource
                 
                 Tables\Columns\TextColumn::make('coffeeshop_total_visits')
                     ->label('CS Visits')
+                    ->sortable(),
+
+                Tables\Columns\TextColumn::make('motorwash_total_visits')
+                    ->label('MW Visits')
                     ->sortable(),
                 
                 Tables\Columns\TextColumn::make('carwash_last_visit_at')
@@ -117,6 +143,12 @@ class CustomerResource extends Resource
                 
                 Tables\Columns\TextColumn::make('coffeeshop_last_visit_at')
                     ->label('Last CS')
+                    ->dateTime('d/m/Y')
+                    ->sortable()
+                    ->toggleable(),
+
+                Tables\Columns\TextColumn::make('motorwash_last_visit_at')
+                    ->label('Last MW')
                     ->dateTime('d/m/Y')
                     ->sortable()
                     ->toggleable(),
@@ -143,6 +175,14 @@ class CustomerResource extends Resource
                 Tables\Filters\Filter::make('active_coffeeshop')
                     ->label('Active Coffee Shop (Last 30 Days)')
                     ->query(fn (Builder $query): Builder => $query->where('coffeeshop_last_visit_at', '>=', now()->subDays(30))),
+
+                Tables\Filters\Filter::make('has_motorwash_reward')
+                    ->label('Ready for Motor Wash Reward')
+                    ->query(fn (Builder $query): Builder => $query->where('motorwash_points', '>=', SystemSetting::motorwashRewardThreshold())),
+
+                Tables\Filters\Filter::make('active_motorwash')
+                    ->label('Active Motor Wash (Last 30 Days)')
+                    ->query(fn (Builder $query): Builder => $query->where('motorwash_last_visit_at', '>=', now()->subDays(30))),
             ])
             ->actions([
                 Tables\Actions\ViewAction::make(),
@@ -162,6 +202,14 @@ class CustomerResource extends Resource
                     ->requiresConfirmation()
                     ->action(fn (Customer $record) => $record->resetPoints('coffeeshop'))
                     ->visible(fn (Customer $record) => $record->coffeeshop_points > 0),
+
+                Tables\Actions\Action::make('reset_motorwash')
+                    ->label('Reset Motor Wash')
+                    ->icon('heroicon-o-arrow-path')
+                    ->color('warning')
+                    ->requiresConfirmation()
+                    ->action(fn (Customer $record) => $record->resetPoints('motorwash'))
+                    ->visible(fn (Customer $record) => $record->motorwash_points > 0),
             ])
             ->headerActions([
                 Tables\Actions\Action::make('download_template')
