@@ -23,8 +23,9 @@ class CustomerDashboardController extends Controller
         }
 
         $recentVisits = $customer->visitHistories()
-            ->orderBy('visited_at', 'desc')
-            ->take(10)
+            ->select(['id', 'customer_id', 'loyalty_types', 'points_earned', 'visited_at'])
+            ->orderByDesc('visited_at')
+            ->limit(10)
             ->get();
 
         $loyaltyPrograms = [

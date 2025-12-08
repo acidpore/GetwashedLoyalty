@@ -19,19 +19,24 @@ Route::get('/old-landing', function () {
     return view('landing');
 })->name('old.landing');
 
-// Check-in Flow (QR Scan)
 Route::get('/checkin', [CheckinController::class, 'index'])->name('checkin');
-Route::post('/checkin', [CheckinController::class, 'store'])->name('checkin.store');
+Route::post('/checkin', [CheckinController::class, 'store'])
+    ->middleware('throttle:checkin')
+    ->name('checkin.store');
 
-// Success Page
 Route::get('/success', [SuccessController::class, 'index'])->name('success');
 
-// Custom Login (OTP & Admin)
 Route::middleware('guest')->group(function () {
     Route::get('/login', [LoginController::class, 'index'])->name('login');
-    Route::post('/login/otp/request', [LoginController::class, 'requestOtp'])->name('login.otp.request');
-    Route::post('/login/otp/verify', [LoginController::class, 'verifyOtp'])->name('login.otp.verify');
-    Route::post('/login/admin', [LoginController::class, 'adminLogin'])->name('login.admin');
+    Route::post('/login/otp/request', [LoginController::class, 'requestOtp'])
+        ->middleware('throttle:otp-request')
+        ->name('login.otp.request');
+    Route::post('/login/otp/verify', [LoginController::class, 'verifyOtp'])
+        ->middleware('throttle:otp-verify')
+        ->name('login.otp.verify');
+    Route::post('/login/admin', [LoginController::class, 'adminLogin'])
+        ->middleware('throttle:login')
+        ->name('login.admin');
 });
 
 // Magic Link Login (from WhatsApp)
