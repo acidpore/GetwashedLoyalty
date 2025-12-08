@@ -35,56 +35,81 @@ class CustomerResource extends Resource
                             ->preload()
                             ->required()
                             ->label('User Account')
-                            ->helperText('Link to user account'),
-                        
-                        Forms\Components\TextInput::make('carwash_points')
-                            ->numeric()
-                            ->default(0)
-                            ->minValue(0)
-                            ->label('Car Wash Points'),
-                        
-                        Forms\Components\TextInput::make('carwash_total_visits')
-                            ->numeric()
-                            ->default(0)
-                            ->minValue(0)
-                            ->label('Car Wash Visits'),
-                        
-                        Forms\Components\DateTimePicker::make('carwash_last_visit_at')
-                            ->label('Last Car Wash')
-                            ->nullable(),
-                        
-                        Forms\Components\TextInput::make('coffeeshop_points')
-                            ->numeric()
-                            ->default(0)
-                            ->minValue(0)
-                            ->label('Coffee Shop Points'),
-                        
-                        Forms\Components\TextInput::make('coffeeshop_total_visits')
-                            ->numeric()
-                            ->default(0)
-                            ->minValue(0)
-                            ->label('Coffee Shop Visits'),
-                        
-                        Forms\Components\DateTimePicker::make('coffeeshop_last_visit_at')
-                            ->label('Last Coffee Shop')
-                            ->nullable(),
+                            ->helperText('Link to user account')
+                            ->columnSpanFull(),
+                    ]),
 
-                        Forms\Components\TextInput::make('motorwash_points')
-                            ->numeric()
-                            ->default(0)
-                            ->minValue(0)
-                            ->label('Motor Wash Points'),
+                Forms\Components\Grid::make(3)
+                    ->schema([
+                        Forms\Components\Section::make('Car Wash')
+                            ->icon('heroicon-o-truck')
+                            ->schema([
+                                Forms\Components\TextInput::make('carwash_points')
+                                    ->numeric()
+                                    ->default(0)
+                                    ->minValue(0)
+                                    ->label('Points')
+                                    ->suffix('pts'),
+                                
+                                Forms\Components\TextInput::make('carwash_total_visits')
+                                    ->numeric()
+                                    ->default(0)
+                                    ->minValue(0)
+                                    ->label('Total Visits'),
+                                
+                                Forms\Components\DateTimePicker::make('carwash_last_visit_at')
+                                    ->label('Last Visit')
+                                    ->disabled()
+                                    ->dehydrated(false)
+                                    ->hint('Auto-recorded'),
+                            ]),
 
-                        Forms\Components\TextInput::make('motorwash_total_visits')
-                            ->numeric()
-                            ->default(0)
-                            ->minValue(0)
-                            ->label('Motor Wash Visits'),
+                        Forms\Components\Section::make('Motor Wash')
+                            ->icon('heroicon-o-wrench-screwdriver')
+                            ->schema([
+                                Forms\Components\TextInput::make('motorwash_points')
+                                    ->numeric()
+                                    ->default(0)
+                                    ->minValue(0)
+                                    ->label('Points')
+                                    ->suffix('pts'),
 
-                        Forms\Components\DateTimePicker::make('motorwash_last_visit_at')
-                            ->label('Last Motor Wash')
-                            ->nullable(),
-                    ])->columns(2),
+                                Forms\Components\TextInput::make('motorwash_total_visits')
+                                    ->numeric()
+                                    ->default(0)
+                                    ->minValue(0)
+                                    ->label('Total Visits'),
+
+                                Forms\Components\DateTimePicker::make('motorwash_last_visit_at')
+                                    ->label('Last Visit')
+                                    ->disabled()
+                                    ->dehydrated(false)
+                                    ->hint('Auto-recorded'),
+                            ]),
+
+                        Forms\Components\Section::make('Coffee Shop')
+                            ->icon('heroicon-o-beaker')
+                            ->schema([
+                                Forms\Components\TextInput::make('coffeeshop_points')
+                                    ->numeric()
+                                    ->default(0)
+                                    ->minValue(0)
+                                    ->label('Points')
+                                    ->suffix('pts'),
+                                
+                                Forms\Components\TextInput::make('coffeeshop_total_visits')
+                                    ->numeric()
+                                    ->default(0)
+                                    ->minValue(0)
+                                    ->label('Total Visits'),
+                                
+                                Forms\Components\DateTimePicker::make('coffeeshop_last_visit_at')
+                                    ->label('Last Visit')
+                                    ->disabled()
+                                    ->dehydrated(false)
+                                    ->hint('Auto-recorded'),
+                            ]),
+                    ]),
             ]);
     }
 

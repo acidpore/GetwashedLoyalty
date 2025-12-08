@@ -25,14 +25,14 @@ class MotorwashCustomerResource extends Resource
     {
         return $form->schema([
             Forms\Components\Section::make('Customer Information')
+                ->columns(2)
                 ->schema([
-                    Forms\Components\TextInput::make('user.name')
+                    Forms\Components\Placeholder::make('name')
                         ->label('Name')
-                        ->required(),
-                    Forms\Components\TextInput::make('user.phone')
+                        ->content(fn ($record) => $record->user?->name ?? '-'),
+                    Forms\Components\Placeholder::make('phone')
                         ->label('Phone')
-                        ->tel()
-                        ->required(),
+                        ->content(fn ($record) => $record->user?->phone ?? '-'),
                 ]),
             
             Forms\Components\Section::make('Motor Wash Loyalty')
@@ -45,8 +45,10 @@ class MotorwashCustomerResource extends Resource
                         ->label('Total Visits')
                         ->numeric()
                         ->default(0),
-                    Forms\Components\DateTimePicker::make('motorwash_last_visit_at')
-                        ->label('Last Visit'),
+                    Forms\Components\Placeholder::make('motorwash_last_visit_at_display')
+                        ->label('Last Visit')
+                        ->content(fn ($record) => $record->motorwash_last_visit_at?->format('d M Y H:i') ?? '-')
+                        ->hint('Auto-recorded'),
                 ]),
         ]);
     }

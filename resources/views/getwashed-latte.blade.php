@@ -186,9 +186,7 @@
                                 <span class="material-symbols-outlined text-base sm:text-lg">wifi</span>Free Wi-Fi
                             </div>
                         </div>
-                        <a href="{{ route('checkin') }}" class="flex min-w-[84px] w-fit cursor-pointer items-center justify-center overflow-hidden rounded-lg h-11 sm:h-12 px-5 bg-primary text-white text-sm sm:text-base font-bold leading-normal tracking-[0.015em] hover:bg-opacity-90 transition-colors">
-                            <span class="truncate">View Menu</span>
-                        </a>
+
                     </div>
                     <div class="aspect-video w-full rounded-xl bg-cover bg-center shadow-2xl" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuDXDYxnhtqWYjpYsr7LUyYSrHk8cZ6k4d4XN4cRdeoxgbf3SK8YKArV39qwBgeTHthc2hSonfA0fJQXJPFoeoPvJZxjbzpCCL6RP6onv-LyiN2EYLL_TcnmhGAUeFXMC7SUJTepNIPguFBptCFebRZDZ15eeJuYeWKDDkeot5-ls9W45IbpWWwh2SEmSn5os_leF8T1-wlrWkV5pv7pwshtfciCgfVWc5LmDuqT6E_EisXjQykt8gcF16TzFS02u2gCR-dPqBFeE2g")'></div>
                 </div>
@@ -214,9 +212,7 @@
                                 <span class="material-symbols-outlined text-base sm:text-lg">cleaning_services</span>Interior Detailing
                             </div>
                         </div>
-                        <a href="{{ route('checkin') }}" class="flex min-w-[84px] w-fit cursor-pointer items-center justify-center overflow-hidden rounded-lg h-11 sm:h-12 px-5 bg-primary text-white text-sm sm:text-base font-bold leading-normal tracking-[0.015em] hover:bg-opacity-90 transition-colors">
-                            <span class="truncate">See Packages</span>
-                        </a>
+
                     </div>
                 </div>
             </section>
@@ -240,9 +236,7 @@
                                 <span class="material-symbols-outlined text-base sm:text-lg">auto_awesome</span>Detailing Services
                             </div>
                         </div>
-                        <a href="{{ route('checkin') }}" class="flex min-w-[84px] w-fit cursor-pointer items-center justify-center overflow-hidden rounded-lg h-11 sm:h-12 px-5 bg-primary text-white text-sm sm:text-base font-bold leading-normal tracking-[0.015em] hover:bg-opacity-90 transition-colors">
-                            <span class="truncate">See Packages</span>
-                        </a>
+
                     </div>
                     <div class="aspect-video w-full rounded-xl bg-cover bg-center shadow-2xl" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuBhK-iqbznmv7N32Am4VcZv2rDB_0dFRzDSKYNfBONmk5arvrkf2rdGU0LyMrH17v0rB8uYpXkP2EBcJ7Z1ZjzadDvO5CxLC2Szha7KqjzEqKZlN7R2YRSN8PbUjGGLIDRxOabTlP24bxj7ECgvgxXPTG0t6jWBZWXW5S9wEfKZ2f0It8rseuSUnF2z_f6_eDc_6FaKxAl8-6OmEG0lb_qJzzu_C8l5R5atBb5wCHiNPpEBPmgkcdvunPz2eUqiPWNN2AFxiTOET3o")'></div>
                 </div>

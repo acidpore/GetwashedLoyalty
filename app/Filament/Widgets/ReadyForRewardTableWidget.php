@@ -18,21 +18,23 @@ class ReadyForRewardTableWidget extends BaseWidget
     {
         $carwashThreshold = SystemSetting::carwashRewardThreshold();
         $coffeeshopThreshold = SystemSetting::coffeeshopRewardThreshold();
+        $motorwashThreshold = SystemSetting::motorwashRewardThreshold();
         
         return $table
             ->query(
                 Customer::with('user')
-                    ->where(function($query) use ($carwashThreshold, $coffeeshopThreshold) {
+                    ->where(function($query) use ($carwashThreshold, $coffeeshopThreshold, $motorwashThreshold) {
                         $query->where('carwash_points', '>=', $carwashThreshold)
-                              ->orWhere('coffeeshop_points', '>=', $coffeeshopThreshold);
+                              ->orWhere('coffeeshop_points', '>=', $coffeeshopThreshold)
+                              ->orWhere('motorwash_points', '>=', $motorwashThreshold);
                     })
                     ->orderByDesc('carwash_points')
             )
             ->heading('Customers Ready for Reward')
-            ->description('Customers eligible for car wash or coffee shop rewards')
+            ->description('Customers eligible for car wash, motor wash, or coffee shop rewards')
             ->columns([
                 Tables\Columns\TextColumn::make('user.name')
-                    ->label('Customer Name')
+                    ->label('Name')
                     ->searchable()
                     ->sortable()
                     ->weight('bold')
@@ -44,26 +46,33 @@ class ReadyForRewardTableWidget extends BaseWidget
                     ->icon('heroicon-o-phone'),
                 
                 Tables\Columns\TextColumn::make('carwash_points')
-                    ->label('Car Wash')
+                    ->label('CW')
                     ->badge()
                     ->color(fn ($state) => $state >= $carwashThreshold ? 'success' : 'gray')
                     ->sortable()
                     ->alignCenter(),
+
+                Tables\Columns\TextColumn::make('motorwash_points')
+                    ->label('MW')
+                    ->badge()
+                    ->color(fn ($state) => $state >= $motorwashThreshold ? 'success' : 'gray')
+                    ->sortable()
+                    ->alignCenter(),
                 
                 Tables\Columns\TextColumn::make('coffeeshop_points')
-                    ->label('Coffee Shop')
+                    ->label('CS')
                     ->badge()
                     ->color(fn ($state) => $state >= $coffeeshopThreshold ? 'success' : 'gray')
                     ->sortable()
                     ->alignCenter(),
                 
                 Tables\Columns\TextColumn::make('carwash_last_visit_at')
-                    ->label('Last Car Wash')
+                    ->label('Last CW')
                     ->dateTime('d M Y')
                     ->sortable(),
                 
                 Tables\Columns\TextColumn::make('coffeeshop_last_visit_at')
-                    ->label('Last Coffee')
+                    ->label('Last CS')
                     ->dateTime('d M Y')
                     ->sortable(),
             ])
