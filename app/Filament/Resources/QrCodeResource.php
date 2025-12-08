@@ -34,6 +34,7 @@ class QrCodeResource extends Resource
                         ])
                         ->default('permanent')
                         ->required()
+                        ->disabledOn('edit')
                         ->live()
                         ->helperText(fn (Forms\Get $get) => $get('qr_type') === 'onetime' 
                             ? 'One-time QR codes can only be used once and you can set custom points per scan.'
