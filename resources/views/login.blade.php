@@ -37,7 +37,7 @@
     </style>
 </head>
 <body class="bg-background-light dark:bg-background-dark font-display text-slate-800 dark:text-slate-200">
-    <div class="flex flex-col min-h-screen p-6" x-data="{ tab: 'customer', phone: '' }">
+    <div class="flex flex-col min-h-screen p-6" x-data="{ tab: 'customer', phone: '{{ session('phone', old('phone', '')) }}' }">
         <header class="flex-shrink-0">
             <a href="{{ route('home') }}" class="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium bg-white dark:bg-slate-700 dark:text-white rounded-full shadow-sm">
                 <span class="material-symbols-outlined text-lg">arrow_back</span>

@@ -43,7 +43,9 @@ class LoginController extends Controller
 
         $this->sendOtp($phone, $otp->otp_code);
 
-        return back()->with('success', 'Kode OTP dikirim ke WhatsApp. Berlaku 5 menit.');
+        return back()
+            ->with('success', 'Kode OTP dikirim ke WhatsApp. Berlaku 5 menit.')
+            ->with('phone', $request->phone);
     }
 
     public function verifyOtp(Request $request)
