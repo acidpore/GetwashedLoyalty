@@ -226,9 +226,9 @@ class CustomerResource extends Resource
                         
                         $callback = function () {
                             $handle = fopen('php://output', 'w');
-                            fputcsv($handle, ['Phone', 'Name', 'Current Points', 'Total Visits']);
-                            fputcsv($handle, ['081234567890', 'John Doe', '3', '5']);
-                            fputcsv($handle, ['082345678901', 'Jane Smith', '0', '2']);
+                            fputcsv($handle, ['Phone', 'Name', 'CW Points', 'CS Points', 'MW Points', 'CW Visits', 'CS Visits', 'MW Visits']);
+                            fputcsv($handle, ['081234567890', 'John Doe', '3', '2', '1', '5', '3', '2']);
+                            fputcsv($handle, ['082345678901', 'Jane Smith', '0', '1', '0', '2', '1', '0']);
                             fclose($handle);
                         };
                         
@@ -245,7 +245,7 @@ class CustomerResource extends Resource
                             ->acceptedFileTypes(['text/csv', 'text/plain', 'application/csv'])
                             ->maxSize(2048)
                             ->required()
-                            ->helperText('Format: Phone, Name, Current Points, Total Visits'),
+                            ->helperText('Format: Phone, Name, CW Points, CS Points, MW Points, CW Visits, CS Visits, MW Visits'),
                     ])
                     ->action(function (array $data) {
                         $file = \Illuminate\Support\Facades\Storage::disk('public')->path($data['file']);

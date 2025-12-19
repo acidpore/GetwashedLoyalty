@@ -21,7 +21,10 @@ class EditCustomer extends EditRecord
                 ->icon('heroicon-o-arrow-path')
                 ->color('warning')
                 ->requiresConfirmation()
-                ->action(fn (Customer $record) => $record->resetPoints('carwash'))
+                ->action(function (Customer $record) {
+                    $record->resetPoints('carwash');
+                    return redirect(CustomerResource::getUrl('edit', ['record' => $record]) . '?t=' . time());
+                })
                 ->visible(fn (Customer $record) => $record->carwash_points > 0),
             
             Actions\Action::make('reset_coffeeshop')
@@ -29,7 +32,10 @@ class EditCustomer extends EditRecord
                 ->icon('heroicon-o-arrow-path')
                 ->color('warning')
                 ->requiresConfirmation()
-                ->action(fn (Customer $record) => $record->resetPoints('coffeeshop'))
+                ->action(function (Customer $record) {
+                    $record->resetPoints('coffeeshop');
+                    return redirect(CustomerResource::getUrl('edit', ['record' => $record]) . '?t=' . time());
+                })
                 ->visible(fn (Customer $record) => $record->coffeeshop_points > 0),
 
             Actions\Action::make('reset_motorwash')
@@ -37,7 +43,10 @@ class EditCustomer extends EditRecord
                 ->icon('heroicon-o-arrow-path')
                 ->color('warning')
                 ->requiresConfirmation()
-                ->action(fn (Customer $record) => $record->resetPoints('motorwash'))
+                ->action(function (Customer $record) {
+                    $record->resetPoints('motorwash');
+                    return redirect(CustomerResource::getUrl('edit', ['record' => $record]) . '?t=' . time());
+                })
                 ->visible(fn (Customer $record) => $record->motorwash_points > 0),
         ];
     }

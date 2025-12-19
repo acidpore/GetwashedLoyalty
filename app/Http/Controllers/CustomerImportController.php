@@ -22,7 +22,7 @@ class CustomerImportController extends Controller
         
         $header = fgetcsv($handle);
         
-        $expectedHeaders = ['Phone', 'Name', 'Current Points', 'Total Visits'];
+        $expectedHeaders = ['Phone', 'Name', 'CW Points', 'CS Points', 'MW Points', 'CW Visits', 'CS Visits', 'MW Visits'];
         if ($header !== $expectedHeaders) {
             fclose($handle);
             return response()->json([
@@ -41,23 +41,31 @@ class CustomerImportController extends Controller
             while (($data = fgetcsv($handle)) !== false) {
                 $row++;
                 
-                if (count($data) < 4) {
-                    $errors[] = "Row {$row}: Incomplete data";
+                if (count($data) < 8) {
+                    $errors[] = "Row {$row}: Incomplete data (expected 8 columns)";
                     continue;
                 }
 
-                [$phone, $name, $points, $visits] = $data;
+                [$phone, $name, $cwPoints, $csPoints, $mwPoints, $cwVisits, $csVisits, $mwVisits] = $data;
 
                 $validator = Validator::make([
                     'phone' => $phone,
                     'name' => $name,
-                    'points' => $points,
-                    'visits' => $visits,
+                    'cw_points' => $cwPoints,
+                    'cs_points' => $csPoints,
+                    'mw_points' => $mwPoints,
+                    'cw_visits' => $cwVisits,
+                    'cs_visits' => $csVisits,
+                    'mw_visits' => $mwVisits,
                 ], [
                     'phone' => 'required|string|max:20',
                     'name' => 'required|string|max:255',
-                    'points' => 'required|integer|min:0',
-                    'visits' => 'required|integer|min:0',
+                    'cw_points' => 'required|integer|min:0',
+                    'cs_points' => 'required|integer|min:0',
+                    'mw_points' => 'required|integer|min:0',
+                    'cw_visits' => 'required|integer|min:0',
+                    'cs_visits' => 'required|integer|min:0',
+                    'mw_visits' => 'required|integer|min:0',
                 ]);
 
                 if ($validator->fails()) {
@@ -78,9 +86,15 @@ class CustomerImportController extends Controller
                     
                     Customer::create([
                         'user_id' => $user->id,
-                        'current_points' => (int)$points,
-                        'total_visits' => (int)$visits,
-                        'last_visit_at' => now(),
+                        'carwash_points' => (int)$cwPoints,
+                        'coffeeshop_points' => (int)$csPoints,
+                        'motorwash_points' => (int)$mwPoints,
+                        'carwash_total_visits' => (int)$cwVisits,
+                        'coffeeshop_total_visits' => (int)$csVisits,
+                        'motorwash_total_visits' => (int)$mwVisits,
+                        'carwash_last_visit_at' => (int)$cwVisits > 0 ? now() : null,
+                        'coffeeshop_last_visit_at' => (int)$csVisits > 0 ? now() : null,
+                        'motorwash_last_visit_at' => (int)$mwVisits > 0 ? now() : null,
                     ]);
                     
                     $imported++;
@@ -90,15 +104,25 @@ class CustomerImportController extends Controller
                     $customer = Customer::where('user_id', $user->id)->first();
                     if ($customer) {
                         $customer->update([
-                            'current_points' => (int)$points,
-                            'total_visits' => (int)$visits,
+                            'carwash_points' => (int)$cwPoints,
+                            'coffeeshop_points' => (int)$csPoints,
+                            'motorwash_points' => (int)$mwPoints,
+                            'carwash_total_visits' => (int)$cwVisits,
+                            'coffeeshop_total_visits' => (int)$csVisits,
+                            'motorwash_total_visits' => (int)$mwVisits,
                         ]);
                     } else {
                         Customer::create([
                             'user_id' => $user->id,
-                            'current_points' => (int)$points,
-                            'total_visits' => (int)$visits,
-                            'last_visit_at' => now(),
+                            'carwash_points' => (int)$cwPoints,
+                            'coffeeshop_points' => (int)$csPoints,
+                            'motorwash_points' => (int)$mwPoints,
+                            'carwash_total_visits' => (int)$cwVisits,
+                            'coffeeshop_total_visits' => (int)$csVisits,
+                            'motorwash_total_visits' => (int)$mwVisits,
+                            'carwash_last_visit_at' => (int)$cwVisits > 0 ? now() : null,
+                            'coffeeshop_last_visit_at' => (int)$csVisits > 0 ? now() : null,
+                            'motorwash_last_visit_at' => (int)$mwVisits > 0 ? now() : null,
                         ]);
                     }
                     
