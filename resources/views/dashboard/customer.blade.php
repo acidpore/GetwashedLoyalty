@@ -1,141 +1,158 @@
-<x-layout.layout title="Dashboard - Getwashed Loyalty" bg-class="bg-gray-50">
-    <header class="bg-white shadow-sm">
-        <div class="container mx-auto px-4 py-4 flex justify-between items-center">
-            <h1 class="text-xl font-bold text-gray-800">Dashboard</h1>
+<x-layout.layout title="Dashboard - Getwashed Loyalty">
+    <!-- Navbar -->
+    <header class="fixed top-0 left-0 right-0 z-50 transition-colors duration-300 bg-background-dark/80 backdrop-blur-md border-b border-white/5">
+        <div class="max-w-7xl mx-auto px-6 h-20 flex items-center justify-between">
+            <div class="flex items-center gap-3">
+                <div class="size-6 text-white">
+                    <svg fill="none" viewBox="0 0 48 48" xmlns="http://www.w3.org/2000/svg">
+                        <path clip-rule="evenodd" d="M24 4H42V17.3333V30.6667H24V44H6V30.6667V17.3333H24V4Z" fill="currentColor" fill-rule="evenodd"></path>
+                    </svg>
+                </div>
+                <h1 class="text-lg font-bold text-white tracking-tight">Getwashed Loyalty</h1>
+            </div>
+            
             <form method="POST" action="{{ route('logout') }}">
                 @csrf
-                <button type="submit" class="text-sm text-red-600 hover:text-red-800">Logout</button>
+                <button type="submit" class="flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-bold text-slate-400 hover:text-white hover:bg-white/5 transition-all">
+                    <span class="material-symbols-outlined text-lg">logout</span>
+                    <span class="hidden sm:inline">Logout</span>
+                </button>
             </form>
         </div>
     </header>
 
-    <div class="container mx-auto px-4 py-8 max-w-2xl">
-        <div class="bg-gradient-to-r from-purple-500 to-pink-500 rounded-3xl p-8 text-white mb-8">
-            <div class="flex items-center gap-3 mb-2">
-                <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 11.5V14m0-2.5v-6a1.5 1.5 0 113 0m-3 6a1.5 1.5 0 00-3 0v2a7.5 7.5 0 0015 0v-5a1.5 1.5 0 00-3 0m-6-3V11m0-5.5v-1a1.5 1.5 0 013 0v1m0 0V11m0-5.5a1.5 1.5 0 013 0v3m0 0V11"/>
-                </svg>
-                <h2 class="text-3xl font-bold">Halo, {{ $user->name }}!</h2>
-            </div>
-            <p class="text-purple-100">Selamat datang di dashboard loyalitas Anda</p>
-        </div>
-
-        <div class="grid md:grid-cols-3 gap-6 mb-8">
-            @foreach($loyaltyPrograms as $program)
-            <div class="bg-white rounded-2xl shadow-lg p-6 relative overflow-hidden">
-                <!-- Background Decoration -->
-                <div class="absolute top-0 right-0 -mt-4 -mr-4 w-24 h-24 bg-gradient-to-br {{ $program['gradient'] }} opacity-10 rounded-full blur-2xl"></div>
+    <main class="pt-28 pb-12 px-6">
+        <div class="max-w-5xl mx-auto space-y-8">
+            
+            <!-- Hero Gradient Card -->
+            <div class="relative overflow-hidden rounded-3xl p-8 sm:p-10">
+                <div class="absolute inset-0 bg-gradient-to-br from-primary to-blue-600 opacity-90"></div>
+                <div class="absolute top-0 right-0 w-64 h-64 bg-white/10 rounded-full blur-3xl -mr-16 -mt-16"></div>
                 
-                <div class="relative z-10">
-                    <div class="flex justify-between items-start mb-4">
-                        <div class="w-12 h-12 rounded-xl bg-gradient-to-br {{ $program['gradient'] }} flex items-center justify-center text-white shadow-lg">
-                            @if($program['icon'] === 'car')
-                                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4" />
-                                </svg>
-                            @elseif($program['icon'] === 'motorcycle')
-                                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z" />
-                                </svg>
-                            @else
-                                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18.364 5.636l-3.536 3.536m0 5.656l3.536 3.536M9.172 9.172L5.636 5.636m3.536 9.192l-3.536 3.536M21 12a9 9 0 11-18 0 9 9 0 0118 0zm-5 0a4 4 0 11-8 0 4 4 0 018 0z" />
-                                </svg>
+                <div class="relative z-10 text-white">
+                    <div class="flex items-center gap-3 mb-2 opacity-80">
+                        <span class="material-symbols-outlined text-2xl">waving_hand</span>
+                        <span class="text-sm font-bold uppercase tracking-wider">Welcome Back</span>
+                    </div>
+                    <h2 class="text-3xl sm:text-4xl font-extrabold mb-2">{{ $user->name }}</h2>
+                </div>
+            </div>
+
+            <!-- Loyalty Programs Grid -->
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-5">
+                @foreach($loyaltyPrograms as $program)
+                <div class="bg-card-dark border border-white/5 rounded-2xl p-6 relative overflow-hidden group hover:border-white/10 transition-all duration-300">
+                    <!-- Glow Effect -->
+                    <div class="absolute top-0 right-0 w-32 h-32 bg-gradient-to-br {{ $program['gradient'] }} opacity-5 rounded-full blur-2xl group-hover:opacity-10 transition-opacity"></div>
+
+                    <div class="relative z-10">
+                        <div class="flex justify-between items-start mb-6">
+                            <div class="size-12 rounded-xl bg-gradient-to-br {{ $program['gradient'] }} flex items-center justify-center text-white shadow-lg shadow-black/20">
+                                @if($program['icon'] === 'car')
+                                    <span class="material-symbols-outlined">directions_car</span>
+                                @elseif($program['icon'] === 'motorcycle')
+                                    <span class="material-symbols-outlined">two_wheeler</span>
+                                @else
+                                    <span class="material-symbols-outlined">coffee</span>
+                                @endif
+                            </div>
+                            
+                            @if($program['has_reward'])
+                                <span class="bg-green-500/20 text-green-400 border border-green-500/20 text-[10px] font-bold px-3 py-1 rounded-full flex items-center gap-1 animate-pulse">
+                                    <span class="material-symbols-outlined text-sm">redeem</span>
+                                    REWARD READY
+                                </span>
                             @endif
                         </div>
-                        @if($program['has_reward'])
-                            <span class="bg-green-100 text-green-700 text-xs font-bold px-2 py-1 rounded-full animate-pulse">
-                                REWARD READY
-                            </span>
-                        @endif
-                    </div>
 
-                    <h3 class="text-gray-500 text-sm font-medium mb-1">{{ $program['name'] }}</h3>
-                    <div class="flex items-baseline gap-1 mb-4">
-                        <span class="text-3xl font-bold {{ $program['has_reward'] ? 'text-green-600' : 'text-gray-800' }}">
-                            {{ $program['points'] }}
-                        </span>
-                        <span class="text-gray-400 text-sm">/ {{ $program['threshold'] }}</span>
-                    </div>
-
-                    <div class="w-full bg-gray-100 rounded-full h-2 mb-3 overflow-hidden">
-                        <div class="h-full bg-gradient-to-r {{ $program['gradient'] }} transition-all duration-500 ease-out"
-                             style="width: {{ min(100, ($program['points'] / $program['threshold']) * 100) }}%">
+                        <div class="mb-5">
+                            <h3 class="text-slate-400 text-xs font-bold uppercase tracking-wider mb-1">{{ $program['name'] }}</h3>
+                            <div class="flex items-baseline gap-1">
+                                <span class="text-3xl font-extrabold text-white">{{ $program['points'] }}</span>
+                                <span class="text-slate-500 text-sm font-medium">/ {{ $program['threshold'] }} Poin</span>
+                            </div>
                         </div>
-                    </div>
 
-                    <p class="text-xs text-gray-500">
-                        @if($program['has_reward'])
-                            {{ $program['message'] }}
-                        @else
-                            {{ max(0, $program['threshold'] - $program['points']) }} poin lagi untuk reward
-                        @endif
-                    </p>
-                </div>
-            </div>
-            @endforeach
-        </div>
-
-        <div class="max-w-2xl mx-auto">
-            <div class="grid grid-cols-2 gap-4 mb-8">
-                <div class="bg-blue-50 p-4 rounded-xl text-center">
-                    <div class="text-2xl font-bold text-blue-600">{{ $customer->total_visits }}</div>
-                    <div class="text-sm text-gray-600">Total Kunjungan</div>
-                </div>
-                <div class="bg-green-50 p-4 rounded-xl text-center">
-                    <div class="text-sm font-semibold text-green-600">
-                        {{ $customer->last_visit_at ? $customer->last_visit_at->diffForHumans() : 'Belum pernah' }}
-                    </div>
-                    <div class="text-sm text-gray-600">Kunjungan Terakhir</div>
-                </div>
-            </div>
-
-        <div class="bg-white rounded-2xl shadow-lg p-8 mb-8">
-            <h3 class="text-xl font-bold text-gray-800 mb-6 flex items-center gap-2">
-                <svg class="w-6 h-6 text-gray-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
-                </svg>
-                <span>Riwayat Kunjungan</span>
-            </h3>
-
-            @forelse($recentVisits as $visit)
-                <div class="flex items-center justify-between p-4 bg-gray-50 rounded-xl mb-3">
-                    <div>
-                        <div class="font-semibold text-gray-800">{{ $visit->visited_at->format('d M Y') }}</div>
-                        <div class="text-sm text-gray-600">{{ $visit->visited_at->format('H:i') }} WIB</div>
-                    </div>
-                    <div class="text-right">
-                        <div class="bg-green-100 text-green-700 px-3 py-1 rounded-full text-sm font-semibold">
-                            +{{ $visit->points_earned }} poin
+                        <!-- Progress Bar (Themed) -->
+                        <div class="w-full bg-background-dark rounded-full h-2.5 mb-2 overflow-hidden border border-white/5">
+                            <div class="h-full bg-gradient-to-r {{ $program['gradient'] }} rounded-full transition-all duration-1000 ease-out relative"
+                                 style="width: {{ min(100, ($program['points'] / $program['threshold']) * 100) }}%">
+                                <div class="absolute top-0 left-0 right-0 h-[1px] bg-white/30"></div>
+                            </div>
                         </div>
-                        <div class="text-xs text-gray-500 mt-1">{{ $visit->visited_at->diffForHumans() }}</div>
+
+                        <p class="text-xs text-slate-500 font-medium">
+                            @if($program['has_reward'])
+                                <span class="text-green-400">{{ $program['message'] }}</span>
+                            @else
+                                Kurang <span class="text-slate-300">{{ max(0, $program['threshold'] - $program['points']) }} poin</span> lagi untuk reward
+                            @endif
+                        </p>
                     </div>
                 </div>
-            @empty
-                <div class="text-center py-8 text-gray-500">
-                    <svg class="w-16 h-16 mx-auto mb-2 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4"/>
-                    </svg>
-                    <p>Belum ada riwayat kunjungan</p>
-                </div>
-            @endforelse
-        </div>
-
-            <div class="space-y-3">
-                <x-buttons.link-button href="{{ route('checkin') }}" variant="primary" class="bg-purple-600 hover:bg-purple-700">
-                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
-                    </svg>
-                    <span>Check-In Sekarang</span>
-                </x-buttons.link-button>
-
-                <x-buttons.link-button href="{{ route('home') }}" variant="secondary">
-                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/>
-                    </svg>
-                    <span>Kembali ke Beranda</span>
-                </x-buttons.link-button>
+                @endforeach
             </div>
+
+            <!-- Quick Stats -->
+            <div class="grid grid-cols-2 gap-4">
+                <div class="bg-card-dark border border-white/5 rounded-2xl p-5 text-center hover:bg-white/[0.02] transition-colors">
+                    <div class="text-3xl font-extrabold text-primary mb-1">{{ $customer->total_visits }}</div>
+                    <div class="text-xs text-slate-500 font-medium uppercase tracking-wide">Total Kunjungan</div>
+                </div>
+                <div class="bg-card-dark border border-white/5 rounded-2xl p-5 text-center hover:bg-white/[0.02] transition-colors">
+                    <div class="text-sm font-bold text-green-400 mb-2">
+                        {{ $customer->last_visit_at ? $customer->last_visit_at->diffForHumans() : '-' }}
+                    </div>
+                    <div class="text-xs text-slate-500 font-medium uppercase tracking-wide">Kunjungan Terakhir</div>
+                </div>
+            </div>
+
+            <!-- Recent History -->
+            <div class="bg-card-dark/50 border border-white/5 rounded-3xl p-6 sm:p-8 backdrop-blur-sm">
+                <h3 class="text-lg font-bold text-white mb-6 flex items-center gap-2">
+                    <span class="material-symbols-outlined text-slate-400">history</span>
+                    Riwayat Kunjungan
+                </h3>
+
+                <div class="space-y-4">
+                    @forelse($recentVisits as $visit)
+                        <div class="flex items-center justify-between p-4 bg-background-dark border border-white/5 rounded-2xl hover:border-white/10 transition-all">
+                            <div>
+                                <div class="font-bold text-slate-200 text-sm mb-0.5">{{ $visit->visited_at->format('d M Y') }}</div>
+                                <div class="text-xs text-slate-500 font-medium">{{ $visit->visited_at->format('H:i') }} WIB</div>
+                            </div>
+                            <div class="text-right">
+                                <span class="inline-flex items-center gap-1 bg-green-500/10 text-green-400 border border-green-500/20 px-2.5 py-1 rounded-lg text-xs font-bold">
+                                    +{{ $visit->points_earned }}
+                                </span>
+                            </div>
+                        </div>
+                    @empty
+                        <div class="text-center py-8">
+                            <div class="size-16 bg-background-dark rounded-full flex items-center justify-center mx-auto mb-4 border border-white/5">
+                                <span class="material-symbols-outlined text-slate-600 text-2xl">event_busy</span>
+                            </div>
+                            <p class="text-slate-500 text-sm">Belum ada riwayat kunjungan</p>
+                        </div>
+                    @endforelse
+                </div>
+            </div>
+
+            <!-- Actions -->
+            <div class="space-y-3 pt-4">
+                <a href="{{ route('checkin') }}" class="block w-full bg-primary hover:bg-blue-600 text-white font-bold py-4 rounded-xl text-center transition-all shadow-lg shadow-primary/20 transform active:scale-[0.98]">
+                    Check-In Sekarang
+                </a>
+                <a href="{{ route('home') }}" class="block w-full bg-transparent hover:bg-white/5 text-slate-400 hover:text-white font-bold py-4 rounded-xl text-center transition-all border border-white/10 transform active:scale-[0.98]">
+                    Kembali ke Beranda
+                </a>
+            </div>
+
         </div>
-    </div>
+    </main>
+
+    <!-- Simple Footer -->
+    <footer class="py-8 text-center border-t border-white/5 mt-auto">
+        <p class="text-xs text-slate-600">© 2026 Getwashed x Latte</p>
+    </footer>
 </x-layout.layout>

@@ -1,188 +1,185 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" class="dark">
 <head>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Login - Getwashed Loyalty</title>
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
-    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet">
-    <script src="https://cdn.tailwindcss.com?plugins=forms,typography"></script>
+    <meta charset="utf-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title>Login - Getwashed x Latte</title>
+    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
     <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
-    <script>
+    <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;700;800&display=swap" rel="stylesheet"/>
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet">
+    <script id="tailwind-config">
         tailwind.config = {
             darkMode: "class",
             theme: {
                 extend: {
                     colors: {
-                        primary: "hsl(202, 100%, 50%)",
-                        "background-light": "#f0f2f5",
-                        "background-dark": "#1e293b",
+                        "primary": "#137fec",
+                        "background-dark": "#101922",
+                        "card-dark": "#16222e",
                     },
                     fontFamily: {
-                        display: ["Poppins", "sans-serif"],
-                    },
-                    borderRadius: {
-                        DEFAULT: "1rem",
-                    },
+                        "display": ["Manrope", "sans-serif"]
+                    }
                 },
             },
-        };
-    </script>
-    <style>
-        body {
-            -webkit-font-smoothing: antialiased;
-            -moz-osx-font-smoothing: grayscale;
-            min-height: max(884px, 100dvh);
         }
-    </style>
+    </script>
 </head>
-<body class="bg-background-light dark:bg-background-dark font-display text-slate-800 dark:text-slate-200">
-    <div class="flex flex-col min-h-screen p-6" x-data="{ tab: 'customer', phone: '{{ session('phone', old('phone', '')) }}' }">
-        <header class="flex-shrink-0">
-            <a href="{{ route('home') }}" class="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium bg-white dark:bg-slate-700 dark:text-white rounded-full shadow-sm">
-                <span class="material-symbols-outlined text-lg">arrow_back</span>
-                Kembali
-            </a>
-        </header>
+<body class="font-display bg-background-dark text-slate-200 h-screen w-full flex overflow-hidden" x-data="{ tab: 'customer', phone: '{{ session('phone', old('phone', '')) }}' }">
 
-        <main class="flex-grow flex items-center justify-center">
-            <div class="w-full max-w-md bg-white dark:bg-slate-800 rounded-2xl shadow-lg p-8 space-y-6">
-                <div class="text-center">
-                    <div class="inline-flex items-center justify-center w-16 h-16 bg-blue-100 dark:bg-blue-900 rounded-full mb-4">
-                        <span class="material-symbols-outlined text-3xl text-blue-500 dark:text-blue-400">lock</span>
-                    </div>
-                    <h1 class="text-2xl font-bold text-slate-900 dark:text-white">Login</h1>
-                    <p class="text-sm text-slate-500 dark:text-slate-400 mt-1">Pilih metode login Anda</p>
+    <!-- Section 1: Left Visual -->
+    <div class="hidden md:flex md:w-1/2 lg:w-[55%] relative items-center justify-center text-center text-white bg-cover bg-center px-4" 
+         style='background-image: linear-gradient(rgba(16, 25, 34, 0.6) 0%, rgba(16, 25, 34, 0.8) 100%), url("https://lh3.googleusercontent.com/aida-public/AB6AXuAfFN4EoCQFwDCt57D57wkXs0tzCyQo46MQVGeegeRjEmbssWVAGgZW6iXTUEcRAvhf6AqnP3VJkCvKNpk-Iav50HJdj-YtsZHDiYTb6xdNxE1SOeHyrSakSLv4kTypEliCGbrbhJqk5P0C9VzA_AkEL1xNCwrz-RBM2Nhf8JlptluCvC9fx84xCuzANajJU-ZKtQb42gNqTD9CVxAgikG0-1Rcaeu10db4LHLxIC3LqCYKcihcDuM_QBFCHJIaWngs72ENTy3TNvU");'>
+        
+        <!-- Back Button (Desktop Left) -->
+        <div class="absolute top-8 left-8 z-10 w-fit">
+            <a href="/" class="flex items-center gap-2 px-4 py-2 rounded-full bg-white/10 hover:bg-white/20 text-white/80 hover:text-white transition-all text-sm font-medium border border-white/10 backdrop-blur-md group">
+                <span class="material-symbols-outlined text-sm transition-transform group-hover:-translate-x-0.5">arrow_back</span>
+                <span class="text-xs">Kembali ke Beranda</span>
+            </a>
+        </div>
+
+        <div class="flex flex-col gap-4">
+            <h1 class="text-4xl sm:text-5xl md:text-7xl font-black leading-tight tracking-tighter">Getwashed x Latte</h1>
+            <p class="text-base sm:text-lg md:text-xl font-normal leading-normal">Your Premium Stop for Coffee & Care</p>
+        </div>
+    </div>
+
+    <!-- Section 2: Right Login Modal -->
+    <div class="w-full md:w-1/2 lg:w-[45%] h-full flex flex-col relative bg-background-dark/95 backdrop-blur-3xl border-l border-white/5 shadow-2xl">
+        
+        <!-- Back Button (Top Right) -->
+        <!-- Back Button (Mobile Only) -->
+        <div class="absolute top-6 right-6 z-10 md:hidden">
+            <a href="/" class="flex items-center gap-2 px-4 py-2 rounded-full bg-white/5 hover:bg-white/10 text-slate-400 hover:text-white transition-all text-sm font-medium border border-white/5 backdrop-blur-md group">
+                <span class="text-xs">Kembali</span>
+                <span class="material-symbols-outlined text-sm transition-transform group-hover:translate-x-0.5">arrow_forward</span>
+            </a>
+        </div>
+
+        <!-- Main Content -->
+        <div class="flex-1 flex items-center justify-center p-6 sm:p-12 overflow-y-auto">
+            <div class="w-full max-w-sm space-y-8">
+                
+                <!-- Header Text -->
+                <div class="space-y-2">
+                    <h1 class="text-3xl lg:text-4xl font-extrabold text-white tracking-tight">Login Portal</h1>
+                    <p class="text-slate-400">Masuk untuk mengelola akun Anda</p>
                 </div>
 
-                <div class="flex bg-slate-100 dark:bg-slate-700/50 rounded-full p-1 text-sm">
+                <!-- Tabs -->
+                <div class="flex p-1 bg-card-dark rounded-xl border border-white/5">
                     <button 
                         @click="tab = 'customer'"
-                        :class="tab === 'customer' ? 'bg-white dark:bg-slate-600 text-slate-800 dark:text-white font-semibold shadow-sm' : 'text-slate-500 dark:text-slate-400 font-medium'"
-                        class="flex-1 py-2 rounded-full transition"
+                        :class="tab === 'customer' ? 'bg-primary text-white shadow-lg' : 'text-slate-400 hover:text-white'"
+                        class="flex-1 py-3 text-sm font-bold rounded-lg transition-all"
                     >
-                        Customer (OTP)
+                        Customer
                     </button>
                     <button 
                         @click="tab = 'admin'"
-                        :class="tab === 'admin' ? 'bg-white dark:bg-slate-600 text-slate-800 dark:text-white font-semibold shadow-sm' : 'text-slate-500 dark:text-slate-400 font-medium'"
-                        class="flex-1 py-2 rounded-full transition"
+                        :class="tab === 'admin' ? 'bg-primary text-white shadow-lg' : 'text-slate-400 hover:text-white'"
+                        class="flex-1 py-3 text-sm font-bold rounded-lg transition-all"
                     >
                         Admin
                     </button>
                 </div>
 
+                <!-- Alerts -->
                 @if(session('success'))
-                    <div class="p-4 bg-green-50 dark:bg-green-900/30 border border-green-200 dark:border-green-800 rounded-lg text-green-800 dark:text-green-200 text-sm">
+                    <div class="p-4 bg-green-500/10 border border-green-500/20 rounded-xl text-green-400 text-sm flex items-center gap-2 animate-pulse">
+                        <span class="material-symbols-outlined text-lg">check_circle</span>
                         {{ session('success') }}
                     </div>
                 @endif
 
                 @if(session('error'))
-                    <div class="p-4 bg-red-50 dark:bg-red-900/30 border border-red-200 dark:border-red-800 rounded-lg text-red-800 dark:text-red-200 text-sm">
+                    <div class="p-4 bg-red-500/10 border border-red-500/20 rounded-xl text-red-400 text-sm flex items-center gap-2">
+                        <span class="material-symbols-outlined text-lg">error</span>
                         {{ session('error') }}
                     </div>
                 @endif
 
-                <div x-show="tab === 'customer'" x-cloak>
-                    <form method="POST" action="{{ route('login.otp.request') }}" class="space-y-4">
+                <!-- Customer Form -->
+                <div x-show="tab === 'customer'" x-transition:enter="transition ease-out duration-300" x-transition:enter-start="opacity-0 translate-y-2" x-transition:enter-end="opacity-100 translate-y-0" class="space-y-6">
+                    
+                    <!-- Request OTP -->
+                    <form method="POST" action="{{ route('login.otp.request') }}" class="space-y-5">
                         @csrf
                         <div class="space-y-2">
-                            <label class="text-sm font-medium text-slate-700 dark:text-slate-300" for="whatsapp">Nomor WhatsApp</label>
-                            <input 
-                                class="w-full px-4 py-3 bg-slate-50 dark:bg-slate-700 border border-slate-300 dark:border-slate-600 rounded-lg focus:ring-blue-500 focus:border-blue-500" 
-                                id="whatsapp" 
-                                name="phone"
-                                placeholder="08123456789" 
-                                type="tel"
-                                required
-                                x-model="phone"
-                            >
-                            <p class="text-xs text-slate-500 dark:text-slate-400">Nomor yang terdaftar saat check-in</p>
+                            <label class="text-xs font-bold uppercase tracking-wider text-slate-500">Nomor WhatsApp</label>
+                            <input type="tel" name="phone" x-model="phone" required placeholder="08..."
+                                   class="w-full bg-card-dark border border-white/10 rounded-xl px-4 py-4 text-white placeholder:text-zinc-600 focus:border-primary focus:ring-1 focus:ring-primary transition-all outline-none">
                         </div>
-
-                        <button type="submit" class="w-full flex items-center justify-center gap-2 py-3 bg-blue-600 text-white rounded-lg font-semibold hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 dark:focus:ring-offset-slate-800">
-                            <span class="material-symbols-outlined text-xl">phonelink_setup</span>
-                            Kirim Kode OTP
+                        <button type="submit" class="w-full bg-primary hover:bg-blue-600 text-white font-bold py-4 rounded-xl transition-all shadow-lg shadow-primary/20 flex items-center justify-center gap-2">
+                            <span class="material-symbols-outlined">send</span>
+                            Kirim OTP
                         </button>
                     </form>
 
-                    <hr class="border-slate-200 dark:border-slate-700 my-6">
+                    <div class="relative flex py-2 items-center">
+                        <div class="flex-grow border-t border-white/10"></div>
+                        <span class="flex-shrink-0 mx-4 text-xs text-slate-600 uppercase">Input Kode</span>
+                        <div class="flex-grow border-t border-white/10"></div>
+                    </div>
 
-                    <form method="POST" action="{{ route('login.otp.verify') }}" class="space-y-4">
+                    <!-- Verify OTP -->
+                    <form method="POST" action="{{ route('login.otp.verify') }}" class="space-y-5">
                         @csrf
                         <input type="hidden" name="phone" x-model="phone">
-                        
                         <div class="space-y-2">
-                            <label class="text-sm font-medium text-slate-700 dark:text-slate-300" for="otp">Sudah terima OTP?</label>
-                            <input 
-                                class="w-full px-4 py-3 bg-slate-50 dark:bg-slate-700 border border-slate-300 dark:border-slate-600 rounded-lg text-center tracking-[0.5em] text-lg font-semibold focus:ring-green-500 focus:border-green-500" 
-                                id="otp" 
-                                name="otp_code"
-                                maxlength="6" 
-                                placeholder="000000" 
-                                type="text"
-                                required
-                            >
+                            <label class="text-xs font-bold uppercase tracking-wider text-slate-500">Kode OTP</label>
+                            <input type="text" name="otp_code" placeholder="• • • • • •" maxlength="6"
+                                   class="w-full bg-card-dark border border-white/10 rounded-xl px-4 py-4 text-white text-center tracking-[1em] font-bold placeholder:tracking-normal placeholder:text-zinc-600 focus:border-green-500 focus:ring-1 focus:ring-green-500 transition-all outline-none">
                         </div>
-
-                        <button type="submit" class="w-full flex items-center justify-center gap-2 py-3 bg-green-500 text-white rounded-lg font-semibold hover:bg-green-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 dark:focus:ring-offset-slate-800">
-                            <span class="material-symbols-outlined text-xl">check</span>
-                            Verifikasi &amp; Login
+                        <button type="submit" class="w-full bg-slate-800 hover:bg-green-600 hover:text-white text-slate-300 font-bold py-4 rounded-xl transition-all flex items-center justify-center gap-2 group">
+                            <span class="material-symbols-outlined group-hover:scale-110 transition-transform">check_circle</span>
+                            Verifikasi
                         </button>
                     </form>
                 </div>
 
-                <div x-show="tab === 'admin'" x-cloak>
-                    <form method="POST" action="{{ route('login.admin') }}" class="space-y-4">
+                <!-- Admin Form -->
+                <div x-show="tab === 'admin'" x-transition:enter="transition ease-out duration-300" x-transition:enter-start="opacity-0 translate-y-2" x-transition:enter-end="opacity-100 translate-y-0">
+                    <form method="POST" action="{{ route('login.admin') }}" class="space-y-5">
                         @csrf
-                        
-                        <div class="space-y-2">
-                            <label class="text-sm font-medium text-slate-700 dark:text-slate-300" for="email">Email</label>
-                            <input 
-                                class="w-full px-4 py-3 bg-slate-50 dark:bg-slate-700 border border-slate-300 dark:border-slate-600 rounded-lg focus:ring-blue-500 focus:border-blue-500" 
-                                id="email" 
-                                name="email"
-                                type="email"
-                                placeholder="admin@getwashed.com" 
-                                required
-                            >
+                        <div class="space-y-4">
+                            <div class="space-y-2">
+                                <label class="text-xs font-bold uppercase tracking-wider text-slate-500">Email</label>
+                                <input type="email" name="email" required placeholder="admin@example.com"
+                                       class="w-full bg-card-dark border border-white/10 rounded-xl px-4 py-4 text-white placeholder:text-zinc-600 focus:border-primary focus:ring-1 focus:ring-primary transition-all outline-none">
+                            </div>
+                            <div class="space-y-2">
+                                <label class="text-xs font-bold uppercase tracking-wider text-slate-500">Password</label>
+                                <input type="password" name="password" required placeholder="••••••••"
+                                       class="w-full bg-card-dark border border-white/10 rounded-xl px-4 py-4 text-white placeholder:text-zinc-600 focus:border-primary focus:ring-1 focus:ring-primary transition-all outline-none">
+                            </div>
                         </div>
 
-                        <div class="space-y-2">
-                            <label class="text-sm font-medium text-slate-700 dark:text-slate-300" for="password">Password</label>
-                            <input 
-                                class="w-full px-4 py-3 bg-slate-50 dark:bg-slate-700 border border-slate-300 dark:border-slate-600 rounded-lg focus:ring-blue-500 focus:border-blue-500" 
-                                id="password" 
-                                name="password"
-                                type="password"
-                                placeholder="••••••••" 
-                                required
-                            >
+                        <div class="flex items-center justify-between">
+                            <label class="flex items-center gap-2 cursor-pointer">
+                                <input type="checkbox" name="remember" class="rounded border-white/10 bg-card-dark text-primary focus:ring-primary/50">
+                                <span class="text-sm text-slate-400">Ingat Saya</span>
+                            </label>
                         </div>
 
-                        <div class="flex items-center">
-                            <input 
-                                type="checkbox" 
-                                id="remember" 
-                                name="remember" 
-                                class="w-4 h-4 text-blue-600 border-slate-300 dark:border-slate-600 rounded focus:ring-blue-500"
-                            >
-                            <label for="remember" class="ml-2 text-sm text-slate-700 dark:text-slate-300">Remember me</label>
-                        </div>
-
-                        <button type="submit" class="w-full flex items-center justify-center gap-2 py-3 bg-blue-600 text-white rounded-lg font-semibold hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 dark:focus:ring-offset-slate-800">
-                            <span class="material-symbols-outlined text-xl">key</span>
+                        <button type="submit" class="w-full bg-primary hover:bg-blue-600 text-white font-bold py-4 rounded-xl transition-all shadow-lg shadow-primary/20 flex items-center justify-center gap-2">
+                            <span class="material-symbols-outlined">key</span>
                             Login Admin
                         </button>
                     </form>
                 </div>
-            </div>
-        </main>
 
-        <footer class="flex-shrink-0 text-center py-4">
-            <p class="text-xs text-slate-500 dark:text-slate-400">Belum punya akun? Scan QR di kasir untuk check-in pertama</p>
-        </footer>
+            </div>
+        </div>
+
+        <!-- Mini Footer -->
+        <div class="p-6 text-center">
+             <p class="text-xs text-slate-600">© 2026 Getwashed x Latte</p>
+        </div>
+
     </div>
+
 </body>
 </html>
