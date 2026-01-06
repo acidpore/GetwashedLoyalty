@@ -261,8 +261,8 @@
             <a class="flex items-center gap-2 text-sm hover:text-primary transition-colors" href="tel:+6285883814652">
                 <span class="material-symbols-outlined text-lg">call</span>+62 858-8381-4652
             </a>
-            <a class="flex items-center gap-2 text-sm hover:text-primary transition-colors" href="mailto:getwashedxlatte@gmail.com">
-                <span class="material-symbols-outlined text-lg">mail</span>getwashedxlatte@gmail.com
+            <a class="flex items-center gap-2 text-sm hover:text-primary transition-colors" href="mailto:admin@getwashedxlatte.com">
+                <span class="material-symbols-outlined text-lg">mail</span>admin@getwashedxlatte.com
             </a>
             <p class="flex items-start gap-2 text-sm">
                 <span class="material-symbols-outlined text-lg mt-0.5">location_on</span>
