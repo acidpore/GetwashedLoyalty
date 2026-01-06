@@ -254,22 +254,23 @@
                 <h2 class="text-white text-lg font-bold leading-tight">Getwashed x Latte</h2>
             </div>
             <p class="text-sm">Your premium one-stop destination for exceptional coffee and meticulous vehicle care. Relax with us while we make your ride shine.</p>
-            <p class="text-sm font-semibold">PT. Insan Sabda Abadi</p>
+            <p class="text-sm font-semibold text-white">PT Mitra Anak Cawang</p>
         </div>
         <div class="flex flex-col gap-4">
             <h3 class="font-bold text-white">Contact Us</h3>
-            <a class="flex items-center gap-2 text-sm hover:text-primary transition-colors" href="tel:123-456-7890">
-                <span class="material-symbols-outlined text-lg">call</span>123-456-7890
+            <a class="flex items-center gap-2 text-sm hover:text-primary transition-colors" href="tel:+6285883814652">
+                <span class="material-symbols-outlined text-lg">call</span>+62 858-8381-4652
             </a>
-            <a class="flex items-center gap-2 text-sm hover:text-primary transition-colors" href="mailto:hello@getwashed.com">
-                <span class="material-symbols-outlined text-lg">mail</span>hello@getwashed.com
+            <a class="flex items-center gap-2 text-sm hover:text-primary transition-colors" href="mailto:getwashedxlatte@gmail.com">
+                <span class="material-symbols-outlined text-lg">mail</span>getwashedxlatte@gmail.com
             </a>
             <p class="flex items-start gap-2 text-sm">
                 <span class="material-symbols-outlined text-lg mt-0.5">location_on</span>
                 <span>
-                    Jl. Kancra No.70 RT. 000 RW. 000<br>
-                    Burangrang, Lengkong<br>
-                    Kota Bandung Jawa Barat
+                    Jl. Dewi Sartika No. 184,<br>
+                    Kelurahan Cawang, Kecamatan Kramatjati,<br>
+                    Kota Administrasi Jakarta Timur,<br>
+                    DKI Jakarta 13630, Indonesia
                 </span>
             </p>
         </div>
@@ -292,7 +293,7 @@
                     </svg>
                 </a>
             </div>
-            <a href="https://getwashedxlatte.com/" target="_blank" class="text-sm font-semibold hover:text-primary transition-colors">https://getwashedxlatte.com/</a>
+            <a href="https://getwashedxlatte.com" target="_blank" class="text-sm hover:text-primary transition-colors">getwashedxlatte.com</a>
         </div>
     </div>
     <div class="max-w-7xl mx-auto px-6 lg:px-8 mt-8 border-t border-slate-700 pt-6 text-center text-sm">

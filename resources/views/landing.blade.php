@@ -146,8 +146,31 @@
                 @endforeach
             </div>
 
-            <footer class="w-full text-center mt-16">
-                <p class="text-slate-500 dark:text-slate-400 text-sm">&copy; 2025 Getwashed Loyalty. Fresh & Clean Experience.</p>
+            <footer class="w-full mt-16 bg-white/40 dark:bg-slate-800/30 backdrop-blur-md p-6 rounded-2xl shadow-sm border border-white/30 dark:border-slate-700/50">
+                <div class="text-center">
+                    <h4 class="text-lg font-bold text-slate-800 dark:text-slate-100 mb-4">PT MITRA ANAK CAWANG</h4>
+                    
+                    <div class="space-y-3 text-sm text-slate-600 dark:text-slate-400">
+                        <div class="flex flex-col items-center gap-1">
+                            <span class="font-semibold text-slate-700 dark:text-slate-300">Alamat</span>
+                            <p class="leading-relaxed">
+                                Jl. Dewi Sartika No. 184,<br>
+                                Kelurahan Cawang, Kecamatan Kramatjati,<br>
+                                Kota Administrasi Jakarta Timur,<br>
+                                DKI Jakarta 13630, Indonesia
+                            </p>
+                        </div>
+                        
+                        <div class="flex flex-col items-center gap-1 pt-2">
+                            <span class="font-semibold text-slate-700 dark:text-slate-300">Telepon Bisnis</span>
+                            <a href="tel:+6285883814652" class="text-primary hover:underline">+6285883814652</a>
+                        </div>
+                    </div>
+                    
+                    <div class="mt-6 pt-4 border-t border-slate-200 dark:border-slate-700">
+                        <p class="text-slate-500 dark:text-slate-400 text-xs">&copy; 2025 Getwashed Loyalty. Fresh & Clean Experience.</p>
+                    </div>
+                </div>
             </footer>
         </div>
     </section>
