@@ -103,13 +103,10 @@
         <header class="fixed top-0 left-0 right-0 z-50 transition-colors duration-300 bg-transparent">
             <div class="max-w-7xl mx-auto px-6 lg:px-8">
                 <div class="flex items-center justify-between whitespace-nowrap border-b border-solid border-white/20 h-20">
-                    <div class="flex items-center gap-4 text-white">
-                        <div class="size-6">
-                            <svg fill="none" viewBox="0 0 48 48" xmlns="http://www.w3.org/2000/svg">
-                                <path clip-rule="evenodd" d="M24 4H42V17.3333V30.6667H24V44H6V30.6667V17.3333H24V4Z" fill="currentColor" fill-rule="evenodd"></path>
-                            </svg>
-                        </div>
-                        <h2 class="text-base md:text-lg font-bold leading-tight tracking-[-0.015em]">Getwashed x Latte</h2>
+                    <div class="flex items-center gap-2 md:gap-3 text-white">
+                        <img src="{{ asset('Logo Get Washed Updated.png') }}" alt="Getwashed Logo" class="h-8 md:h-10 w-auto">
+                        <span class="text-lg md:text-xl font-bold text-white/80">×</span>
+                        <img src="{{ asset('Logo Latte 3.png') }}" alt="Latte Logo" class="h-8 md:h-10 w-auto">
                     </div>
                     <nav class="hidden md:flex items-center gap-9 text-white">
                         <a class="text-sm font-medium leading-normal hover:text-primary transition-colors" href="#coffee">Coffee</a>
@@ -157,7 +154,7 @@
 
         <main>
             <section class="relative h-screen w-full flex items-center justify-center text-center text-white bg-cover bg-center px-4" style='background-image: linear-gradient(rgba(16, 25, 34, 0.6) 0%, rgba(16, 25, 34, 0.8) 100%), url("https://lh3.googleusercontent.com/aida-public/AB6AXuAfFN4EoCQFwDCt57D57wkXs0tzCyQo46MQVGeegeRjEmbssWVAGgZW6iXTUEcRAvhf6AqnP3VJkCvKNpk-Iav50HJdj-YtsZHDiYTb6xdNxE1SOeHyrSakSLv4kTypEliCGbrbhJqk5P0C9VzA_AkEL1xNCwrz-RBM2Nhf8JlptluCvC9fx84xCuzANajJU-ZKtQb42gNqTD9CVxAgikG0-1Rcaeu10db4LHLxIC3LqCYKcihcDuM_QBFCHJIaWngs72ENTy3TNvU");'>
-                <div class="flex flex-col gap-4">
+                <div class="flex flex-col gap-4 items-center">
                     <h1 class="text-4xl sm:text-5xl md:text-7xl font-black leading-tight tracking-tighter">Getwashed x Latte</h1>
                     <p class="text-base sm:text-lg md:text-xl font-normal leading-normal">Your Premium Stop for Coffee & Care</p>
                     <div class="absolute bottom-10 left-1/2 -translate-x-1/2 flex flex-col items-center gap-2">
@@ -245,13 +242,10 @@
             <footer class="relative bg-background-dark text-slate-300 -mt-[10vh] pt-[15vh] pb-8" id="contact">
     <div class="max-w-7xl mx-auto px-6 lg:px-8 grid md:grid-cols-3 gap-8">
         <div class="flex flex-col gap-4">
-            <div class="flex items-center gap-4">
-                <div class="size-6 text-white">
-                    <svg fill="none" viewBox="0 0 48 48" xmlns="http://www.w3.org/2000/svg">
-                        <path clip-rule="evenodd" d="M24 4H42V17.3333V30.6667H24V44H6V30.6667V17.3333H24V4Z" fill="currentColor" fill-rule="evenodd"></path>
-                    </svg>
-                </div>
-                <h2 class="text-white text-lg font-bold leading-tight">Getwashed x Latte</h2>
+            <div class="flex items-center gap-2">
+                <img src="{{ asset('Logo Get Washed Updated.png') }}" alt="Getwashed Logo" class="h-8 w-auto">
+                <span class="text-lg font-bold text-white/70">×</span>
+                <img src="{{ asset('Logo Latte 3.png') }}" alt="Latte Logo" class="h-8 w-auto">
             </div>
             <p class="text-sm">Your premium one-stop destination for exceptional coffee and meticulous vehicle care. Relax with us while we make your ride shine.</p>
             <p class="text-sm font-semibold text-white">PT Mitra Anak Cawang</p>
