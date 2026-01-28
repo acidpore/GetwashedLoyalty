@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
+use App\Models\SystemSetting;
 
 class SuccessController extends Controller
 {
@@ -17,6 +18,10 @@ class SuccessController extends Controller
         $motorwashReward = filter_var($request->query('motorwash_reward', false), FILTER_VALIDATE_BOOLEAN);
         $coffeeshopReward = filter_var($request->query('coffeeshop_reward', false), FILTER_VALIDATE_BOOLEAN);
 
+        $carwashThreshold = SystemSetting::carwashRewardThreshold();
+        $motorwashThreshold = SystemSetting::motorwashRewardThreshold();
+        $coffeeshopThreshold = SystemSetting::coffeeshopRewardThreshold();
+
         return view('success', compact(
             'name',
             'loyaltyType',
@@ -25,7 +30,10 @@ class SuccessController extends Controller
             'coffeeshopPoints',
             'carwashReward',
             'motorwashReward',
-            'coffeeshopReward'
+            'coffeeshopReward',
+            'carwashThreshold',
+            'motorwashThreshold',
+            'coffeeshopThreshold'
         ));
     }
 }

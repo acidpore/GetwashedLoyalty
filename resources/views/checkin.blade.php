@@ -1,85 +1,40 @@
-<!DOCTYPE html>
-<html class="dark" lang="en">
-<head>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Check-In - Getwashed Loyalty</title>
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
-    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined" rel="stylesheet">
-    <script src="https://cdn.tailwindcss.com?plugins=forms,typography"></script>
-    <script>
-        tailwind.config = {
-            darkMode: "class",
-            theme: {
-                extend: {
-                    colors: {
-                        primary: "#4285F4",
-                        "background-light": "#E6F4EA",
-                        "background-dark": "#18181b",
-                        "card-light": "#FFFFFF",
-                        "card-dark": "#27272a",
-                        "text-light": "#3f3f46",
-                        "text-dark": "#d4d4d8",
-                        "subtext-light": "#71717a",
-                        "subtext-dark": "#a1a1aa",
-                        "border-light": "#e4e4e7",
-                        "border-dark": "#3f3f46",
-                        "button-primary": "#059669",
-                        "info-bg-light": "#e0e8f9",
-                        "info-bg-dark": "#2d3748",
-                        "info-text-light": "#4285F4",
-                        "info-text-dark": "#90cdf4"
-                    },
-                    fontFamily: {
-                        display: ["Poppins", "sans-serif"],
-                    },
-                    borderRadius: {
-                        DEFAULT: "1rem",
-                        "lg": "1.25rem",
-                        "xl": "1.5rem",
-                        "2xl": "2rem",
-                    },
-                },
-            },
-        };
-    </script>
-    <style>
-        body {
-            -webkit-font-smoothing: antialiased;
-            -moz-osx-font-smoothing: grayscale;
-            min-height: max(884px, 100dvh);
-        }
-    </style>
-</head>
-<body class="bg-background-light dark:bg-background-dark font-display">
-    <div class="min-h-screen flex flex-col p-4">
-        <header class="w-full">
-            <a href="{{ route('home') }}" class="inline-flex items-center gap-2 px-4 py-2 bg-card-light dark:bg-card-dark rounded-lg shadow-sm">
-                <span class="material-symbols-outlined text-primary text-xl">arrow_back</span>
-                <span class="text-text-light dark:text-text-dark font-medium">Kembali</span>
+<x-layout.layout title="Check-In - Getwashed Loyalty">
+    <div class="min-h-screen flex flex-col p-4 md:p-8">
+        
+        <!-- Header / Back -->
+        <header class="w-full max-w-4xl mx-auto mb-8">
+            <a href="{{ route('home') }}" class="inline-flex items-center gap-2 text-slate-400 hover:text-white transition-colors">
+                <span class="material-symbols-outlined">arrow_back</span>
+                <span class="font-bold text-sm">Kembali</span>
             </a>
         </header>
 
         <main class="flex-grow flex items-center justify-center">
-            <div class="w-full max-w-md bg-card-light dark:bg-card-dark rounded-2xl p-6 md:p-8 shadow-lg">
-                <div class="flex flex-col items-center text-center">
-                    <div class="w-16 h-16 bg-gradient-to-br from-blue-400 to-primary rounded-xl flex items-center justify-center mb-6 shadow-md">
+            <div class="w-full max-w-md bg-card-dark border border-white/5 rounded-3xl p-8 sm:p-10 shadow-2xl relative overflow-hidden backdrop-blur-xl">
+                <!-- Background Decoration -->
+                <div class="absolute top-0 right-0 w-64 h-64 bg-primary/10 rounded-full blur-3xl -mr-16 -mt-16 pointer-events-none"></div>
+
+                <div class="relative z-10 text-center">
+                    
+                    <!-- Icon -->
+                    <div class="w-20 h-20 mx-auto bg-gradient-to-br from-primary via-blue-500 to-purple-600 rounded-2xl flex items-center justify-center mb-8 shadow-lg shadow-primary/20">
                         <span class="material-symbols-outlined text-white text-4xl">check_circle</span>
                     </div>
-                    <h1 class="text-2xl font-bold text-text-light dark:text-text-dark">Check-In Sekarang</h1>
+
+                    <h1 class="text-2xl font-extrabold text-white mb-2">Check-In Sekarang</h1>
                     
-                    <div class="mt-3 mb-4 flex flex-wrap gap-2 justify-center">
+                    <div class="mt-4 mb-8 flex flex-wrap gap-2 justify-center">
                         @foreach($loyaltyTypes as $type)
                             @if($type === 'carwash')
-                                <span class="px-3 py-1 bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 rounded-lg text-sm font-medium">
+                                <span class="px-3 py-1 bg-blue-500/10 border border-blue-500/20 text-blue-400 rounded-lg text-xs font-bold uppercase tracking-wider">
                                     🚗 Cuci Mobil
                                 </span>
                             @elseif($type === 'motorwash')
-                                <span class="px-3 py-1 bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-300 rounded-lg text-sm font-medium">
+                                <span class="px-3 py-1 bg-orange-500/10 border border-orange-500/20 text-orange-400 rounded-lg text-xs font-bold uppercase tracking-wider">
                                     🏍️ Cuci Motor
                                 </span>
                             @elseif($type === 'coffeeshop')
-                                <span class="px-3 py-1 bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-300 rounded-lg text-sm font-medium">
+                                <span class="px-3 py-1 bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 rounded-lg text-xs font-bold uppercase tracking-wider">
                                     ☕ Coffee Shop
                                 </span>
                             @endif
@@ -87,77 +42,87 @@
                     </div>
 
                     @if(count($loyaltyTypes) > 1)
-                        <div class="flex items-center gap-2 px-3 py-1 bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-300 rounded-lg text-sm font-medium">
-                            🎁 {{ count($loyaltyTypes) }}x Poin!
+                        <div class="mb-8 inline-flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-yellow-500/20 to-orange-500/20 border border-yellow-500/30 text-yellow-500 rounded-xl text-sm font-bold animate-pulse">
+                            <span class="material-symbols-outlined text-lg">stars</span>
+                            {{ count($loyaltyTypes) }}x Poin!
                         </div>
                     @endif
-                </div>
 
-                @if(session('success'))
-                    <div class="mb-6 p-4 bg-green-50 dark:bg-green-900/30 border border-green-200 dark:border-green-800 rounded-lg text-green-800 dark:text-green-200 text-sm">
-                        {{ session('success') }}
-                    </div>
-                @endif
-
-                @if(session('error'))
-                    <div class="mb-6 p-4 bg-red-50 dark:bg-red-900/30 border border-red-200 dark:border-red-800 rounded-lg text-red-800 dark:text-red-200 text-sm">
-                        {{ session('error') }}
-                    </div>
-                @endif
-
-                <form method="POST" action="{{ route('checkin.store') }}" class="space-y-6 mt-6">
-                    @csrf
-                    @foreach($loyaltyTypes as $type)
-                        <input type="hidden" name="loyalty_types[]" value="{{ $type }}">
-                    @endforeach
-                    @if($qrCode)
-                        <input type="hidden" name="qr_code" value="{{ $qrCode->code }}">
+                    @if(session('success'))
+                        <div class="mb-6 p-4 bg-green-500/10 border border-green-500/20 rounded-xl text-green-400 text-sm font-medium">
+                            {{ session('success') }}
+                        </div>
                     @endif
 
-                    <div>
-                        <label class="block text-sm font-medium text-text-light dark:text-text-dark mb-2" for="full-name">Nama Lengkap</label>
-                        <input 
-                            class="w-full px-4 py-3 bg-white dark:bg-zinc-700 border border-border-light dark:border-border-dark rounded-lg focus:ring-primary focus:border-primary placeholder-zinc-400 dark:placeholder-zinc-500 text-text-light dark:text-text-dark" 
-                            id="full-name" 
-                            name="name" 
-                            placeholder="Masukkan nama Anda" 
-                            type="text"
-                            required
+                    @if(session('error'))
+                        <div class="mb-6 p-4 bg-red-500/10 border border-red-500/20 rounded-xl text-red-400 text-sm font-medium">
+                            {{ session('error') }}
+                        </div>
+                    @endif
+
+                    <form method="POST" action="{{ route('checkin.store') }}" class="space-y-5 text-left">
+                        @csrf
+                        @foreach($loyaltyTypes as $type)
+                            <input type="hidden" name="loyalty_types[]" value="{{ $type }}">
+                        @endforeach
+                        @if($qrCode)
+                            <input type="hidden" name="qr_code" value="{{ $qrCode->code }}">
+                        @endif
+
+                        <div class="space-y-1.5">
+                            <label class="text-xs font-bold text-slate-400 uppercase tracking-wider ml-1" for="full-name">Nama Lengkap</label>
+                            <div class="relative group">
+                                <span class="absolute left-4 top-3.5 material-symbols-outlined text-slate-500 group-focus-within:text-primary transition-colors">badge</span>
+                                <input 
+                                    class="w-full pl-12 pr-4 py-3.5 bg-background-dark/50 border border-white/10 rounded-xl focus:ring-2 focus:ring-primary/50 focus:border-primary text-white placeholder-slate-500 transition-all font-medium" 
+                                    id="full-name" 
+                                    name="name" 
+                                    placeholder="Masukkan nama Anda" 
+                                    type="text"
+                                    required
+                                >
+                            </div>
+                        </div>
+
+                        <div class="space-y-1.5">
+                            <label class="text-xs font-bold text-slate-400 uppercase tracking-wider ml-1" for="whatsapp-number">Nomor WhatsApp</label>
+                            <div class="relative group">
+                                <span class="absolute left-4 top-3.5 material-symbols-outlined text-slate-500 group-focus-within:text-primary transition-colors">chat</span>
+                                <input 
+                                    class="w-full pl-12 pr-4 py-3.5 bg-background-dark/50 border border-white/10 rounded-xl focus:ring-2 focus:ring-primary/50 focus:border-primary text-white placeholder-slate-500 transition-all font-medium" 
+                                    id="whatsapp-number" 
+                                    name="phone" 
+                                    placeholder="08123456789" 
+                                    type="tel"
+                                    required
+                                >
+                            </div>
+                            <p class="text-[10px] text-slate-500 font-medium ml-1">Format: 08xxx atau 628xxx</p>
+                        </div>
+
+                        <button 
+                            class="w-full group mt-4 flex items-center justify-center gap-2 bg-gradient-to-r from-primary to-blue-600 hover:to-blue-500 text-white font-bold py-4 px-6 rounded-xl shadow-lg shadow-primary/25 hover:shadow-primary/40 transition-all transform hover:-translate-y-0.5 active:scale-[0.98]" 
+                            type="submit"
                         >
+                            <span class="material-symbols-outlined group-hover:animate-bounce">auto_awesome</span>
+                            Dapatkan Poin Sekarang!
+                        </button>
+                    </form>
+
+                    <div class="mt-8 pt-6 border-t border-white/5">
+                        <div class="flex items-start gap-3 text-left">
+                            <div class="min-w-[20px] pt-0.5">
+                                <span class="material-symbols-outlined text-primary text-sm">info</span>
+                            </div>
+                            <p class="text-xs text-slate-400 leading-relaxed">Poin akan langsung masuk. Notifikasi & link dashboard dikirim ke WhatsApp Anda.</p>
+                        </div>
                     </div>
-
-                    <div>
-                        <label class="block text-sm font-medium text-text-light dark:text-text-dark mb-2" for="whatsapp-number">Nomor WhatsApp</label>
-                        <input 
-                            class="w-full px-4 py-3 bg-white dark:bg-zinc-700 border border-border-light dark:border-border-dark rounded-lg focus:ring-primary focus:border-primary placeholder-zinc-400 dark:placeholder-zinc-500 text-text-light dark:text-text-dark" 
-                            id="whatsapp-number" 
-                            name="phone" 
-                            placeholder="08123456789" 
-                            type="tel"
-                            required
-                        >
-                        <p class="text-xs text-subtext-light dark:text-subtext-dark mt-2">Format: 08xxx atau 628xxx</p>
-                    </div>
-
-                    <button 
-                        class="w-full flex items-center justify-center gap-2 bg-button-primary text-white font-semibold py-3 px-4 rounded-lg shadow-md hover:bg-emerald-700 transition-colors" 
-                        type="submit"
-                    >
-                        <span class="material-symbols-outlined">auto_awesome</span>
-                        Dapatkan Poin Sekarang!
-                    </button>
-                </form>
-
-                <div class="mt-6 flex items-start gap-3 p-4 bg-info-bg-light dark:bg-info-bg-dark rounded-lg">
-                    <span class="material-symbols-outlined text-info-text-light dark:text-info-text-dark mt-0.5">info</span>
-                    <p class="text-sm text-info-text-light dark:text-info-text-dark">Poin akan langsung masuk dan notifikasi + link dashboard dikirim ke WhatsApp Anda</p>
                 </div>
             </div>
         </main>
-
-        <footer class="text-center py-4">
-            <p class="text-xs text-subtext-light dark:text-subtext-dark">Data Anda aman dan hanya digunakan untuk program loyalitas</p>
+        
+        <footer class="py-6 text-center">
+            <p class="text-[10px] text-slate-600 font-bold tracking-widest uppercase">Getwashed Loyalty © 2026</p>
         </footer>
     </div>
-</body>
-</html>
+</x-layout.layout>
