@@ -140,14 +140,10 @@
 
             <!-- Actions -->
             <div class="space-y-3 pt-4">
-                <a href="{{ route('checkin') }}" class="block w-full bg-primary hover:bg-blue-600 text-white font-bold py-4 rounded-xl text-center transition-all shadow-lg shadow-primary/20 transform active:scale-[0.98]">
-                    Check-In Sekarang
-                </a>
                 <a href="{{ route('home') }}" class="block w-full bg-transparent hover:bg-white/5 text-slate-400 hover:text-white font-bold py-4 rounded-xl text-center transition-all border border-white/10 transform active:scale-[0.98]">
                     Kembali ke Beranda
                 </a>
             </div>
-
         </div>
     </main>
 
