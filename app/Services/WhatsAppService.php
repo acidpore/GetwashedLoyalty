@@ -7,47 +7,88 @@ use Illuminate\Support\Facades\Log;
 
 class WhatsAppService
 {
-    private string $provider;
-    private ?string $apiUrl;
+    private ?string $apiUrlReply;
+    private ?string $apiUrlPush;
     private ?string $apiToken;
+    private ?string $checkinTemplateId;
+    private ?string $rewardTemplateId;
 
     public function __construct()
     {
-        $this->provider = config('services.whatsapp.provider', 'fonnte');
-        $this->apiUrl = config('services.whatsapp.api_url');
+        $this->apiUrlReply = config('services.whatsapp.api_url_reply');
+        $this->apiUrlPush = config('services.whatsapp.api_url_push');
         $this->apiToken = config('services.whatsapp.api_token');
+        $this->checkinTemplateId = config('services.whatsapp.checkin_template_id');
+        $this->rewardTemplateId = config('services.whatsapp.reward_template_id');
     }
 
     public function sendMessage(string $phone, string $message): bool
     {
         if (!$this->isConfigured()) {
-            Log::warning('WhatsApp not configured', compact('phone'));
+            Log::warning('MaxChat WhatsApp not configured', compact('phone'));
             return false;
         }
 
         try {
-            $response = match ($this->provider) {
-                'fonnte' => $this->sendViaFonnte($phone, $message),
-                'wablas' => $this->sendViaWablas($phone, $message),
-                'twilio' => $this->sendViaTwilio($phone, $message),
-                'local' => $this->sendViaLocal($phone, $message),
-                default => throw new \Exception("Unsupported provider: {$this->provider}"),
-            };
-
+            $response = $this->sendViaReply($phone, $message);
             $this->logResult($response, $phone);
 
             return $response['success'];
 
         } catch (\Exception $e) {
-            Log::error('WhatsApp failed', ['phone' => $phone, 'error' => $e->getMessage()]);
+            Log::error('MaxChat WhatsApp failed', [
+                'phone' => $phone, 
+                'error' => $e->getMessage()
+            ]);
             return false;
         }
     }
 
     public function sendLoyaltyNotification(string $phone, string $name, $customer, array $loyaltyTypes, string $dashboardLink): bool
     {
-        $message = $this->buildLoyaltyMessage($name, $customer, $loyaltyTypes, $dashboardLink);
-        return $this->sendMessage($phone, $message);
+        if (!$this->isConfigured()) {
+            Log::warning('MaxChat WhatsApp not configured', compact('phone'));
+            return false;
+        }
+
+        try {
+            // Build message for Reply attempt
+            $message = $this->buildLoyaltyMessage($name, $customer, $loyaltyTypes, $dashboardLink);
+            
+            // ATTEMPT 1: Try sending as Reply Message (Rp 0)
+            $replyResponse = $this->sendViaReply($phone, $message);
+            
+            // SUCCESS: Reply sent successfully
+            if ($replyResponse['success']) {
+                $this->logResult($replyResponse, $phone, 'reply');
+                return true;
+            }
+            
+            // DETECTION: Check if error is session-related
+            if ($this->shouldFallbackToTemplate($replyResponse)) {
+                Log::info('Reply failed, falling back to template', [
+                    'phone' => $phone,
+                    'error_code' => $replyResponse['error_code']
+                ]);
+                
+                // FALLBACK: Send as Template Message (Rp 294)
+                $templateResponse = $this->sendViaTemplate($phone, $customer, $loyaltyTypes);
+                $this->logResult($templateResponse, $phone, 'template');
+                
+                return $templateResponse['success'];
+            }
+            
+            // Other errors: don't fallback
+            $this->logResult($replyResponse, $phone, 'reply');
+            return false;
+
+        } catch (\Exception $e) {
+            Log::error('MaxChat loyalty notification failed', [
+                'phone' => $phone,
+                'error' => $e->getMessage()
+            ]);
+            return false;
+        }
     }
 
     private function buildLoyaltyMessage(string $name, $customer, array $loyaltyTypes, string $dashboardLink): string
@@ -156,149 +197,327 @@ class WhatsAppService
         return "Halo {$name}! 👋\n✅ {$title}\n\n{$pointsText}\n\nLihat detail poin:\n👉 {$dashboardLink}\n\nAmazing! 🎁 Terima kasih! 🎉";
     }
 
-    public function sendBatch(array $messages): array
-    {
-        if ($this->provider === 'local') {
-            return $this->sendBatchViaLocal($messages);
-        }
-
-        return array_map(
-            fn($r) => ['phone' => $r['phone'], 'success' => $this->sendMessage($r['phone'], $r['message'])],
-            $messages
-        );
-    }
-
-    private function sendBatchViaLocal(array $messages): array
-    {
-        try {
-            $localUrl = config('services.whatsapp.local_url');
-            
-            $response = Http::timeout(30)
-                ->post("{$localUrl}/send-batch", [
-                    'messages' => $messages,
-                ]);
-
-            if (!$response->successful()) {
-                Log::error('WhatsApp batch failed', ['error' => $response->body()]);
-                return [
-                    'success' => false,
-                    'error' => $response->json('message') ?? 'Local service unavailable'
-                ];
-            }
-
-            return [
-                'success' => true,
-                'count' => $response->json('count')
-            ];
-
-        } catch (\Exception $e) {
-            Log::error('WhatsApp batch exception', ['error' => $e->getMessage()]);
-            return ['success' => false, 'error' => $e->getMessage()];
-        }
-    }
-
     private function isConfigured(): bool
     {
-        if ($this->provider === 'local') {
-            return !empty(config('services.whatsapp.local_url'));
-        }
-        
-        return !empty($this->apiUrl) && !empty($this->apiToken);
+        return !empty($this->apiUrlReply) 
+            && !empty($this->apiUrlPush) 
+            && !empty($this->apiToken)
+            && !empty($this->checkinTemplateId)
+            && !empty($this->rewardTemplateId);
     }
 
-    private function logResult(array $response, string $phone): void
+    private function logResult(array $response, string $phone, string $method = 'reply'): void
     {
-        $response['success']
-            ? Log::info('WhatsApp sent', ['provider' => $this->provider, 'phone' => $phone])
-            : Log::error('WhatsApp failed', ['provider' => $this->provider, 'phone' => $phone, 'error' => $response['error'] ?? 'Unknown']);
+        if ($response['success']) {
+            Log::info('MaxChat WhatsApp sent successfully', [
+                'phone' => $phone,
+                'method' => $method,
+                'provider' => 'maxchat'
+            ]);
+        } else {
+            Log::error('MaxChat WhatsApp send failed', [
+                'phone' => $phone,
+                'method' => $method,
+                'provider' => 'maxchat',
+                'error' => $response['error'] ?? 'Unknown error',
+                'error_code' => $response['error_code'] ?? null
+            ]);
+        }
     }
 
-    private function sendViaFonnte(string $phone, string $message): array
+    /**
+     * Send message via MaxChat Reply endpoint (free within 24h window)
+     * 
+     * @param string $phone Phone number in international format (e.g., 6281288889999)
+     * @param string $message Message text to send
+     * @return array ['success' => bool, 'error' => string|null, 'error_code' => string|null]
+     */
+    private function sendViaReply(string $phone, string $message): array
     {
         try {
-            $response = Http::withHeaders(['Authorization' => $this->apiToken])
-                ->post($this->apiUrl, [
-                    'target' => $phone,
-                    'message' => $message,
-                    'countryCode' => '62',
+            $response = Http::withHeaders([
+                    'Authorization' => $this->apiToken,
+                    'Content-Type' => 'application/json'
+                ])
+                ->post($this->apiUrlReply, [
+                    'channel' => 'whatsapp',
+                    'msgType' => 'text',
+                    'to' => $phone,
+                    'text' => $message,
                 ]);
 
-            return $response->successful()
-                ? ['success' => true]
-                : ['success' => false, 'error' => $response->json('detail') ?? $response->body()];
-
-        } catch (\Exception $e) {
-            return ['success' => false, 'error' => $e->getMessage()];
-        }
-    }
-
-    private function sendViaWablas(string $phone, string $message): array
-    {
-        try {
-            $response = Http::withHeaders(['Authorization' => $this->apiToken])
-                ->post($this->apiUrl, compact('phone', 'message'));
-
-            if (!$response->successful()) {
-                return ['success' => false, 'error' => $response->json('message') ?? $response->body()];
+            // Handle successful response (200 OK)
+            if ($response->successful()) {
+                return ['success' => true];
             }
 
-            return ['success' => $response->json('status', false)];
-
-        } catch (\Exception $e) {
-            return ['success' => false, 'error' => $e->getMessage()];
-        }
-    }
-
-    private function sendViaTwilio(string $phone, string $message): array
-    {
-        try {
-            $sid = config('services.whatsapp.twilio_account_sid');
-            $from = config('services.whatsapp.twilio_from');
-
-            $response = Http::asForm()
-                ->withBasicAuth($sid, $this->apiToken)
-                ->post("{$this->apiUrl}/Accounts/{$sid}/Messages.json", [
-                    'From' => "whatsapp:{$from}",
-                    'To' => "whatsapp:+{$phone}",
-                    'Body' => $message,
-                ]);
-
-            return $response->successful()
-                ? ['success' => true]
-                : ['success' => false, 'error' => $response->json('message') ?? $response->body()];
-
-        } catch (\Exception $e) {
-            return ['success' => false, 'error' => $e->getMessage()];
-        }
-    }
-
-    private function sendViaLocal(string $phone, string $message): array
-    {
-        try {
-            $localUrl = config('services.whatsapp.local_url');
-            
-            $response = Http::timeout(10)
-                ->post("{$localUrl}/send-message", [
-                    'phone' => $phone,
-                    'message' => $message,
-                ]);
-
-            if (!$response->successful()) {
+            // Handle 400 Bad Request (validation errors)
+            if ($response->status() === 400) {
+                $errorMessage = $response->json('message');
+                $errorDetail = is_array($errorMessage) ? implode(', ', $errorMessage) : $errorMessage;
+                
                 return [
                     'success' => false,
-                    'error' => $response->json('message') ?? 'Local service unavailable'
+                    'error' => "Validation error: {$errorDetail}",
+                    'error_code' => 'VALIDATION_ERROR'
                 ];
             }
 
-            $data = $response->json();
-            
+            // Handle 500 Internal Server Error (business logic errors)
+            if ($response->status() === 500) {
+                $errorCode = $response->json('code');
+                $errorMessage = $response->json('message');
+
+                // Log specific MaxChat error codes
+                if ($errorCode === 'MORE_24_HOURS') {
+                    Log::warning('MaxChat: Message outside 24-hour window', [
+                        'phone' => $phone,
+                        'error_code' => $errorCode
+                    ]);
+                } elseif ($errorCode === 'CHAT_NOT_FOUND') {
+                    Log::warning('MaxChat: Chat session not found', [
+                        'phone' => $phone,
+                        'error_code' => $errorCode
+                    ]);
+                }
+
+                return [
+                    'success' => false,
+                    'error' => $errorMessage ?? 'MaxChat service error',
+                    'error_code' => $errorCode
+                ];
+            }
+
+            // Handle other HTTP errors
             return [
-                'success' => $data['success'] ?? false,
-                'error' => $data['message'] ?? null
+                'success' => false,
+                'error' => $response->body() ?: 'Unknown HTTP error',
+                'error_code' => 'HTTP_' . $response->status()
             ];
 
         } catch (\Exception $e) {
-            return ['success' => false, 'error' => $e->getMessage()];
+            return [
+                'success' => false,
+                'error' => $e->getMessage(),
+                'error_code' => 'EXCEPTION'
+            ];
         }
+    }
+
+    /**
+     * Check if reply error should trigger template fallback
+     */
+    private function shouldFallbackToTemplate(array $response): bool
+    {
+        // Session-related errors that indicate template fallback needed
+        return !$response['success'] && in_array($response['error_code'], [
+            'MORE_24_HOURS',    // Outside 24-hour window
+            'CHAT_NOT_FOUND',   // No active chat session
+            'HTTP_400',         // May indicate no active session
+        ]);
+    }
+
+    /**
+     * Send message via MaxChat Template endpoint (paid, opens new session)
+     */
+    private function sendViaTemplate(string $phone, $customer, array $loyaltyTypes): array
+    {
+        try {
+            // Detect reward status to select appropriate template
+            $hasReward = collect($loyaltyTypes)
+                ->some(fn($type) => $customer->hasReward($type));
+            
+            // Select template ID based on scenario
+            $templateId = $hasReward 
+                ? $this->rewardTemplateId 
+                : $this->checkinTemplateId;
+            
+            // Build template parameters
+            $params = $this->buildTemplateParameters($customer, $loyaltyTypes, $hasReward);
+            
+            // POST to /messages/push with templateId
+            $response = Http::withHeaders([
+                    'Authorization' => $this->apiToken,
+                    'Content-Type' => 'application/json'
+                ])
+                ->post($this->apiUrlPush, [
+                    'to' => $phone,
+                    'msgType' => 'text',
+                    'templateId' => $templateId,
+                    'values' => [
+                        'body' => $params
+                    ]
+                ]);
+
+            // Handle successful response (200 OK)
+            if ($response->successful()) {
+                return ['success' => true];
+            }
+
+            // Handle 400 Bad Request (validation errors)
+            if ($response->status() === 400) {
+                $errorMessage = $response->json('message');
+                $errorDetail = is_array($errorMessage) ? implode(', ', $errorMessage) : $errorMessage;
+                
+                return [
+                    'success' => false,
+                    'error' => "Template validation error: {$errorDetail}",
+                    'error_code' => 'TEMPLATE_VALIDATION_ERROR'
+                ];
+            }
+
+            // Handle 500 Internal Server Error
+            if ($response->status() === 500) {
+                $errorCode = $response->json('code');
+                $errorMessage = $response->json('message');
+
+                return [
+                    'success' => false,
+                    'error' => $errorMessage ?? 'Template service error',
+                    'error_code' => $errorCode ?? 'TEMPLATE_SERVICE_ERROR'
+                ];
+            }
+
+            // Handle other HTTP errors
+            return [
+                'success' => false,
+                'error' => $response->body() ?: 'Unknown template error',
+                'error_code' => 'HTTP_' . $response->status()
+            ];
+
+        } catch (\Exception $e) {
+            return [
+                'success' => false,
+                'error' => $e->getMessage(),
+                'error_code' => 'TEMPLATE_EXCEPTION'
+            ];
+        }
+    }
+
+    /**
+     * Build template parameters for MaxChat HSM
+     */
+    private function buildTemplateParameters($customer, array $loyaltyTypes, bool $hasReward): array
+    {
+        $userName = $customer->user->name;
+        $dashboardLink = $customer->generateMagicLink();
+        
+        if ($hasReward) {
+            // Reward template parameters
+            $content = $this->buildRewardContentForTemplate($customer, $loyaltyTypes);
+            
+            return [
+                ['index' => 1, 'type' => 'text', 'text' => $this->sanitizeTemplateText($userName)],
+                ['index' => 2, 'type' => 'text', 'text' => $this->sanitizeTemplateText($content)],
+                ['index' => 3, 'type' => 'text', 'text' => $this->sanitizeTemplateText($dashboardLink)],
+            ];
+        }
+        
+        // Check-in template parameters
+        $content = $this->buildProgressContentForTemplate($customer, $loyaltyTypes);
+        
+        return [
+            ['index' => 1, 'type' => 'text', 'text' => $this->sanitizeTemplateText($userName)],
+            ['index' => 2, 'type' => 'text', 'text' => $this->sanitizeTemplateText($content)],
+            ['index' => 3, 'type' => 'text', 'text' => $this->sanitizeTemplateText($dashboardLink)],
+        ];
+    }
+
+    private function buildRewardContentForTemplate($customer, array $loyaltyTypes): string
+    {
+        $rewards = [];
+        
+        foreach ($loyaltyTypes as $type) {
+            if ($customer->hasReward($type)) {
+                $rewards[] = match($type) {
+                    'carwash' => '🚗 ' . \App\Models\SystemSetting::carwashRewardMessage(),
+                    'motorwash' => '🏍️ ' . \App\Models\SystemSetting::motorwashRewardMessage(),
+                    'coffeeshop' => '☕ ' . \App\Models\SystemSetting::coffeeshopRewardMessage(),
+                };
+            }
+        }
+        
+        $rewardCount = count($rewards);
+        if ($rewardCount === 0) {
+            return 'Reward tersedia!';
+        }
+        
+        $title = $rewardCount > 1 ? '🎊 MULTIPLE REWARDS!' : '';
+        $rewardList = implode("\n", $rewards);
+        
+        return $title ? "{$title}\n\n{$rewardList}" : $rewardList;
+    }
+
+    private function buildProgressContentForTemplate($customer, array $loyaltyTypes): string
+    {
+        $carwashThreshold = \App\Models\SystemSetting::carwashRewardThreshold();
+        $motorwashThreshold = \App\Models\SystemSetting::motorwashRewardThreshold();
+        $coffeeshopThreshold = \App\Models\SystemSetting::coffeeshopRewardThreshold();
+        
+        $programCount = count($loyaltyTypes);
+
+        if ($programCount === 1) {
+            $type = $loyaltyTypes[0];
+            return match($type) {
+                'carwash' => $this->buildCarwashProgressContent($customer, $carwashThreshold),
+                'motorwash' => $this->buildMotorwashProgressContent($customer, $motorwashThreshold),
+                'coffeeshop' => $this->buildCoffeeshopProgressContent($customer, $coffeeshopThreshold),
+                default => 'Poin Anda telah diperbarui.',
+            };
+        }
+
+        // Multi-program progress
+        $lines = [];
+        if (in_array('carwash', $loyaltyTypes)) {
+            $lines[] = "🚗 Cuci Mobil: {$customer->carwash_points}/{$carwashThreshold}";
+        }
+        if (in_array('motorwash', $loyaltyTypes)) {
+            $lines[] = "🏍️ Cuci Motor: {$customer->motorwash_points}/{$motorwashThreshold}";
+        }
+        if (in_array('coffeeshop', $loyaltyTypes)) {
+            $lines[] = "☕ Coffee Shop: {$customer->coffeeshop_points}/{$coffeeshopThreshold}";
+        }
+        
+        return implode("\n", $lines);
+    }
+
+    private function buildCarwashProgressContent($customer, int $threshold): string
+    {
+        $points = $customer->carwash_points;
+        $remaining = max(0, $threshold - $points);
+        return "Poin Cuci Mobil: {$points}/{$threshold} 🚗\nKumpulkan {$remaining} poin lagi untuk DISKON!";
+    }
+
+    private function buildMotorwashProgressContent($customer, int $threshold): string
+    {
+        $points = $customer->motorwash_points;
+        $remaining = max(0, $threshold - $points);
+        return "Poin Cuci Motor: {$points}/{$threshold} 🏍️\nKumpulkan {$remaining} poin lagi untuk DISKON!";
+    }
+
+    private function buildCoffeeshopProgressContent($customer, int $threshold): string
+    {
+        $points = $customer->coffeeshop_points;
+        $remaining = max(0, $threshold - $points);
+        return "Poin Coffee Shop: {$points}/{$threshold} ☕\nKumpulkan {$remaining} poin lagi untuk GRATIS KOPI!";
+    }
+
+    /**
+     * Sanitize text for WhatsApp templates by removing newlines and tabs
+     * MaxChat template API doesn't allow \n or \t characters
+     */
+    private function sanitizeTemplateText(string $text): string
+    {
+        // Replace newlines with spaces
+        $text = str_replace(["\n", "\r\n", "\r"], ' ', $text);
+        
+        // Replace tabs with spaces
+        $text = str_replace("\t", ' ', $text);
+        
+        // Remove multiple consecutive spaces
+        $text = preg_replace('/\s+/', ' ', $text);
+        
+        // Trim leading/trailing spaces
+        return trim($text);
     }
 }

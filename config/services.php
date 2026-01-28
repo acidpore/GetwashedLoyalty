@@ -36,16 +36,14 @@ return [
     ],
 
     'whatsapp' => [
-        'provider' => env('WHATSAPP_PROVIDER', 'fonnte'), // fonnte, wablas, twilio, or local
-        'api_url' => env('WHATSAPP_API_URL'),
-        'api_token' => env('WHATSAPP_API_TOKEN'),
+        // MaxChat API endpoints
+        'api_url_reply' => env('MAXCHAT_API_URL_REPLY'),
+        'api_url_push' => env('MAXCHAT_API_URL_PUSH'),
+        'api_token' => env('MAXCHAT_API_TOKEN'),
         
-        // Local Node.js service (whatsapp-web.js)
-        'local_url' => env('WHATSAPP_LOCAL_URL', 'http://localhost:3000'),
-        
-        // Twilio specific (if using Twilio)
-        'twilio_account_sid' => env('TWILIO_ACCOUNT_SID'),
-        'twilio_from' => env('TWILIO_FROM_NUMBER'),
+        // Template IDs (approved by Meta)
+        'checkin_template_id' => env('MAXCHAT_CHECKIN_TEMPLATE_ID'),
+        'reward_template_id' => env('MAXCHAT_REWARD_TEMPLATE_ID'),
     ],
 
 ];
