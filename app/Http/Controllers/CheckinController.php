@@ -21,18 +21,18 @@ class CheckinController extends Controller
 
     public function index(Request $request)
     {
-        $loyaltyTypes = $this->detectLoyaltyTypes($request);
-        $qrCode = null;
-
-        if ($request->has('code')) {
-            $qrCode = $this->qrCodeService->validateQrCode($request->code);
-            
-            if (!$qrCode) {
-                return redirect()->route('home')->with('error', 'QR Code tidak valid atau sudah kadaluarsa');
-            }
-
-            $loyaltyTypes = $qrCode->loyalty_types ?? ['carwash'];
+        // SECURITY: Require QR code to access checkin page
+        if (!$request->has('code')) {
+            return redirect()->route('home')->with('error', 'Akses checkin hanya melalui scan QR Code.');
         }
+
+        $qrCode = $this->qrCodeService->validateQrCode($request->code);
+        
+        if (!$qrCode) {
+            return redirect()->route('home')->with('error', 'QR Code tidak valid atau sudah kadaluarsa');
+        }
+
+        $loyaltyTypes = $qrCode->loyalty_types ?? ['carwash'];
 
         return view('checkin', compact('loyaltyTypes', 'qrCode'));
     }
@@ -44,22 +44,34 @@ class CheckinController extends Controller
             'phone' => 'required|string|min:10|max:15',
             'loyalty_types' => 'required|array',
             'loyalty_types.*' => 'in:carwash,motorwash,coffeeshop',
-            'qr_code' => 'nullable|string',
+            'qr_code' => 'required|string', // QR code now required
         ]);
+
+        // SECURITY: Validate QR code exists
+        $qrCode = $this->qrCodeService->validateQrCode($validated['qr_code']);
+        if (!$qrCode) {
+            return back()->with('error', 'QR Code tidak valid. Silakan scan ulang.');
+        }
 
         $normalizedPhone = $this->normalizePhone($validated['phone']);
         $loyaltyTypes = $validated['loyalty_types'];
+
+        // SECURITY: Check for existing check-in today (per phone, per program)
+        $existingToday = VisitHistory::whereHas('customer.user', function ($q) use ($normalizedPhone) {
+                $q->where('phone', $normalizedPhone);
+            })
+            ->whereDate('visited_at', today())
+            ->first();
+
+        if ($existingToday) {
+            return back()->with('error', 'Anda sudah check-in hari ini. Silakan kembali besok untuk mendapatkan poin.');
+        }
 
         try {
             DB::beginTransaction();
 
             $user = $this->findOrCreateUser($normalizedPhone, $validated['name']);
             $customer = $this->findOrCreateCustomer($user->id);
-
-            $qrCode = null;
-            if ($validated['qr_code']) {
-                $qrCode = $this->qrCodeService->validateQrCode($validated['qr_code']);
-            }
 
             $totalPointsEarned = 0;
             foreach ($loyaltyTypes as $type) {

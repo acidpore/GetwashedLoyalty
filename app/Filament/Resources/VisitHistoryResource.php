@@ -143,7 +143,8 @@ class VisitHistoryResource extends Resource
             ])
             ->defaultSort('visited_at', 'desc')
             ->defaultPaginationPageOption(25)
-            ->deferLoading();
+            ->deferLoading()
+            ->poll('1s');
     }
 
     public static function getRelations(): array
