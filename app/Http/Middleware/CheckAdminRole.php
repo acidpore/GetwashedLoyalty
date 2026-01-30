@@ -15,13 +15,11 @@ class CheckAdminRole
      */
     public function handle(Request $request, Closure $next): Response
     {
-        // Check if user is authenticated
         if (!auth()->check()) {
             return redirect()->route('filament.admin.auth.login');
         }
 
-        // Check if user has admin role
-        if (auth()->user()->role !== 'admin') {
+        if (!in_array(auth()->user()->role, ['admin', 'superadmin'])) {
             abort(403, 'Access denied. Admin role required.');
         }
 

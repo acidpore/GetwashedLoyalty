@@ -56,15 +56,16 @@ class CheckinController extends Controller
         $normalizedPhone = $this->normalizePhone($validated['phone']);
         $loyaltyTypes = $validated['loyalty_types'];
 
-        // SECURITY: Check for existing check-in today (per phone, per program)
+        // SECURITY: Check for existing check-in today with SAME QR code
         $existingToday = VisitHistory::whereHas('customer.user', function ($q) use ($normalizedPhone) {
                 $q->where('phone', $normalizedPhone);
             })
+            ->where('qr_code_id', $qrCode->id)
             ->whereDate('visited_at', today())
             ->first();
 
         if ($existingToday) {
-            return back()->with('error', 'Anda sudah check-in hari ini. Silakan kembali besok untuk mendapatkan poin.');
+            return back()->with('error', 'Anda sudah check-in dengan QR ini hari ini. Silakan kembali besok.');
         }
 
         try {
@@ -87,15 +88,14 @@ class CheckinController extends Controller
 
             VisitHistory::create([
                 'customer_id' => $customer->id,
+                'qr_code_id' => $qrCode->id,
                 'loyalty_types' => $loyaltyTypes,
                 'points_earned' => $totalPointsEarned,
                 'visited_at' => now(),
                 'ip_address' => $request->ip(),
             ]);
 
-            if ($validated['qr_code']) {
-                $this->qrCodeService->incrementScan($validated['qr_code']);
-            }
+            $this->qrCodeService->incrementScan($validated['qr_code']);
 
             $dashboardLink = $customer->fresh()->generateMagicLink();
 

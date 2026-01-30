@@ -11,48 +11,39 @@ use Illuminate\Notifications\Notifiable;
 
 class User extends Authenticatable implements FilamentUser
 {
-    /** @use HasFactory<\Database\Factories\UserFactory> */
     use HasFactory, Notifiable;
 
-    /**
-     * The attributes that are mass assignable.
-     *
-     * @var list<string>
-     */
     protected $fillable = [
         'name',
         'email',
         'phone',
         'password',
         'role',
+        'last_login_at',
+        'last_activity_at',
+        'last_login_ip',
+        'is_banned',
+        'banned_at',
+        'ban_reason',
     ];
 
-    /**
-     * The attributes that should be hidden for serialization.
-     *
-     * @var list<string>
-     */
     protected $hidden = [
         'password',
         'remember_token',
     ];
 
-    /**
-     * Get the attributes that should be cast.
-     *
-     * @return array<string, string>
-     */
     protected function casts(): array
     {
         return [
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
+            'last_login_at' => 'datetime',
+            'last_activity_at' => 'datetime',
+            'banned_at' => 'datetime',
+            'is_banned' => 'boolean',
         ];
     }
 
-    /**
-     * Get the customer profile associated with the user.
-     */
     public function customer(): HasOne
     {
         return $this->hasOne(Customer::class);
@@ -60,25 +51,63 @@ class User extends Authenticatable implements FilamentUser
 
     public function canAccessPanel(Panel $panel): bool
     {
-        return $this->role === 'admin';
+        if ($this->is_banned) {
+            return false;
+        }
+        return in_array($this->role, ['admin', 'superadmin']);
     }
 
     public function isAdmin(): bool
     {
-        return $this->role === 'admin';
+        return in_array($this->role, ['admin', 'superadmin']);
     }
 
-    /**
-     * Check if user is a customer.
-     */
+    public function isSuperAdmin(): bool
+    {
+        return $this->role === 'superadmin';
+    }
+
     public function isCustomer(): bool
     {
         return $this->role === 'customer';
     }
 
-    /**
-     * Find user by phone number.
-     */
+    public function isBanned(): bool
+    {
+        return $this->is_banned;
+    }
+
+    public function ban(?string $reason = null): void
+    {
+        $this->update([
+            'is_banned' => true,
+            'banned_at' => now(),
+            'ban_reason' => $reason,
+        ]);
+    }
+
+    public function unban(): void
+    {
+        $this->update([
+            'is_banned' => false,
+            'banned_at' => null,
+            'ban_reason' => null,
+        ]);
+    }
+
+    public function recordLogin(?string $ip = null): void
+    {
+        $this->update([
+            'last_login_at' => now(),
+            'last_login_ip' => $ip,
+        ]);
+    }
+
+    public function recordActivity(): void
+    {
+        $this->update(['last_activity_at' => now()]);
+    }
+
     public static function findByPhone(string $phone): ?self
     {
         return self::where('phone', $phone)->first();

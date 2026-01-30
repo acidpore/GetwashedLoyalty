@@ -14,6 +14,7 @@ class VisitHistory extends Model
 
     protected $fillable = [
         'customer_id',
+        'qr_code_id',
         'loyalty_types',
         'points_earned',
         'visited_at',
@@ -37,6 +38,11 @@ class VisitHistory extends Model
     public function customer(): BelongsTo
     {
         return $this->belongsTo(Customer::class);
+    }
+
+    public function qrCode(): BelongsTo
+    {
+        return $this->belongsTo(QrCode::class);
     }
 
     public function scopeCarwash(Builder $query): void

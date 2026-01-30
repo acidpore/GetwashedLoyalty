@@ -67,7 +67,12 @@ class LoginController extends Controller
             return back()->with('error', 'User tidak ditemukan.');
         }
 
+        if ($user->isBanned()) {
+            return back()->with('error', 'Akun Anda diblokir.');
+        }
+
         Auth::login($user, remember: true);
+        $user->recordLogin($request->ip());
 
         return $user->isAdmin()
             ? redirect('/admin')
@@ -85,12 +90,20 @@ class LoginController extends Controller
             return back()->with('error', 'Email atau password salah.');
         }
 
+        $user = Auth::user();
         $request->session()->regenerate();
 
-        if (!Auth::user()->isAdmin()) {
+        if (!$user->isAdmin()) {
             Auth::logout();
             return back()->with('error', 'Access denied. Admin only.');
         }
+
+        if ($user->isBanned()) {
+            Auth::logout();
+            return back()->with('error', 'Akun Anda diblokir.');
+        }
+
+        $user->recordLogin($request->ip());
 
         return redirect()->intended('/admin');
     }
