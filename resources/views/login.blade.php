@@ -26,7 +26,7 @@
         }
     </script>
 </head>
-<body class="font-display bg-background-dark text-slate-200 h-screen w-full flex overflow-hidden" x-data="{ tab: 'customer', phone: '{{ session('phone', old('phone', '')) }}' }">
+<body class="font-display bg-background-dark text-slate-200 h-screen w-full flex overflow-hidden" x-data="{ tab: 'customer' }">
 
     <!-- Section 1: Left Visual -->
     <div class="hidden md:flex md:w-1/2 lg:w-[55%] relative items-center justify-center text-center text-white bg-cover bg-center px-4" 
@@ -49,7 +49,6 @@
     <!-- Section 2: Right Login Modal -->
     <div class="w-full md:w-1/2 lg:w-[45%] h-full flex flex-col relative bg-background-dark/95 backdrop-blur-3xl border-l border-white/5 shadow-2xl">
         
-        <!-- Back Button (Top Right) -->
         <!-- Back Button (Mobile Only) -->
         <div class="absolute top-6 right-6 z-10 md:hidden">
             <a href="/" class="flex items-center gap-2 px-4 py-2 rounded-full bg-white/5 hover:bg-white/10 text-slate-400 hover:text-white transition-all text-sm font-medium border border-white/5 backdrop-blur-md group">
@@ -88,7 +87,7 @@
 
                 <!-- Alerts -->
                 @if(session('success'))
-                    <div class="p-4 bg-green-500/10 border border-green-500/20 rounded-xl text-green-400 text-sm flex items-center gap-2 animate-pulse">
+                    <div class="p-4 bg-green-500/10 border border-green-500/20 rounded-xl text-green-400 text-sm flex items-center gap-2">
                         <span class="material-symbols-outlined text-lg">check_circle</span>
                         {{ session('success') }}
                     </div>
@@ -101,43 +100,33 @@
                     </div>
                 @endif
 
-                <!-- Customer Form -->
+                <!-- Customer Form (PIN Login) -->
                 <div x-show="tab === 'customer'" x-transition:enter="transition ease-out duration-300" x-transition:enter-start="opacity-0 translate-y-2" x-transition:enter-end="opacity-100 translate-y-0" class="space-y-6">
                     
-                    <!-- Request OTP -->
-                    <form method="POST" action="{{ route('login.otp.request') }}" class="space-y-5">
+                    <form method="POST" action="{{ route('login.pin') }}" class="space-y-5">
                         @csrf
-                        <div class="space-y-2">
-                            <label class="text-xs font-bold uppercase tracking-wider text-slate-500">Nomor WhatsApp</label>
-                            <input type="tel" name="phone" x-model="phone" required placeholder="08..."
-                                   class="w-full bg-card-dark border border-white/10 rounded-xl px-4 py-4 text-white placeholder:text-zinc-600 focus:border-primary focus:ring-1 focus:ring-primary transition-all outline-none">
+                        <div class="space-y-4">
+                            <div class="space-y-2">
+                                <label class="text-xs font-bold uppercase tracking-wider text-slate-500">Nomor WhatsApp</label>
+                                <input type="tel" name="phone" required placeholder="08..."
+                                       class="w-full bg-card-dark border border-white/10 rounded-xl px-4 py-4 text-white placeholder:text-zinc-600 focus:border-primary focus:ring-1 focus:ring-primary transition-all outline-none">
+                            </div>
+                            <div class="space-y-2">
+                                <label class="text-xs font-bold uppercase tracking-wider text-slate-500">PIN (6 Digit)</label>
+                                <input type="password" name="pin" required placeholder="******" maxlength="6" inputmode="numeric" pattern="[0-9]*"
+                                       class="w-full bg-card-dark border border-white/10 rounded-xl px-4 py-4 text-white text-center tracking-[0.5em] font-bold placeholder:tracking-normal placeholder:text-zinc-600 focus:border-primary focus:ring-1 focus:ring-primary transition-all outline-none">
+                            </div>
                         </div>
                         <button type="submit" class="w-full bg-primary hover:bg-blue-600 text-white font-bold py-4 rounded-xl transition-all shadow-lg shadow-primary/20 flex items-center justify-center gap-2">
-                            <span class="material-symbols-outlined">send</span>
-                            Kirim OTP
+                            <span class="material-symbols-outlined">login</span>
+                            Masuk
                         </button>
                     </form>
 
-                    <div class="relative flex py-2 items-center">
-                        <div class="flex-grow border-t border-white/10"></div>
-                        <span class="flex-shrink-0 mx-4 text-xs text-slate-600 uppercase">Input Kode</span>
-                        <div class="flex-grow border-t border-white/10"></div>
+                    <div class="text-center space-y-2">
+                        <p class="text-xs text-slate-500">Belum punya PIN atau lupa PIN?</p>
+                        <p class="text-xs text-slate-400">Scan QR Code untuk check-in dan atur PIN dari dashboard.</p>
                     </div>
-
-                    <!-- Verify OTP -->
-                    <form method="POST" action="{{ route('login.otp.verify') }}" class="space-y-5">
-                        @csrf
-                        <input type="hidden" name="phone" x-model="phone">
-                        <div class="space-y-2">
-                            <label class="text-xs font-bold uppercase tracking-wider text-slate-500">Kode OTP</label>
-                            <input type="text" name="otp_code" placeholder="• • • • • •" maxlength="6"
-                                   class="w-full bg-card-dark border border-white/10 rounded-xl px-4 py-4 text-white text-center tracking-[1em] font-bold placeholder:tracking-normal placeholder:text-zinc-600 focus:border-green-500 focus:ring-1 focus:ring-green-500 transition-all outline-none">
-                        </div>
-                        <button type="submit" class="w-full bg-slate-800 hover:bg-green-600 hover:text-white text-slate-300 font-bold py-4 rounded-xl transition-all flex items-center justify-center gap-2 group">
-                            <span class="material-symbols-outlined group-hover:scale-110 transition-transform">check_circle</span>
-                            Verifikasi
-                        </button>
-                    </form>
                 </div>
 
                 <!-- Admin Form -->
@@ -152,7 +141,7 @@
                             </div>
                             <div class="space-y-2">
                                 <label class="text-xs font-bold uppercase tracking-wider text-slate-500">Password</label>
-                                <input type="password" name="password" required placeholder="••••••••"
+                                <input type="password" name="password" required placeholder="********"
                                        class="w-full bg-card-dark border border-white/10 rounded-xl px-4 py-4 text-white placeholder:text-zinc-600 focus:border-primary focus:ring-1 focus:ring-primary transition-all outline-none">
                             </div>
                         </div>

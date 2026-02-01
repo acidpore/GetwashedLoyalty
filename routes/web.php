@@ -28,12 +28,9 @@ Route::get('/success', [SuccessController::class, 'index'])->name('success');
 
 Route::middleware('guest')->group(function () {
     Route::get('/login', [LoginController::class, 'index'])->name('login');
-    Route::post('/login/otp/request', [LoginController::class, 'requestOtp'])
-        ->middleware('throttle:otp-request')
-        ->name('login.otp.request');
-    Route::post('/login/otp/verify', [LoginController::class, 'verifyOtp'])
-        ->middleware('throttle:otp-verify')
-        ->name('login.otp.verify');
+    Route::post('/login/pin', [LoginController::class, 'loginWithPin'])
+        ->middleware('throttle:login')
+        ->name('login.pin');
     Route::post('/login/admin', [LoginController::class, 'adminLogin'])
         ->middleware('throttle:login')
         ->name('login.admin');
@@ -49,6 +46,10 @@ Route::post('/logout', [LoginController::class, 'logout'])->name('logout')->midd
 // Customer Dashboard (Protected)
 Route::middleware('auth')->group(function () {
     Route::get('/dashboard', [CustomerDashboardController::class, 'index'])->name('customer.dashboard');
+    
+    // PIN Setup
+    Route::get('/dashboard/pin', [CustomerDashboardController::class, 'showPinSetup'])->name('customer.pin.setup');
+    Route::post('/dashboard/pin', [CustomerDashboardController::class, 'storePinSetup'])->name('customer.pin.store');
     
     // Export Route
     Route::get('/admin/export/customers', \App\Http\Controllers\CustomerExportController::class)

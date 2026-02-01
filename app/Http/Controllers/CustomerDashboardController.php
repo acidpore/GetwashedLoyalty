@@ -2,8 +2,10 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Customer;
 use App\Models\SystemSetting;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 
 class CustomerDashboardController extends Controller
 {
@@ -68,9 +70,10 @@ class CustomerDashboardController extends Controller
             'loyaltyPrograms' => $loyaltyPrograms,
         ]);
     }
+
     public function magicLogin(Request $request, string $token)
     {
-        $customer = \App\Models\Customer::where('dashboard_token', $token)->first();
+        $customer = Customer::where('dashboard_token', $token)->first();
 
         if (!$customer) {
             return redirect()->route('login')
@@ -79,12 +82,54 @@ class CustomerDashboardController extends Controller
 
         if ($customer->token_expires_at && $customer->token_expires_at->isPast()) {
             return redirect()->route('login')
-                ->with('error', 'Link sudah kadaluarsa. Silakan login manual.');
+                ->with('error', 'Link sudah kadaluarsa. Silakan check-in ulang.');
         }
 
-        // Auto login
-        \Illuminate\Support\Facades\Auth::login($customer->user);
+        if ($customer->user->isBanned()) {
+            return redirect()->route('login')
+                ->with('error', 'Akun Anda diblokir.');
+        }
+
+        Auth::login($customer->user);
+        $customer->user->recordLogin($request->ip());
+
+        if (!$customer->hasPin()) {
+            return redirect()->route('customer.pin.setup')
+                ->with('info', 'Silakan atur PIN untuk login berikutnya.');
+        }
 
         return redirect()->route('customer.dashboard');
+    }
+
+    public function showPinSetup()
+    {
+        $user = auth()->user();
+        $customer = $user->customer;
+
+        if (!$customer) {
+            return redirect()->route('checkin');
+        }
+
+        return view('dashboard.pin-setup', [
+            'hasPin' => $customer->hasPin(),
+        ]);
+    }
+
+    public function storePinSetup(Request $request)
+    {
+        $request->validate([
+            'pin' => 'required|string|size:6|regex:/^[0-9]+$/',
+            'pin_confirmation' => 'required|same:pin',
+        ], [
+            'pin.size' => 'PIN harus 6 digit.',
+            'pin.regex' => 'PIN harus berupa angka.',
+            'pin_confirmation.same' => 'Konfirmasi PIN tidak sama.',
+        ]);
+
+        $customer = auth()->user()->customer;
+        $customer->setPin($request->pin);
+
+        return redirect()->route('customer.dashboard')
+            ->with('success', 'PIN berhasil diatur. Gunakan untuk login berikutnya.');
     }
 }

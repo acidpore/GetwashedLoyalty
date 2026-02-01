@@ -26,6 +26,8 @@ class Customer extends Model
         'coffeeshop_last_visit_at',
         'dashboard_token',
         'token_expires_at',
+        'pin',
+        'pin_set_at',
     ];
 
     protected $casts = [
@@ -33,6 +35,7 @@ class Customer extends Model
         'motorwash_last_visit_at' => 'datetime',
         'coffeeshop_last_visit_at' => 'datetime',
         'token_expires_at' => 'datetime',
+        'pin_set_at' => 'datetime',
         'carwash_points' => 'integer',
         'carwash_total_visits' => 'integer',
         'motorwash_points' => 'integer',
@@ -183,5 +186,23 @@ class Customer extends Model
         ]);
         
         return route('customer.magic.login', ['token' => $token]);
+    }
+
+    public function hasPin(): bool
+    {
+        return !empty($this->pin);
+    }
+
+    public function setPin(string $pin): void
+    {
+        $this->update([
+            'pin' => $pin,
+            'pin_set_at' => now(),
+        ]);
+    }
+
+    public function verifyPin(string $pin): bool
+    {
+        return $this->pin === $pin;
     }
 }

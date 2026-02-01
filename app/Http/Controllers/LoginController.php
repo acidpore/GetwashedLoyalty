@@ -2,81 +2,54 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Customer;
 use App\Models\User;
-use App\Services\OtpService;
-use App\Services\WhatsAppService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 
 class LoginController extends Controller
 {
-    public function __construct(
-        private OtpService $otpService,
-        private WhatsAppService $whatsappService
-    ) {}
-
     public function index()
     {
         return view('login');
     }
 
-    public function requestOtp(Request $request)
-    {
-        $request->validate(['phone' => 'required|string|min:10|max:15']);
-
-        $phone = $this->normalizePhone($request->phone);
-
-        if ($this->otpService->isRateLimited($phone)) {
-            $minutes = ceil($this->otpService->getRemainingTime($phone) / 60);
-            return back()->with('error', "Terlalu banyak permintaan. Coba lagi dalam {$minutes} menit.");
-        }
-
-        if (!$this->userExists($phone)) {
-            return back()->with('error', 'Nomor tidak terdaftar. Scan QR untuk check-in dulu.');
-        }
-
-        $otp = $this->otpService->generate($phone);
-
-        if (!$otp) {
-            return back()->with('error', 'Gagal generate OTP. Coba lagi nanti.');
-        }
-
-        $this->sendOtp($phone, $otp->otp_code);
-
-        return back()
-            ->with('success', 'Kode OTP dikirim ke WhatsApp. Berlaku 5 menit.')
-            ->with('phone', $request->phone);
-    }
-
-    public function verifyOtp(Request $request)
+    public function loginWithPin(Request $request)
     {
         $request->validate([
-            'phone' => 'required|string',
-            'otp_code' => 'required|string|size:6',
+            'phone' => 'required|string|min:10|max:15',
+            'pin' => 'required|string|size:6',
         ]);
 
         $phone = $this->normalizePhone($request->phone);
-
-        if (!$this->otpService->verify($phone, $request->otp_code)) {
-            return back()->with('error', 'Kode OTP salah atau kadaluarsa.');
-        }
-
         $user = User::where('phone', $phone)->first();
 
         if (!$user) {
-            return back()->with('error', 'User tidak ditemukan.');
+            return back()->with('error', 'Nomor tidak terdaftar. Scan QR untuk check-in dulu.');
         }
 
         if ($user->isBanned()) {
             return back()->with('error', 'Akun Anda diblokir.');
         }
 
+        $customer = $user->customer;
+
+        if (!$customer) {
+            return back()->with('error', 'Data customer tidak ditemukan. Silakan check-in ulang.');
+        }
+
+        if (!$customer->hasPin()) {
+            return back()->with('error', 'PIN belum diatur. Silakan check-in untuk mendapatkan link dashboard dan atur PIN.');
+        }
+
+        if (!$customer->verifyPin($request->pin)) {
+            return back()->with('error', 'PIN salah. Lupa PIN? Check-in ulang untuk reset.');
+        }
+
         Auth::login($user, remember: true);
         $user->recordLogin($request->ip());
 
-        return $user->isAdmin()
-            ? redirect('/admin')
-            : redirect()->route('customer.dashboard');
+        return redirect()->route('customer.dashboard');
     }
 
     public function adminLogin(Request $request)
@@ -130,16 +103,5 @@ class LoginController extends Controller
         }
 
         return $phone;
-    }
-
-    private function userExists(string $phone): bool
-    {
-        return User::where('phone', $phone)->exists();
-    }
-
-    private function sendOtp(string $phone, string $otp): void
-    {
-        $message = "🔐 Kode OTP Getwashed Loyalty:\n\n*{$otp}*\n\nBerlaku 5 menit. Jangan bagikan!";
-        $this->whatsappService->sendMessage($phone, $message);
     }
 }
