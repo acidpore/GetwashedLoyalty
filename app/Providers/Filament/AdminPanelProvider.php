@@ -38,10 +38,19 @@ class AdminPanelProvider extends PanelProvider
                 NavigationGroup::make('Coffee Shop')->collapsible(),
                 NavigationGroup::make('Management')->collapsible(),
             ])
-            ->discoverResources(in: app_path('Filament/Resources'), for: 'App\\Filament\\Resources')
-            ->discoverPages(in: app_path('Filament/Pages'), for: 'App\\Filament\\Pages')
+            // ->discoverResources(in: app_path('Filament/Resources'), for: 'App\\Filament\\Resources')
+            // ->discoverPages(in: app_path('Filament/Pages'), for: 'App\\Filament\\Pages')
+            ->resources([
+                \App\Filament\Resources\CustomerResource::class,
+                \App\Filament\Resources\Carwash\CarwashCustomerResource::class,
+                \App\Filament\Resources\Motorwash\MotorwashCustomerResource::class,
+                \App\Filament\Resources\Coffeeshop\CoffeeshopCustomerResource::class,
+                \App\Filament\Resources\QrCodeResource::class,
+                \App\Filament\Resources\VisitHistoryResource::class,
+            ])
             ->pages([
                 Pages\Dashboard::class,
+                \App\Filament\Pages\Settings::class,
             ])
             ->widgets([
                 \App\Filament\Widgets\VisitsTrendChartWidget::class,
