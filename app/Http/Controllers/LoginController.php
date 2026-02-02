@@ -2,7 +2,6 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Customer;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -28,10 +27,6 @@ class LoginController extends Controller
             return back()->with('error', 'Nomor tidak terdaftar. Scan QR untuk check-in dulu.');
         }
 
-        if ($user->isBanned()) {
-            return back()->with('error', 'Akun Anda diblokir.');
-        }
-
         $customer = $user->customer;
 
         if (!$customer) {
@@ -47,7 +42,6 @@ class LoginController extends Controller
         }
 
         Auth::login($user, remember: true);
-        $user->recordLogin($request->ip());
 
         return redirect()->route('customer.dashboard');
     }
@@ -70,13 +64,6 @@ class LoginController extends Controller
             Auth::logout();
             return back()->with('error', 'Access denied. Admin only.');
         }
-
-        if ($user->isBanned()) {
-            Auth::logout();
-            return back()->with('error', 'Akun Anda diblokir.');
-        }
-
-        $user->recordLogin($request->ip());
 
         return redirect()->intended('/admin');
     }

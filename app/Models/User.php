@@ -19,12 +19,6 @@ class User extends Authenticatable implements FilamentUser
         'phone',
         'password',
         'role',
-        'last_login_at',
-        'last_activity_at',
-        'last_login_ip',
-        'is_banned',
-        'banned_at',
-        'ban_reason',
     ];
 
     protected $hidden = [
@@ -37,10 +31,6 @@ class User extends Authenticatable implements FilamentUser
         return [
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
-            'last_login_at' => 'datetime',
-            'last_activity_at' => 'datetime',
-            'banned_at' => 'datetime',
-            'is_banned' => 'boolean',
         ];
     }
 
@@ -51,20 +41,12 @@ class User extends Authenticatable implements FilamentUser
 
     public function canAccessPanel(Panel $panel): bool
     {
-        if ($this->is_banned) {
-            return false;
-        }
-        return in_array($this->role, ['admin', 'superadmin']);
+        return $this->role === 'admin';
     }
 
     public function isAdmin(): bool
     {
-        return in_array($this->role, ['admin', 'superadmin']);
-    }
-
-    public function isSuperAdmin(): bool
-    {
-        return $this->role === 'superadmin';
+        return $this->role === 'admin';
     }
 
     public function isCustomer(): bool
@@ -72,45 +54,8 @@ class User extends Authenticatable implements FilamentUser
         return $this->role === 'customer';
     }
 
-    public function isBanned(): bool
-    {
-        return $this->is_banned;
-    }
-
-    public function ban(?string $reason = null): void
-    {
-        $this->update([
-            'is_banned' => true,
-            'banned_at' => now(),
-            'ban_reason' => $reason,
-        ]);
-    }
-
-    public function unban(): void
-    {
-        $this->update([
-            'is_banned' => false,
-            'banned_at' => null,
-            'ban_reason' => null,
-        ]);
-    }
-
-    public function recordLogin(?string $ip = null): void
-    {
-        $this->update([
-            'last_login_at' => now(),
-            'last_login_ip' => $ip,
-        ]);
-    }
-
-    public function recordActivity(): void
-    {
-        $this->update(['last_activity_at' => now()]);
-    }
-
     public static function findByPhone(string $phone): ?self
     {
         return self::where('phone', $phone)->first();
     }
 }
-

@@ -85,13 +85,7 @@ class CustomerDashboardController extends Controller
                 ->with('error', 'Link sudah kadaluarsa. Silakan check-in ulang.');
         }
 
-        if ($customer->user->isBanned()) {
-            return redirect()->route('login')
-                ->with('error', 'Akun Anda diblokir.');
-        }
-
         Auth::login($customer->user);
-        $customer->user->recordLogin($request->ip());
 
         if (!$customer->hasPin()) {
             return redirect()->route('customer.pin.setup')

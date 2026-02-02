@@ -8,18 +8,13 @@ use Symfony\Component\HttpFoundation\Response;
 
 class CheckAdminRole
 {
-    /**
-     * Handle an incoming request.
-     *
-     * @param  \Closure(\Illuminate\Http\Request): (\Symfony\Component\HttpFoundation\Response)  $next
-     */
     public function handle(Request $request, Closure $next): Response
     {
         if (!auth()->check()) {
             return redirect()->route('filament.admin.auth.login');
         }
 
-        if (!in_array(auth()->user()->role, ['admin', 'superadmin'])) {
+        if (auth()->user()->role !== 'admin') {
             abort(403, 'Access denied. Admin role required.');
         }
 
