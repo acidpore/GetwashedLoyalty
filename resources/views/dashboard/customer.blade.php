@@ -134,6 +134,10 @@
                     <span class="material-symbols-outlined text-xl">home</span>
                     <span class="text-xs">Home</span>
                 </a>
+                <a href="{{ route('customer.pin.setup') }}" class="text-white/40 hover:text-white flex flex-col items-center gap-1 transition-colors">
+                    <span class="material-symbols-outlined text-xl">settings</span>
+                    <span class="text-xs">Settings</span>
+                </a>
                 <form method="POST" action="{{ route('logout') }}">
                     @csrf
                     <button type="submit" class="text-white/40 hover:text-white flex flex-col items-center gap-1 transition-colors">

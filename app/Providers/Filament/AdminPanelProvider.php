@@ -28,6 +28,8 @@ class AdminPanelProvider extends PanelProvider
             ->id('admin')
             ->path('admin')
             ->login()
+            ->brandName('Getwashed')
+            ->favicon(asset('Logo Get Washed Updated.png'))
             ->colors([
                 'primary' => Color::Amber,
             ])
