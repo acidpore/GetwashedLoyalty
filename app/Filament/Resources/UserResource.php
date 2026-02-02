@@ -24,14 +24,9 @@ class UserResource extends Resource
 
     protected static ?int $navigationSort = 100;
 
-    public static function canAccess(): bool
-    {
-        return auth()->user()?->isSuperAdmin() ?? false;
-    }
-
     public static function getEloquentQuery(): Builder
     {
-        return parent::getEloquentQuery()->whereIn('role', ['admin', 'superadmin']);
+        return parent::getEloquentQuery()->where('role', 'admin');
     }
 
     public static function form(Form $form): Form
@@ -61,7 +56,7 @@ class UserResource extends Resource
                         Forms\Components\Select::make('role')
                             ->options([
                                 'admin' => 'Admin',
-                                'superadmin' => 'Super Admin',
+                                'customer' => 'Customer',
                             ])
                             ->required()
                             ->default('admin'),
@@ -103,11 +98,11 @@ class UserResource extends Resource
                 Tables\Columns\BadgeColumn::make('role')
                     ->colors([
                         'warning' => 'admin',
-                        'success' => 'superadmin',
+                        'gray' => 'customer',
                     ])
                     ->formatStateUsing(fn (string $state): string => match ($state) {
                         'admin' => 'Admin',
-                        'superadmin' => 'Super Admin',
+                        'customer' => 'Customer',
                         default => $state,
                     }),
 
@@ -146,7 +141,7 @@ class UserResource extends Resource
                 Tables\Filters\SelectFilter::make('role')
                     ->options([
                         'admin' => 'Admin',
-                        'superadmin' => 'Super Admin',
+                        'customer' => 'Customer',
                     ]),
 
                 Tables\Filters\TernaryFilter::make('is_banned')

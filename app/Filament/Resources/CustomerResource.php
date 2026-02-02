@@ -275,8 +275,29 @@ class CustomerResource extends Resource
                 Tables\Actions\Action::make('export')
                     ->label('Export CSV')
                     ->icon('heroicon-o-arrow-down-tray')
-                    ->url(fn () => route('admin.export.customers'))
-                    ->openUrlInNewTab(),
+                    ->form([
+                        Forms\Components\Radio::make('format')
+                            ->label('Export Format')
+                            ->options([
+                                'standard' => 'Standard Export - Full customer data',
+                                'maxchat' => 'MaxChat Template - Phone numbers only',
+                            ])
+                            ->descriptions([
+                                'standard' => 'Export all customer information with service-specific details (Name, Phone, Points, Visits, etc.)',
+                                'maxchat' => 'Export phone numbers only in MaxChat broadcast format (for WhatsApp campaigns)',
+                            ])
+                            ->default('standard')
+                            ->required()
+                            ->inline()
+                            ->columnSpanFull(),
+                    ])
+                    ->action(function (array $data) {
+                        $route = $data['format'] === 'maxchat' 
+                            ? route('admin.export.customers.maxchat')
+                            : route('admin.export.customers.standard');
+                        
+                        return redirect($route);
+                    }),
             ])
             ->bulkActions([
                 Tables\Actions\BulkActionGroup::make([

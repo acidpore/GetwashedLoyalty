@@ -51,7 +51,16 @@ Route::middleware('auth')->group(function () {
     Route::get('/dashboard/pin', [CustomerDashboardController::class, 'showPinSetup'])->name('customer.pin.setup');
     Route::post('/dashboard/pin', [CustomerDashboardController::class, 'storePinSetup'])->name('customer.pin.store');
     
-    // Export Route
+    // Export Routes (Admin only)
+    Route::get('/admin/export/customers/standard', [\App\Http\Controllers\CustomerExportController::class, 'exportStandard'])
+        ->name('admin.export.customers.standard')
+        ->middleware(\App\Http\Middleware\CheckAdminRole::class);
+    
+    Route::get('/admin/export/customers/maxchat', [\App\Http\Controllers\CustomerExportController::class, 'exportMaxChat'])
+        ->name('admin.export.customers.maxchat')
+        ->middleware(\App\Http\Middleware\CheckAdminRole::class);
+    
+    // Legacy route for backward compatibility
     Route::get('/admin/export/customers', \App\Http\Controllers\CustomerExportController::class)
         ->name('admin.export.customers')
         ->middleware(\App\Http\Middleware\CheckAdminRole::class);

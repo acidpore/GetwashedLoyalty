@@ -8,7 +8,10 @@ use Symfony\Component\HttpFoundation\StreamedResponse;
 
 class CustomerExportController extends Controller
 {
-    public function __invoke(): StreamedResponse
+    /**
+     * Export all customers with full details (standard format)
+     */
+    public function exportStandard(): StreamedResponse
     {
         $headers = [
             'Content-Type' => 'text/csv',
@@ -54,5 +57,47 @@ class CustomerExportController extends Controller
         };
 
         return response()->stream($callback, 200, $headers);
+    }
+
+    /**
+     * Export phone numbers only for MaxChat WhatsApp broadcast
+     */
+    public function exportMaxChat(): StreamedResponse
+    {
+        $headers = [
+            'Content-Type' => 'text/csv',
+            'Content-Disposition' => 'attachment; filename="maxchat_broadcast_' . date('Y-m-d_His') . '.csv"',
+            'Pragma' => 'no-cache',
+            'Cache-Control' => 'must-revalidate, post-check=0, pre-check=0',
+            'Expires' => '0',
+        ];
+
+        $callback = function () {
+            $handle = fopen('php://output', 'w');
+            
+            // Header: single column 'phone'
+            fputcsv($handle, ['phone']);
+
+            // Data: phone numbers only
+            Customer::with('user')->chunk(100, function ($customers) use ($handle) {
+                foreach ($customers as $customer) {
+                    if ($customer->user && $customer->user->phone) {
+                        fputcsv($handle, [$customer->user->phone]);
+                    }
+                }
+            });
+
+            fclose($handle);
+        };
+
+        return response()->stream($callback, 200, $headers);
+    }
+
+    /**
+     * Legacy support - redirect to standard export
+     */
+    public function __invoke(): StreamedResponse
+    {
+        return $this->exportStandard();
     }
 }

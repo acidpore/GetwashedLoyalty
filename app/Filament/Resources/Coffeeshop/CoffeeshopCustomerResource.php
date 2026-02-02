@@ -152,33 +152,71 @@ class CoffeeshopCustomerResource extends Resource
                     ->label('Export CSV')
                     ->icon('heroicon-o-arrow-down-tray')
                     ->color('success')
-                    ->action(function () {
+                    ->form([
+                        Forms\Components\Radio::make('format')
+                            ->label('Export Format')
+                            ->options([
+                                'standard' => 'Standard Export - Full customer data',
+                                'maxchat' => 'MaxChat Template - Phone numbers only',
+                            ])
+                            ->descriptions([
+                                'standard' => 'Export coffee shop customer details (Name, Phone, Points, Total Visits, Last Visit)',
+                                'maxchat' => 'Export phone numbers only for MaxChat WhatsApp broadcast',
+                            ])
+                            ->default('standard')
+                            ->required()
+                            ->inline()
+                            ->columnSpanFull(),
+                    ])
+                    ->action(function (array $data) {
                         $customers = Customer::with('user')
                             ->where('coffeeshop_total_visits', '>', 0)
                             ->orderBy('coffeeshop_last_visit_at', 'desc')
                             ->get();
 
-                        $headers = [
-                            'Content-Type' => 'text/csv',
-                            'Content-Disposition' => 'attachment; filename="coffeeshop_customers_' . now()->format('Y-m-d') . '.csv"',
-                        ];
+                        if ($data['format'] === 'maxchat') {
+                            // MaxChat Template Export (phone only)
+                            $headers = [
+                                'Content-Type' => 'text/csv',
+                                'Content-Disposition' => 'attachment; filename="coffeeshop_maxchat_broadcast_' . now()->format('Y-m-d') . '.csv"',
+                            ];
 
-                        $callback = function () use ($customers) {
-                            $handle = fopen('php://output', 'w');
-                            fputcsv($handle, ['Name', 'Phone', 'Points', 'Total Visits', 'Last Visit']);
-                            
-                            foreach ($customers as $customer) {
-                                fputcsv($handle, [
-                                    $customer->user->name,
-                                    $customer->user->phone,
-                                    $customer->coffeeshop_points,
-                                    $customer->coffeeshop_total_visits,
-                                    $customer->coffeeshop_last_visit_at?->format('Y-m-d H:i:s') ?? '',
-                                ]);
-                            }
-                            
-                            fclose($handle);
-                        };
+                            $callback = function () use ($customers) {
+                                $handle = fopen('php://output', 'w');
+                                fputcsv($handle, ['phone']);
+                                
+                                foreach ($customers as $customer) {
+                                    if ($customer->user && $customer->user->phone) {
+                                        fputcsv($handle, [$customer->user->phone]);
+                                    }
+                                }
+                                
+                                fclose($handle);
+                            };
+                        } else {
+                            // Standard Export (full data)
+                            $headers = [
+                                'Content-Type' => 'text/csv',
+                                'Content-Disposition' => 'attachment; filename="coffeeshop_customers_' . now()->format('Y-m-d') . '.csv"',
+                            ];
+
+                            $callback = function () use ($customers) {
+                                $handle = fopen('php://output', 'w');
+                                fputcsv($handle, ['Name', 'Phone', 'Points', 'Total Visits', 'Last Visit']);
+                                
+                                foreach ($customers as $customer) {
+                                    fputcsv($handle, [
+                                        $customer->user->name,
+                                        $customer->user->phone,
+                                        $customer->coffeeshop_points,
+                                        $customer->coffeeshop_total_visits,
+                                        $customer->coffeeshop_last_visit_at?->format('Y-m-d H:i:s') ?? '',
+                                    ]);
+                                }
+                                
+                                fclose($handle);
+                            };
+                        }
 
                         return response()->stream($callback, 200, $headers);
                     }),
