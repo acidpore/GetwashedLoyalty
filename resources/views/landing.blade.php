@@ -154,16 +154,16 @@
                         <div class="flex flex-col items-center gap-1">
                             <span class="font-semibold text-slate-700 dark:text-slate-300">Alamat</span>
                             <p class="leading-relaxed">
-                                Jl. Dewi Sartika No. 184,<br>
-                                Kelurahan Cawang, Kecamatan Kramatjati,<br>
-                                Kota Administrasi Jakarta Timur,<br>
-                                DKI Jakarta 13630, Indonesia
+                                Jl. Duren Tiga Raya No.16, RT.4/RW.1,<br>
+                                Duren Tiga, Kec. Pancoran,<br>
+                                Kota Jakarta Selatan,<br>
+                                DKI Jakarta 12760, Indonesia
                             </p>
                         </div>
                         
                         <div class="flex flex-col items-center gap-1 pt-2">
                             <span class="font-semibold text-slate-700 dark:text-slate-300">Telepon Bisnis</span>
-                            <a href="tel:+6285883814652" class="text-primary hover:underline">+6285883814652</a>
+                            <a href="tel:+628132264891" class="text-primary hover:underline">+62 813-2264-891</a>
                         </div>
                     </div>
                     
