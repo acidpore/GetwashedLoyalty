@@ -116,7 +116,14 @@ class CustomerResource extends Resource
     public static function table(Table $table): Table
     {
         return $table
-            ->modifyQueryUsing(fn (Builder $query) => $query->with('user'))
+            ->modifyQueryUsing(fn (Builder $query) => $query
+                ->select([
+                    'id', 'user_id', 'created_at',
+                    'carwash_points', 'carwash_total_visits', 'carwash_last_visit_at',
+                    'coffeeshop_points', 'coffeeshop_total_visits', 'coffeeshop_last_visit_at',
+                    'motorwash_points', 'motorwash_total_visits', 'motorwash_last_visit_at',
+                ])
+                ->with(['user:id,name,phone']))
             ->columns([
                 Tables\Columns\TextColumn::make('user.name')
                     ->label('Name')
@@ -305,7 +312,7 @@ class CustomerResource extends Resource
                 ]),
             ])
             ->defaultSort('carwash_last_visit_at', 'desc')
-            ->defaultPaginationPageOption(25)
+            ->defaultPaginationPageOption(10)
             ->deferLoading();
     }
 
