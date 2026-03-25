@@ -51,7 +51,6 @@ return new class extends Migration
         DB::statement("
             UPDATE broadcasts 
             SET 
-                scheduled_at = DATE_ADD(scheduled_at, INTERVAL 7 HOUR),
                 sent_at = DATE_ADD(sent_at, INTERVAL 7 HOUR),
                 created_at = DATE_ADD(created_at, INTERVAL 7 HOUR),
                 updated_at = DATE_ADD(updated_at, INTERVAL 7 HOUR)
@@ -122,7 +121,6 @@ return new class extends Migration
         DB::statement("
             UPDATE broadcasts 
             SET 
-                scheduled_at = DATE_SUB(scheduled_at, INTERVAL 7 HOUR),
                 sent_at = DATE_SUB(sent_at, INTERVAL 7 HOUR),
                 created_at = DATE_SUB(created_at, INTERVAL 7 HOUR),
                 updated_at = DATE_SUB(updated_at, INTERVAL 7 HOUR)
