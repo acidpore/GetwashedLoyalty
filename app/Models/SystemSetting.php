@@ -13,13 +13,21 @@ class SystemSetting extends Model
         'description',
     ];
 
+    private static array $runtimeCache = [];
+
     public static function get(string $key, mixed $default = null): mixed
     {
+        if (array_key_exists($key, self::$runtimeCache)) {
+            return self::$runtimeCache[$key];
+        }
+
         try {
-            return Cache::remember("setting_{$key}", 3600, function () use ($key, $default) {
+            $value = Cache::remember("setting_{$key}", 3600, function () use ($key, $default) {
                 $setting = self::where('key', $key)->first();
                 return $setting ? $setting->value : $default;
             });
+            self::$runtimeCache[$key] = $value;
+            return $value;
         } catch (\Exception $e) {
             return $default;
         }
@@ -35,6 +43,7 @@ class SystemSetting extends Model
             ]
         );
 
+        unset(self::$runtimeCache[$key]);
         Cache::forget("setting_{$key}");
 
         return $setting;
@@ -77,6 +86,7 @@ class SystemSetting extends Model
 
     public static function clearCache(): void
     {
+        self::$runtimeCache = [];
         Cache::flush();
     }
 }
