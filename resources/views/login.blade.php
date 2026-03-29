@@ -9,6 +9,7 @@
     <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;700;800&display=swap" rel="stylesheet"/>
     <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <script id="tailwind-config">
         tailwind.config = {
             darkMode: "class",
@@ -124,9 +125,21 @@
                         </button>
                     </form>
 
-                    <div class="text-center space-y-2">
-                        <p class="text-xs text-slate-500">Belum punya PIN atau lupa PIN?</p>
-                        <p class="text-xs text-slate-400">Scan QR Code untuk check-in dan atur PIN dari dashboard.</p>
+                    <div class="text-center">
+                        <button type="button" 
+                                @click="Swal.fire({
+                                    title: 'Lupa PIN?',
+                                    text: 'Silakan datang ke outlet dan scan QR Code untuk melakukan check-in ulang. Sistem akan mengirimkan Magic Link ke WhatsApp Anda untuk login otomatis dan mengatur PIN baru.',
+                                    icon: 'info',
+                                    confirmButtonText: 'Saya Mengerti',
+                                    confirmButtonColor: '#137fec',
+                                    background: '#16222e',
+                                    color: '#fff'
+                                })"
+                                class="text-xs text-primary font-semibold hover:underline decoration-1 underline-offset-4">
+                            Lupa PIN? Klik untuk Petunjuk
+                        </button>
+                        <p class="text-[10px] text-slate-500 mt-2">Belum punya PIN? Scan QR Code untuk pertama kali.</p>
                     </div>
                 </div>
 
@@ -152,6 +165,9 @@
                                 <input type="checkbox" name="remember" class="rounded border-white/10 bg-card-dark text-primary focus:ring-primary/50">
                                 <span class="text-sm text-slate-400">Ingat Saya</span>
                             </label>
+                            @if (Route::has('password.request'))
+                                <a href="{{ route('password.request') }}" class="text-xs text-primary hover:underline">Lupa Password?</a>
+                            @endif
                         </div>
 
                         <button type="submit" class="w-full bg-primary hover:bg-blue-600 text-white font-bold py-4 rounded-xl transition-all shadow-lg shadow-primary/20 flex items-center justify-center gap-2">

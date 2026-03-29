@@ -91,3 +91,5 @@ Route::middleware(['auth', \App\Http\Middleware\CheckAdminRole::class])->group(f
         return view('pdf.customers', ['customers' => $customers, 'title' => 'Coffee Shop Customers', 'type' => 'coffeeshop', 'date' => now()->format('d F Y')]);
     })->name('pdf.customers.coffeeshop');
 });
+
+require __DIR__.'/auth.php';
