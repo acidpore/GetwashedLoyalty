@@ -68,11 +68,14 @@ class CheckinController extends Controller
             return back()->with('error', 'Anda sudah check-in dengan QR ini hari ini. Silakan kembali besok.');
         }
 
+        // Dijalankan di luar transaksi: firstOrCreate pulih dari duplicate entry dengan
+        // SELECT ulang, dan snapshot REPEATABLE READ membuat SELECT itu gagal melihat baris
+        // yang baru saja di-commit request lain saat check-in bersamaan.
+        $user = $this->findOrCreateUser($normalizedPhone, $validated['name']);
+        $customer = $this->findOrCreateCustomer($user->id);
+
         try {
             DB::beginTransaction();
-
-            $user = $this->findOrCreateUser($normalizedPhone, $validated['name']);
-            $customer = $this->findOrCreateCustomer($user->id);
 
             $totalPointsEarned = 0;
             foreach ($loyaltyTypes as $type) {
