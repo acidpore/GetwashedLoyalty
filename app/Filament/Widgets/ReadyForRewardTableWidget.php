@@ -16,9 +16,9 @@ class ReadyForRewardTableWidget extends BaseWidget
 
     public function table(Table $table): Table
     {
-        $carwashThreshold = SystemSetting::carwashRewardThreshold();
-        $coffeeshopThreshold = SystemSetting::coffeeshopRewardThreshold();
-        $motorwashThreshold = SystemSetting::motorwashRewardThreshold();
+        $carwashThreshold = SystemSetting::firstMilestonePoints('carwash');
+        $coffeeshopThreshold = SystemSetting::firstMilestonePoints('coffeeshop');
+        $motorwashThreshold = SystemSetting::firstMilestonePoints('motorwash');
         
         return $table
             ->query(
@@ -78,7 +78,6 @@ class ReadyForRewardTableWidget extends BaseWidget
             ])
             ->defaultSort('carwash_points', 'desc')
             ->striped()
-            ->paginated([5, 10, 25])
-            ->poll('30s');
+            ->paginated([5, 10, 25]);
     }
 }

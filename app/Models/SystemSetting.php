@@ -49,6 +49,68 @@ class SystemSetting extends Model
         return $setting;
     }
 
+    public const LOYALTY_TYPES = ['carwash', 'motorwash', 'coffeeshop'];
+
+    /**
+     * Milestone tiers for a loyalty type, sorted ascending and de-duplicated:
+     * [['at' => 10, 'reward' => 'Gratis Cuci Mobil'], ['at' => 20, ...]]
+     *
+     * A customer earns a tier when their points reach its `at`. The last tier
+     * is the max point cap; claiming resets points to 0.
+     */
+    public static function milestones(string $loyaltyType): array
+    {
+        $raw = self::get("{$loyaltyType}_milestones");
+        $rows = is_string($raw) ? json_decode($raw, true) : $raw;
+
+        if (! is_array($rows) || $rows === []) {
+            // ponytail: not configured yet = single tier at the old threshold, i.e. the pre-milestone behaviour
+            $rows = [[
+                'at' => (int) self::get("{$loyaltyType}_reward_threshold", 5),
+                'reward' => self::get("{$loyaltyType}_reward_message", 'HADIAH'),
+            ]];
+        }
+
+        return self::normalizeMilestones($rows);
+    }
+
+    /** Sorted ascending, keyed-out duplicates, junk rows dropped. */
+    public static function normalizeMilestones(array $rows): array
+    {
+        $clean = [];
+
+        foreach ($rows as $row) {
+            $at = (int) ($row['at'] ?? 0);
+
+            if ($at < 1) {
+                continue;
+            }
+
+            $clean[$at] = [
+                'at' => $at,
+                'reward' => trim((string) ($row['reward'] ?? '')) ?: 'HADIAH',
+            ];
+        }
+
+        ksort($clean);
+
+        return array_values($clean);
+    }
+
+    /** Point cap = the last milestone. Points stop accruing here until claimed. */
+    public static function maxPoints(string $loyaltyType): int
+    {
+        $milestones = self::milestones($loyaltyType);
+
+        return (int) (end($milestones)['at'] ?? 5);
+    }
+
+    /** Points needed for the very first reward — "sudah bisa tukar" starts here. */
+    public static function firstMilestonePoints(string $loyaltyType): int
+    {
+        return (int) (self::milestones($loyaltyType)[0]['at'] ?? 5);
+    }
+
     public static function rewardPointsThreshold(): int
     {
         return (int) self::get('reward_points_threshold', 5);
@@ -56,12 +118,12 @@ class SystemSetting extends Model
 
     public static function carwashRewardThreshold(): int
     {
-        return (int) self::get('carwash_reward_threshold', 5);
+        return self::maxPoints('carwash');
     }
 
     public static function coffeeshopRewardThreshold(): int
     {
-        return (int) self::get('coffeeshop_reward_threshold', 5);
+        return self::maxPoints('coffeeshop');
     }
 
     public static function carwashRewardMessage(): string
@@ -76,7 +138,7 @@ class SystemSetting extends Model
 
     public static function motorwashRewardThreshold(): int
     {
-        return (int) self::get('motorwash_reward_threshold', 5);
+        return self::maxPoints('motorwash');
     }
 
     public static function motorwashRewardMessage(): string

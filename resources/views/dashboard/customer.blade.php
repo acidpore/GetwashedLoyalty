@@ -59,14 +59,28 @@
                             @endif
                         </div>
                         <div class="flex items-center gap-2">
-                            <span class="text-white/80 text-sm font-semibold">{{ $program['points'] }}/{{ $program['threshold'] }} Poin</span>
+                            <span class="text-white/80 text-sm font-semibold">{{ $program['points'] }}/{{ $program['max_points'] }} Poin</span>
                             @if($hasReward)
-                                <span class="text-[#4CAF50] text-xs font-bold">REWARD READY!</span>
+                                <span class="text-[#4CAF50] text-xs font-bold">BISA DITUKAR!</span>
                             @endif
                         </div>
+                        @if($hasReward)
+                            <p class="text-[#4CAF50] text-xs mt-0.5">🎁 {{ $program['earned_reward'] }}</p>
+                        @endif
+                        @if($program['next_reward'])
+                            <p class="text-white/50 text-xs mt-0.5">{{ $program['points_until_reward'] }} poin lagi → {{ $program['next_reward'] }}</p>
+                        @endif
                         <!-- Mini Progress Bar -->
                         <div class="w-full bg-[#1C1C1E] rounded-full h-1.5 mt-2">
-                            <div class="h-full {{ $iconBg }} rounded-full" style="width: {{ min(100, ($program['points'] / $program['threshold']) * 100) }}%"></div>
+                            <div class="h-full {{ $iconBg }} rounded-full" style="width: {{ min(100, ($program['points'] / max(1, $program['max_points'])) * 100) }}%"></div>
+                        </div>
+                        <!-- Milestone list -->
+                        <div class="flex flex-wrap gap-1 mt-2">
+                            @foreach($program['milestones'] as $milestone)
+                                <span class="text-[10px] px-2 py-0.5 rounded-full {{ $program['points'] >= $milestone['at'] ? $iconBg . ' text-white' : 'bg-[#1C1C1E] text-white/40' }}">
+                                    {{ $milestone['at'] }}: {{ $milestone['reward'] }}
+                                </span>
+                            @endforeach
                         </div>
                     </div>
                     

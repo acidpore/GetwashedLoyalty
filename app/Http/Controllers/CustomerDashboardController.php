@@ -30,38 +30,33 @@ class CustomerDashboardController extends Controller
             ->limit(10)
             ->get();
 
-        $loyaltyPrograms = [
-            [
-                'name' => 'Car Wash',
-                'type' => 'carwash',
-                'points' => $customer->carwash_points,
-                'threshold' => SystemSetting::carwashRewardThreshold(),
-                'message' => SystemSetting::carwashRewardMessage(),
-                'has_reward' => $customer->hasReward('carwash'),
-                'icon' => 'car',
-                'gradient' => 'from-blue-400 to-blue-600',
-            ],
-            [
-                'name' => 'Motor Wash',
-                'type' => 'motorwash',
-                'points' => $customer->motorwash_points,
-                'threshold' => SystemSetting::motorwashRewardThreshold(),
-                'message' => SystemSetting::motorwashRewardMessage(),
-                'has_reward' => $customer->hasReward('motorwash'),
-                'icon' => 'motorcycle',
-                'gradient' => 'from-orange-400 to-red-500',
-            ],
-            [
-                'name' => 'Coffee Shop',
-                'type' => 'coffeeshop',
-                'points' => $customer->coffeeshop_points,
-                'threshold' => SystemSetting::coffeeshopRewardThreshold(),
-                'message' => SystemSetting::coffeeshopRewardMessage(),
-                'has_reward' => $customer->hasReward('coffeeshop'),
-                'icon' => 'coffee',
-                'gradient' => 'from-emerald-400 to-teal-600',
-            ],
+        $meta = [
+            'carwash' => ['name' => 'Car Wash', 'icon' => 'car', 'gradient' => 'from-blue-400 to-blue-600'],
+            'motorwash' => ['name' => 'Motor Wash', 'icon' => 'motorcycle', 'gradient' => 'from-orange-400 to-red-500'],
+            'coffeeshop' => ['name' => 'Coffee Shop', 'icon' => 'coffee', 'gradient' => 'from-emerald-400 to-teal-600'],
         ];
+
+        $loyaltyPrograms = collect($meta)
+            ->map(function (array $info, string $type) use ($customer) {
+                $earned = $customer->earnedMilestone($type);
+                $next = $customer->nextMilestone($type);
+
+                return $info + [
+                    'type' => $type,
+                    'points' => $customer->getPoints($type),
+                    // threshold = target berikutnya kalau masih ngumpulin, max kalau sudah mentok
+                    'threshold' => $next['at'] ?? SystemSetting::maxPoints($type),
+                    'message' => $earned['reward'] ?? ($next['reward'] ?? ''),
+                    'has_reward' => $earned !== null,
+                    'earned_reward' => $earned['reward'] ?? null,
+                    'next_reward' => $next['reward'] ?? null,
+                    'points_until_reward' => $customer->pointsUntilReward($type),
+                    'milestones' => SystemSetting::milestones($type),
+                    'max_points' => SystemSetting::maxPoints($type),
+                ];
+            })
+            ->values()
+            ->all();
 
         return view('dashboard.customer', [
             'customer' => $customer,

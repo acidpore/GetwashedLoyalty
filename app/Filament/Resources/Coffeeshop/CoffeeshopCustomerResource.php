@@ -71,7 +71,7 @@ class CoffeeshopCustomerResource extends Resource
                     ->label('Points')
                     ->sortable()
                     ->badge()
-                    ->color(fn ($state) => $state >= SystemSetting::coffeeshopRewardThreshold() ? 'success' : 'gray'),
+                    ->color(fn ($state) => $state >= SystemSetting::firstMilestonePoints('coffeeshop') ? 'success' : 'gray'),
                 
                 Tables\Columns\TextColumn::make('coffeeshop_total_visits')
                     ->label('Total Visits')
@@ -85,7 +85,7 @@ class CoffeeshopCustomerResource extends Resource
             ->filters([
                 Tables\Filters\Filter::make('ready_for_reward')
                     ->label('Ready for Reward')
-                    ->query(fn ($query) => $query->where('coffeeshop_points', '>=', SystemSetting::coffeeshopRewardThreshold())),
+                    ->query(fn ($query) => $query->where('coffeeshop_points', '>=', SystemSetting::firstMilestonePoints('coffeeshop'))),
                 
                 Tables\Filters\Filter::make('active_customers')
                     ->label('Active (Last 30 Days)')
@@ -93,6 +93,7 @@ class CoffeeshopCustomerResource extends Resource
             ])
             ->actions([
                 Tables\Actions\EditAction::make(),
+                \App\Filament\Actions\ClaimRewardAction::make('coffeeshop'),
                 Tables\Actions\Action::make('add_point')
                     ->label('Add Point')
                     ->icon('heroicon-o-plus-circle')

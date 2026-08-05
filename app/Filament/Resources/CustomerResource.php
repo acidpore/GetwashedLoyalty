@@ -141,19 +141,19 @@ class CustomerResource extends Resource
                     ->label('Car Wash')
                     ->sortable()
                     ->badge()
-                    ->color(fn (int $state): string => $state >= SystemSetting::carwashRewardThreshold() ? 'success' : 'gray'),
+                    ->color(fn (int $state): string => $state >= SystemSetting::firstMilestonePoints('carwash') ? 'success' : 'gray'),
                 
                 Tables\Columns\TextColumn::make('coffeeshop_points')
                     ->label('Coffee Shop')
                     ->sortable()
                     ->badge()
-                    ->color(fn (int $state): string => $state >= SystemSetting::coffeeshopRewardThreshold() ? 'success' : 'gray'),
+                    ->color(fn (int $state): string => $state >= SystemSetting::firstMilestonePoints('coffeeshop') ? 'success' : 'gray'),
 
                 Tables\Columns\TextColumn::make('motorwash_points')
                     ->label('Motor Wash')
                     ->sortable()
                     ->badge()
-                    ->color(fn (int $state): string => $state >= SystemSetting::motorwashRewardThreshold() ? 'success' : 'gray'),
+                    ->color(fn (int $state): string => $state >= SystemSetting::firstMilestonePoints('motorwash') ? 'success' : 'gray'),
                 
                 Tables\Columns\TextColumn::make('carwash_total_visits')
                     ->label('CW Visits')
@@ -194,11 +194,11 @@ class CustomerResource extends Resource
             ->filters([
                 Tables\Filters\Filter::make('has_carwash_reward')
                     ->label('Ready for Car Wash Reward')
-                    ->query(fn (Builder $query): Builder => $query->where('carwash_points', '>=', SystemSetting::carwashRewardThreshold())),
+                    ->query(fn (Builder $query): Builder => $query->where('carwash_points', '>=', SystemSetting::firstMilestonePoints('carwash'))),
                 
                 Tables\Filters\Filter::make('has_coffeeshop_reward')
                     ->label('Ready for Coffee Shop Reward')
-                    ->query(fn (Builder $query): Builder => $query->where('coffeeshop_points', '>=', SystemSetting::coffeeshopRewardThreshold())),
+                    ->query(fn (Builder $query): Builder => $query->where('coffeeshop_points', '>=', SystemSetting::firstMilestonePoints('coffeeshop'))),
                 
                 Tables\Filters\Filter::make('active_carwash')
                     ->label('Active Car Wash (Last 30 Days)')
@@ -210,7 +210,7 @@ class CustomerResource extends Resource
 
                 Tables\Filters\Filter::make('has_motorwash_reward')
                     ->label('Ready for Motor Wash Reward')
-                    ->query(fn (Builder $query): Builder => $query->where('motorwash_points', '>=', SystemSetting::motorwashRewardThreshold())),
+                    ->query(fn (Builder $query): Builder => $query->where('motorwash_points', '>=', SystemSetting::firstMilestonePoints('motorwash'))),
 
                 Tables\Filters\Filter::make('active_motorwash')
                     ->label('Active Motor Wash (Last 30 Days)')
@@ -219,6 +219,9 @@ class CustomerResource extends Resource
             ->actions([
                 Tables\Actions\ViewAction::make(),
                 Tables\Actions\EditAction::make(),
+                \App\Filament\Actions\ClaimRewardAction::make('carwash'),
+                \App\Filament\Actions\ClaimRewardAction::make('motorwash'),
+                \App\Filament\Actions\ClaimRewardAction::make('coffeeshop'),
             ])
             ->headerActions([
                 Tables\Actions\Action::make('download_template')

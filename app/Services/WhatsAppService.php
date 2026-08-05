@@ -91,110 +91,85 @@ class WhatsAppService
         }
     }
 
+    private const PROGRAM_LABELS = [
+        'carwash' => 'Cuci Mobil',
+        'motorwash' => 'Cuci Motor',
+        'coffeeshop' => 'Coffee Shop',
+    ];
+
+    /** "Cuci Mobil: 12/30 poin" plus how far the next tier is. */
+    private function progressLine($customer, string $type): string
+    {
+        $label = self::PROGRAM_LABELS[$type] ?? ucfirst($type);
+        $points = $customer->getPoints($type);
+        $max = \App\Models\SystemSetting::maxPoints($type);
+        $next = $customer->nextMilestone($type);
+
+        $line = "{$label}: {$points}/{$max} poin";
+
+        if ($next) {
+            $remaining = max(0, $next['at'] - $points);
+            $line .= "\nKumpulkan {$remaining} poin lagi untuk {$next['reward']}.";
+        }
+
+        return $line;
+    }
+
+    /** "Cuci Mobil: Gratis Cuci Mobil" for the reward waiting to be claimed. */
+    private function rewardLine($customer, string $type): ?string
+    {
+        $earned = $customer->earnedMilestone($type);
+
+        if (! $earned) {
+            return null;
+        }
+
+        $label = self::PROGRAM_LABELS[$type] ?? ucfirst($type);
+
+        return "{$label}: {$earned['reward']} (tercapai di {$earned['at']} poin)";
+    }
+
     private function buildLoyaltyMessage(string $name, $customer, array $loyaltyTypes, string $dashboardLink): string
     {
-        $carwashThreshold = \App\Models\SystemSetting::carwashRewardThreshold();
-        $motorwashThreshold = \App\Models\SystemSetting::motorwashRewardThreshold();
-        $coffeeshopThreshold = \App\Models\SystemSetting::coffeeshopRewardThreshold();
+        $rewards = collect(\App\Models\SystemSetting::LOYALTY_TYPES)
+            ->map(fn (string $type) => $this->rewardLine($customer, $type))
+            ->filter()
+            ->values();
 
-        $carwashReward = $customer->hasReward('carwash');
-        $motorwashReward = $customer->hasReward('motorwash');
-        $coffeeshopReward = $customer->hasReward('coffeeshop');
-
-        $hasAnyReward = $carwashReward || $motorwashReward || $coffeeshopReward;
-
-        if ($hasAnyReward) {
-            return $this->buildRewardMessage($name, $customer, $carwashReward, $motorwashReward, $coffeeshopReward, $dashboardLink);
+        if ($rewards->isNotEmpty()) {
+            return $this->buildRewardMessage($name, $rewards->all(), $dashboardLink);
         }
 
-        return $this->buildProgressMessage($name, $customer, $loyaltyTypes, $carwashThreshold, $motorwashThreshold, $coffeeshopThreshold, $dashboardLink);
+        return $this->buildProgressMessage($name, $customer, $loyaltyTypes, $dashboardLink);
     }
 
-    private function buildProgressMessage(string $name, $customer, array $loyaltyTypes, int $carwashThreshold, int $motorwashThreshold, int $coffeeshopThreshold, string $dashboardLink): string
+    private function buildProgressMessage(string $name, $customer, array $loyaltyTypes, string $dashboardLink): string
     {
-        $programCount = count($loyaltyTypes);
+        $lines = collect($loyaltyTypes)
+            ->map(fn (string $type) => $this->progressLine($customer, $type))
+            ->all();
 
-        if ($programCount === 1) {
-            $type = $loyaltyTypes[0];
-            return match($type) {
-                'carwash' => $this->buildCarwashProgressMessage($name, $customer, $carwashThreshold, $dashboardLink),
-                'motorwash' => $this->buildMotorwashProgressMessage($name, $customer, $motorwashThreshold, $dashboardLink),
-                'coffeeshop' => $this->buildCoffeeshopProgressMessage($name, $customer, $coffeeshopThreshold, $dashboardLink),
-                default => "Halo {$name}!\n\nCheck-in berhasil!\n\nLihat detail poin:\n👉 {$dashboardLink}\n\nTerima kasih!",
-            };
+        if ($lines === []) {
+            return "Halo {$name}!\n\nCheck-in berhasil.\n\nLihat detail poin:\n{$dashboardLink}\n\nTerima kasih!";
         }
 
-        return $this->buildMultiProgramProgressMessage($name, $customer, $loyaltyTypes, $carwashThreshold, $motorwashThreshold, $coffeeshopThreshold, $dashboardLink);
+        $title = match (count($lines)) {
+            1 => 'Check-in Berhasil',
+            2 => 'Multi Check-in Berhasil',
+            default => 'Triple Check-in Berhasil',
+        };
+
+        $pointsText = implode("\n\n", $lines);
+
+        return "Halo {$name}!\n{$title}\n\n{$pointsText}\n\nLihat detail poin:\n{$dashboardLink}\n\nTerima kasih!";
     }
 
-    private function buildRewardMessage(string $name, $customer, bool $carwashReward, bool $motorwashReward, bool $coffeeshopReward, string $dashboardLink): string
+    private function buildRewardMessage(string $name, array $rewards, string $dashboardLink): string
     {
-        $rewards = [];
-        
-        if ($carwashReward) {
-            $rewards[] = '🚗 ' . \App\Models\SystemSetting::carwashRewardMessage();
-        }
-        
-        if ($motorwashReward) {
-            $rewards[] = '🏍️ ' . \App\Models\SystemSetting::motorwashRewardMessage();
-        }
-        
-        if ($coffeeshopReward) {
-            $rewards[] = '☕ ' . \App\Models\SystemSetting::coffeeshopRewardMessage();
-        }
-
-        $rewardCount = count($rewards);
-        $title = $rewardCount > 1 ? '🎊 MULTIPLE REWARDS! 🎊' : '🎉 SELAMAT! 🎉';
+        $title = count($rewards) > 1 ? 'BEBERAPA HADIAH SIAP DITUKAR' : 'SELAMAT, HADIAH SIAP DITUKAR';
         $rewardText = implode("\n", $rewards);
 
-        return "{$title}\n\nSELAMAT {$name}!\n\n{$rewardText}\n\nTunjukkan pesan ini ke kasir untuk klaim reward!\n\nLihat detail poin:\n👉 {$dashboardLink}\n\nTerima kasih sudah setia! 💙";
-    }
-
-    private function buildCarwashProgressMessage(string $name, $customer, int $threshold, string $dashboardLink): string
-    {
-        $points = $customer->carwash_points;
-        $remaining = max(0, $threshold - $points);
-
-        return "Halo {$name}! 👋\n✅ Cuci Mobil Check-in Berhasil!\n\nPoin Cuci Mobil: {$points}/{$threshold} 🚗\nKumpulkan {$remaining} poin lagi untuk DISKON!\n\nLihat detail poin:\n👉 {$dashboardLink}\n\nTerima kasih! 🎉";
-    }
-
-    private function buildMotorwashProgressMessage(string $name, $customer, int $threshold, string $dashboardLink): string
-    {
-        $points = $customer->motorwash_points;
-        $remaining = max(0, $threshold - $points);
-
-        return "Halo {$name}! 👋\n✅ Cuci Motor Check-in Berhasil!\n\nPoin Cuci Motor: {$points}/{$threshold} 🏍️\nKumpulkan {$remaining} poin lagi untuk DISKON!\n\nLihat detail poin:\n👉 {$dashboardLink}\n\nTerima kasih! 🎉";
-    }
-
-    private function buildCoffeeshopProgressMessage(string $name, $customer, int $threshold, string $dashboardLink): string
-    {
-        $points = $customer->coffeeshop_points;
-        $remaining = max(0, $threshold - $points);
-
-        return "Halo {$name}! 👋\n✅ Coffee Shop Check-in Berhasil!\n\nPoin Coffee Shop: {$points}/{$threshold} ☕\nKumpulkan {$remaining} poin lagi untuk GRATIS KOPI!\n\nLihat detail poin:\n👉 {$dashboardLink}\n\nTerima kasih! 🎉";
-    }
-
-    private function buildMultiProgramProgressMessage(string $name, $customer, array $loyaltyTypes, int $carwashThreshold, int $motorwashThreshold, int $coffeeshopThreshold, string $dashboardLink): string
-    {
-        $lines = [];
-
-        if (in_array('carwash', $loyaltyTypes)) {
-            $lines[] = "🚗 Cuci Mobil: {$customer->carwash_points}/{$carwashThreshold}";
-        }
-
-        if (in_array('motorwash', $loyaltyTypes)) {
-            $lines[] = "🏍️ Cuci Motor: {$customer->motorwash_points}/{$motorwashThreshold}";
-        }
-
-        if (in_array('coffeeshop', $loyaltyTypes)) {
-            $lines[] = "☕ Coffee Shop: {$customer->coffeeshop_points}/{$coffeeshopThreshold}";
-        }
-
-        $programCount = count($lines);
-        $title = $programCount >= 3 ? 'Triple Check-in Berhasil!' : 'Multi Check-in Berhasil!';
-        $pointsText = implode("\n", $lines);
-
-        return "Halo {$name}! 👋\n✅ {$title}\n\n{$pointsText}\n\nLihat detail poin:\n👉 {$dashboardLink}\n\nAmazing! 🎁 Terima kasih! 🎉";
+        return "{$title}\n\nSelamat {$name}!\n\nHadiah yang bisa kamu tukar sekarang:\n{$rewardText}\n\nTunjukkan pesan ini ke kasir untuk klaim hadiah.\nPoin kamu berhenti di angka ini sampai hadiah diklaim, jadi klaim dulu supaya bisa lanjut mengumpulkan poin lagi.\n\nLihat detail poin:\n{$dashboardLink}\n\nTerima kasih sudah setia!";
     }
 
     private function isConfigured(): bool
@@ -425,81 +400,27 @@ class WhatsAppService
 
     private function buildRewardContentForTemplate($customer, array $loyaltyTypes): string
     {
-        $rewards = [];
-        
-        foreach ($loyaltyTypes as $type) {
-            if ($customer->hasReward($type)) {
-                $rewards[] = match($type) {
-                    'carwash' => '🚗 ' . \App\Models\SystemSetting::carwashRewardMessage(),
-                    'motorwash' => '🏍️ ' . \App\Models\SystemSetting::motorwashRewardMessage(),
-                    'coffeeshop' => '☕ ' . \App\Models\SystemSetting::coffeeshopRewardMessage(),
-                };
-            }
-        }
-        
-        $rewardCount = count($rewards);
-        if ($rewardCount === 0) {
+        $rewards = collect($loyaltyTypes)
+            ->map(fn (string $type) => $this->rewardLine($customer, $type))
+            ->filter()
+            ->values();
+
+        if ($rewards->isEmpty()) {
             return 'Reward tersedia!';
         }
-        
-        $title = $rewardCount > 1 ? '🎊 MULTIPLE REWARDS!' : '';
-        $rewardList = implode("\n", $rewards);
-        
-        return $title ? "{$title}\n\n{$rewardList}" : $rewardList;
+
+        $title = $rewards->count() > 1 ? "🎊 MULTIPLE REWARDS!\n\n" : '';
+
+        return $title . $rewards->implode("\n");
     }
 
     private function buildProgressContentForTemplate($customer, array $loyaltyTypes): string
     {
-        $carwashThreshold = \App\Models\SystemSetting::carwashRewardThreshold();
-        $motorwashThreshold = \App\Models\SystemSetting::motorwashRewardThreshold();
-        $coffeeshopThreshold = \App\Models\SystemSetting::coffeeshopRewardThreshold();
-        
-        $programCount = count($loyaltyTypes);
+        $lines = collect($loyaltyTypes)
+            ->map(fn (string $type) => $this->progressLine($customer, $type))
+            ->all();
 
-        if ($programCount === 1) {
-            $type = $loyaltyTypes[0];
-            return match($type) {
-                'carwash' => $this->buildCarwashProgressContent($customer, $carwashThreshold),
-                'motorwash' => $this->buildMotorwashProgressContent($customer, $motorwashThreshold),
-                'coffeeshop' => $this->buildCoffeeshopProgressContent($customer, $coffeeshopThreshold),
-                default => 'Poin Anda telah diperbarui.',
-            };
-        }
-
-        // Multi-program progress
-        $lines = [];
-        if (in_array('carwash', $loyaltyTypes)) {
-            $lines[] = "🚗 Cuci Mobil: {$customer->carwash_points}/{$carwashThreshold}";
-        }
-        if (in_array('motorwash', $loyaltyTypes)) {
-            $lines[] = "🏍️ Cuci Motor: {$customer->motorwash_points}/{$motorwashThreshold}";
-        }
-        if (in_array('coffeeshop', $loyaltyTypes)) {
-            $lines[] = "☕ Coffee Shop: {$customer->coffeeshop_points}/{$coffeeshopThreshold}";
-        }
-        
-        return implode("\n", $lines);
-    }
-
-    private function buildCarwashProgressContent($customer, int $threshold): string
-    {
-        $points = $customer->carwash_points;
-        $remaining = max(0, $threshold - $points);
-        return "Poin Cuci Mobil: {$points}/{$threshold} 🚗\nKumpulkan {$remaining} poin lagi untuk DISKON!";
-    }
-
-    private function buildMotorwashProgressContent($customer, int $threshold): string
-    {
-        $points = $customer->motorwash_points;
-        $remaining = max(0, $threshold - $points);
-        return "Poin Cuci Motor: {$points}/{$threshold} 🏍️\nKumpulkan {$remaining} poin lagi untuk DISKON!";
-    }
-
-    private function buildCoffeeshopProgressContent($customer, int $threshold): string
-    {
-        $points = $customer->coffeeshop_points;
-        $remaining = max(0, $threshold - $points);
-        return "Poin Coffee Shop: {$points}/{$threshold} ☕\nKumpulkan {$remaining} poin lagi untuk GRATIS KOPI!";
+        return $lines === [] ? 'Poin Anda telah diperbarui.' : implode("\n\n", $lines);
     }
 
     /**

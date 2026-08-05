@@ -8,6 +8,8 @@ use Illuminate\Support\Facades\Cache;
 
 class VisitsTrendChartWidget extends ChartWidget
 {
+    private const DAYS = 30;
+
     protected static ?string $heading = 'Visits Trend (Last 30 Days)';
     protected static ?string $pollingInterval = null;
     protected int|string|array $columnSpan = 'full';
@@ -15,39 +17,35 @@ class VisitsTrendChartWidget extends ChartWidget
     protected function getData(): array
     {
         $data = Cache::remember('dashboard_visits_trend', 300, function () {
-            $days = collect();
-            $carwashData = collect();
-            $motorwashData = collect();
-            $coffeeshopData = collect();
+            $labels = [];
+            $tally = [];
 
-            for ($i = 29; $i >= 0; $i--) {
-                $date = now()->subDays($i)->format('Y-m-d');
-                $days->push(now()->subDays($i)->format('d M'));
-
-                $carwashData->push(
-                    VisitHistory::whereDate('visited_at', $date)
-                        ->whereJsonContains('loyalty_types', 'carwash')
-                        ->count()
-                );
-
-                $motorwashData->push(
-                    VisitHistory::whereDate('visited_at', $date)
-                        ->whereJsonContains('loyalty_types', 'motorwash')
-                        ->count()
-                );
-
-                $coffeeshopData->push(
-                    VisitHistory::whereDate('visited_at', $date)
-                        ->whereJsonContains('loyalty_types', 'coffeeshop')
-                        ->count()
-                );
+            for ($i = self::DAYS - 1; $i >= 0; $i--) {
+                $day = now()->subDays($i);
+                $labels[] = $day->format('d M');
+                $tally[$day->format('Y-m-d')] = ['carwash' => 0, 'motorwash' => 0, 'coffeeshop' => 0];
             }
 
+            // One indexed range scan, tallied in PHP. The old per-day
+            // whereDate + whereJsonContains ran 90 unindexed table scans.
+            VisitHistory::query()
+                ->where('visited_at', '>=', now()->subDays(self::DAYS - 1)->startOfDay())
+                ->get(['visited_at', 'loyalty_types'])
+                ->each(function (VisitHistory $visit) use (&$tally) {
+                    $date = $visit->visited_at?->format('Y-m-d');
+
+                    foreach ((array) $visit->loyalty_types as $type) {
+                        if (isset($tally[$date][$type])) {
+                            $tally[$date][$type]++;
+                        }
+                    }
+                });
+
             return [
-                'labels' => $days->toArray(),
-                'carwash' => $carwashData->toArray(),
-                'motorwash' => $motorwashData->toArray(),
-                'coffeeshop' => $coffeeshopData->toArray(),
+                'labels' => $labels,
+                'carwash' => array_column($tally, 'carwash'),
+                'motorwash' => array_column($tally, 'motorwash'),
+                'coffeeshop' => array_column($tally, 'coffeeshop'),
             ];
         });
 

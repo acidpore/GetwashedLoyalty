@@ -80,11 +80,8 @@ class CheckinController extends Controller
             $totalPointsEarned = 0;
             foreach ($loyaltyTypes as $type) {
                 $pointsToAdd = $qrCode ? $qrCode->getPointsPerScan($type) : 1;
-                
-                if ($customer->hasReward($type)) {
-                    $customer->resetPoints($type);
-                }
-                
+
+                // Points stop at the next unclaimed milestone; addPoints clamps them there.
                 $customer->addPoints($type, $pointsToAdd);
                 $totalPointsEarned += $pointsToAdd;
             }
@@ -143,10 +140,6 @@ class CheckinController extends Controller
 
     private function processSingleLoyaltyCheckin(Customer $customer, string $type, string $ip): void
     {
-        if ($customer->hasReward($type)) {
-            $customer->resetPoints($type);
-        }
-
         $customer->addPoints($type);
 
         VisitHistory::create([
@@ -160,14 +153,6 @@ class CheckinController extends Controller
 
     private function processMultiLoyaltyCheckin(Customer $customer, string $ip): void
     {
-        if ($customer->hasReward('carwash')) {
-            $customer->resetPoints('carwash');
-        }
-
-        if ($customer->hasReward('coffeeshop')) {
-            $customer->resetPoints('coffeeshop');
-        }
-
         $customer->addPoints('carwash');
         $customer->addPoints('coffeeshop');
 
