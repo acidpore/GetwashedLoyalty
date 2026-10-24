@@ -98,7 +98,13 @@ class CarwashCustomerResource extends Resource
                     ->label('Add Point')
                     ->icon('heroicon-o-plus-circle')
                     ->action(function (Customer $record) {
-                        $record->addPoints('carwash');
+                        if ($record->addPoints('carwash') === 0) {
+                            \Filament\Notifications\Notification::make()
+                                ->title('Poin terkunci di ' . $record->getPoints('carwash'))
+                                ->body('Klaim hadiah customer dulu, baru poin bisa ditambah lagi.')
+                                ->warning()
+                                ->send();
+                        }
                     })
                     ->requiresConfirmation(),
             ])

@@ -198,10 +198,11 @@ class Customer extends Model
         });
     }
 
-    public function addPoints(string $loyaltyType, int $points = 1): void
+    /** Returns the points actually added, less than asked once the cap is hit. */
+    public function addPoints(string $loyaltyType, int $points = 1): int
     {
         if (! in_array($loyaltyType, SystemSetting::LOYALTY_TYPES, true)) {
-            return;
+            return 0;
         }
 
         $current = $this->getPoints($loyaltyType);
@@ -215,6 +216,8 @@ class Customer extends Model
             "{$loyaltyType}_last_visit_at" => now(),
         ]);
         $this->increment("{$loyaltyType}_total_visits");
+
+        return $newPoints - $current;
     }
 
     /** Ends the cycle outright, without logging a claim. */

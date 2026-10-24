@@ -98,7 +98,13 @@ class CoffeeshopCustomerResource extends Resource
                     ->label('Add Point')
                     ->icon('heroicon-o-plus-circle')
                     ->action(function (Customer $record) {
-                        $record->addPoints('coffeeshop');
+                        if ($record->addPoints('coffeeshop') === 0) {
+                            \Filament\Notifications\Notification::make()
+                                ->title('Poin terkunci di ' . $record->getPoints('coffeeshop'))
+                                ->body('Klaim hadiah customer dulu, baru poin bisa ditambah lagi.')
+                                ->warning()
+                                ->send();
+                        }
                     })
                     ->requiresConfirmation(),
             ])

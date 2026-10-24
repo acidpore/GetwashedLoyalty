@@ -82,8 +82,7 @@ class CheckinController extends Controller
                 $pointsToAdd = $qrCode ? $qrCode->getPointsPerScan($type) : 1;
 
                 // Points stop at the next unclaimed milestone; addPoints clamps them there.
-                $customer->addPoints($type, $pointsToAdd);
-                $totalPointsEarned += $pointsToAdd;
+                $totalPointsEarned += $customer->addPoints($type, $pointsToAdd);
             }
 
             VisitHistory::create([

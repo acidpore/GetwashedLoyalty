@@ -66,6 +66,9 @@
                                     <span class="material-symbols-outlined text-sm">qr_code_scanner</span>
                                     Tunjukkan pesan WhatsApp ke kasir
                                 </p>
+                                <p class="text-xs text-green-50 opacity-90 mt-2">
+                                    Poin terkunci sampai hadiah diklaim. Klaim ke kasir supaya poin bisa lanjut dikumpulkan.
+                                </p>
                             </div>
                         </div>
                     </div>
