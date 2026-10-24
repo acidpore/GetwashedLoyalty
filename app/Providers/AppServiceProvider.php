@@ -2,6 +2,7 @@
 
 namespace App\Providers;
 
+use Filament\Tables\Columns\Column;
 use Filament\Tables\Table;
 use Illuminate\Cache\RateLimiting\Limit;
 use Illuminate\Http\Request;
@@ -25,6 +26,7 @@ class AppServiceProvider extends ServiceProvider
         // Default Filament menyertakan opsi 'all' yang me-render seluruh tabel tanpa batas.
         // Pada tabel sebesar customer dan visit history itu menghabiskan memory PHP.
         Table::configureUsing(fn (Table $table) => $table->paginationPageOptions([10, 25, 50]));
+        Column::configureUsing(fn (Column $column) => $column->alignCenter());
     }
 
     protected function configureRateLimiting(): void
