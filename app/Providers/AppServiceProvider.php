@@ -33,6 +33,14 @@ class AppServiceProvider extends ServiceProvider
         TableAction::configureUsing(fn (TableAction $action) => $action->tooltip(
             fn (TableAction $action) => $action->getView() === TableAction::LINK_VIEW ? $action->getLabel() : null
         ));
+
+        // Same dotted name Filament gives panel widgets, e.g. app.filament.widgets.analytics.kpi-overview.
+        foreach (\App\Filament\Pages\Analytics::WIDGETS as $widget) {
+            \Livewire\Livewire::component(
+                collect(explode('\\', $widget))->map(fn ($part) => \Illuminate\Support\Str::kebab($part))->implode('.'),
+                $widget,
+            );
+        }
     }
 
     protected function configureRateLimiting(): void

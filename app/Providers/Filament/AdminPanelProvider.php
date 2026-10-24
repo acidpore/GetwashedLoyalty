@@ -41,7 +41,7 @@ class AdminPanelProvider extends PanelProvider
             ->sidebarCollapsibleOnDesktop()
             ->renderHook(PanelsRenderHook::USER_MENU_BEFORE, fn () => Blade::render('<div class="gw-topbar-theme"><x-filament-panels::theme-switcher /></div>'))
             ->renderHook(PanelsRenderHook::SIDEBAR_FOOTER, fn () => view('filament.sidebar-logout'))
-            ->renderHook(PanelsRenderHook::STYLES_AFTER, fn () => new HtmlString('<style>'
+            ->renderHook(PanelsRenderHook::STYLES_AFTER, fn () => new HtmlString('<link rel="stylesheet" href="' . asset('css/analytics.css') . '?v=2"><style>'
                 // The switcher lives in the topbar from tablet up; on phones the topbar is too tight, so it stays in the profile dropdown there.
                 . '@media (max-width:639px){.gw-topbar-theme{display:none}}'
                 . '@media (min-width:640px){.fi-user-menu .fi-dropdown-list:has(> .fi-theme-switcher){display:none}}'
@@ -69,6 +69,7 @@ class AdminPanelProvider extends PanelProvider
             ->pages([
                 Pages\Dashboard::class,
                 \App\Filament\Pages\Settings::class,
+                \App\Filament\Pages\Analytics::class,
             ])
             ->widgets([
                 \App\Filament\Widgets\VisitsTrendChartWidget::class,

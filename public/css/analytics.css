@@ -1,0 +1,101 @@
+/* Analytics page. Filament's compiled CSS only ships the utilities Filament itself uses, so these views style themselves. */
+.ga-muted { color: rgb(var(--gray-500)); }
+.ga-strong { color: rgb(var(--gray-950)); font-weight: 600; }
+.dark .ga-strong { color: #fff; }
+.ga-num { font-variant-numeric: tabular-nums; }
+.ga-note { margin-top: .75rem; font-size: .75rem; line-height: 1.1rem; color: rgb(var(--gray-500)); }
+
+/* Insights */
+.ga-insights { display: grid; gap: .625rem; }
+@media (min-width: 1024px) { .ga-insights { grid-template-columns: 1fr 1fr; } }
+.ga-insight { display: flex; gap: .75rem; align-items: flex-start; padding: .75rem .875rem; border-radius: .75rem; font-size: .875rem; line-height: 1.35rem; background: rgb(var(--gray-50)); color: rgb(var(--gray-700)); }
+.dark .ga-insight { background: rgba(255, 255, 255, .04); color: rgb(var(--gray-300)); }
+.ga-insight svg { width: 1.25rem; height: 1.25rem; flex: none; margin-top: .05rem; }
+.ga-tone-success svg { color: rgb(var(--success-600)); }
+.ga-tone-danger svg { color: rgb(var(--danger-600)); }
+.ga-tone-warning svg { color: rgb(var(--warning-600)); }
+.ga-tone-info svg { color: rgb(var(--primary-600)); }
+
+/* Horizontal bars (segments, frequency, program mix) */
+.ga-bars { display: grid; gap: .75rem; }
+.ga-bar-head { display: flex; justify-content: space-between; gap: .75rem; font-size: .875rem; }
+.ga-bar-track { margin-top: .375rem; height: .5rem; border-radius: 999px; background: rgb(var(--gray-100)); overflow: hidden; }
+.dark .ga-bar-track { background: rgba(255, 255, 255, .06); }
+.ga-bar-fill { height: 100%; border-radius: 999px; min-width: 2px; }
+.ga-hint { font-size: .75rem; color: rgb(var(--gray-500)); }
+.ga-split { display: grid; gap: 1.5rem; }
+.ga-subhead { font-size: .8125rem; font-weight: 600; color: rgb(var(--gray-950)); margin-bottom: .75rem; }
+.dark .ga-subhead { color: #fff; }
+
+/* Heatmap */
+.ga-scroll { overflow-x: auto; }
+.ga-heat { border-collapse: separate; border-spacing: 3px; font-size: .6875rem; min-width: 100%; }
+.ga-heat th { font-weight: 500; color: rgb(var(--gray-500)); padding: 0 .25rem; white-space: nowrap; }
+.ga-heat th[scope=row] { text-align: left; padding-right: .5rem; }
+.ga-heat td { height: 1.75rem; min-width: 1.75rem; border-radius: 4px; text-align: center; font-variant-numeric: tabular-nums; background: rgb(var(--gray-100)); color: transparent; cursor: default; }
+.dark .ga-heat td { background: rgba(255, 255, 255, .05); }
+.ga-heat td:hover { color: var(--fg);outline: 2px solid rgb(var(--gray-950)); outline-offset: -2px; }
+.dark .ga-heat td:hover { outline-color: #fff; }
+.ga-legend { display: flex; align-items: center; gap: .375rem; margin-top: .75rem; font-size: .75rem; color: rgb(var(--gray-500)); }
+.ga-legend i { width: 1rem; height: .625rem; border-radius: 2px; display: inline-block; }
+
+/* Tables */
+.ga-table { width: 100%; font-size: .8125rem; border-collapse: collapse; }
+.ga-table th { font-weight: 500; color: rgb(var(--gray-500)); text-align: left; padding: .5rem .5rem; white-space: nowrap; border-bottom: 1px solid rgb(var(--gray-200)); }
+.dark .ga-table th { border-color: rgba(255, 255, 255, .1); }
+.ga-table td { padding: .5rem .5rem; border-bottom: 1px solid rgb(var(--gray-100)); color: rgb(var(--gray-700)); }
+.dark .ga-table td { border-color: rgba(255, 255, 255, .05); color: rgb(var(--gray-300)); }
+.ga-table .ga-right { text-align: right; }
+.ga-cohort td.ga-cell { text-align: center; font-variant-numeric: tabular-nums; border-radius: 4px; border: 2px solid transparent; background-clip: padding-box; }
+.ga-dot { display: inline-block; width: .5rem; height: .5rem; border-radius: 999px; margin-right: .375rem; }
+.ga-stat-row { display: grid; grid-template-columns: repeat(auto-fit, minmax(7rem, 1fr)); gap: .75rem; }
+.ga-stat { padding: .75rem; border-radius: .75rem; background: rgb(var(--gray-50)); }
+.dark .ga-stat { background: rgba(255, 255, 255, .04); }
+.ga-stat b { display: block; font-size: 1.25rem; font-weight: 700; color: rgb(var(--gray-950)); font-variant-numeric: tabular-nums; }
+.dark .ga-stat b { color: #fff; }
+.ga-stat span { font-size: .75rem; color: rgb(var(--gray-500)); }
+.ga-empty { padding: 1.5rem 0; text-align: center; font-size: .875rem; color: rgb(var(--gray-500)); }
+
+/* ── Terminal look ─────────────────────────────────────────────── */
+.ga-terminal { --ga-mono: 'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, monospace; --ga-up: 22, 163, 74; --ga-down: 220, 38, 38; --ga-line: rgb(var(--gray-200)); }
+.dark .ga-terminal { --ga-up: 74, 222, 128; --ga-down: 248, 113, 113; --ga-line: rgba(255, 255, 255, .08); }
+.ga-terminal .ga-num, .ga-terminal .ga-heat, .ga-terminal .ga-table td.ga-num, .ga-terminal .ga-stat b { font-family: var(--ga-mono); }
+.ga-terminal .fi-section { border-radius: .5rem; box-shadow: none; }
+.ga-terminal .fi-section-header-heading { font-size: .75rem; letter-spacing: .08em; text-transform: uppercase; font-weight: 700; }
+.ga-terminal .fi-section-header-description { font-size: .75rem; }
+.ga-terminal .fi-section-header { padding-top: .875rem; padding-bottom: .875rem; }
+.ga-terminal .fi-section-content { padding-top: 1rem; }
+.ga-terminal .fi-wi-chart canvas { font-family: var(--ga-mono); }
+
+/* Status bar */
+.ga-statusbar { display: flex; flex-wrap: wrap; align-items: center; gap: .375rem 1.25rem; padding: .5rem .875rem; border-radius: .5rem; font-family: var(--ga-mono); font-size: .6875rem; letter-spacing: .02em; background: #09090b; color: #a1a1aa; border: 1px solid rgba(255, 255, 255, .06); }
+.ga-statusbar b { color: #f59e0b; font-weight: 700; margin-right: .375rem; }
+.ga-statusbar-end { margin-left: auto; }
+.ga-live { display: inline-flex; align-items: center; gap: .375rem; color: #4ade80; font-weight: 700; }
+.ga-live i { width: .4375rem; height: .4375rem; border-radius: 999px; background: #4ade80; box-shadow: 0 0 0 0 rgba(74, 222, 128, .6); animation: ga-pulse 2s infinite; }
+@keyframes ga-pulse { 70% { box-shadow: 0 0 0 6px rgba(74, 222, 128, 0); } 100% { box-shadow: 0 0 0 0 rgba(74, 222, 128, 0); } }
+@media (prefers-reduced-motion: reduce) { .ga-live i { animation: none; } }
+@media (max-width: 767px) { .ga-statusbar-end { margin-left: 0; } }
+
+/* KPI tiles: one strip of hairline-separated cells */
+.ga-kpis { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); border: 1px solid var(--ga-line); border-radius: .5rem; overflow: hidden; background: var(--ga-line); gap: 1px; }
+@media (min-width: 768px) { .ga-kpis { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
+@media (min-width: 1280px) { .ga-kpis { grid-template-columns: repeat(6, minmax(0, 1fr)); } }
+.ga-kpi { position: relative; padding: .875rem 1rem 2.75rem; background: #fff; min-width: 0; }
+.dark .ga-kpi { background: rgb(var(--gray-900)); }
+.ga-kpi-label { font-size: .6875rem; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; color: rgb(var(--gray-500)); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.ga-kpi-value { margin-top: .375rem; font-family: var(--ga-mono); font-size: 1.625rem; line-height: 1.1; font-weight: 700; letter-spacing: -.02em; color: rgb(var(--gray-950)); font-variant-numeric: tabular-nums; }
+.dark .ga-kpi-value { color: #fff; }
+.ga-kpi-delta { margin-top: .5rem; display: flex; flex-wrap: wrap; align-items: center; gap: .25rem .5rem; font-family: var(--ga-mono); font-size: .6875rem; }
+.ga-chip { padding: .0625rem .375rem; border-radius: .25rem; font-weight: 700; }
+.ga-up .ga-chip { color: rgb(var(--ga-up)); background: rgba(var(--ga-up), .12); }
+.ga-down .ga-chip { color: rgb(var(--ga-down)); background: rgba(var(--ga-down), .12); }
+.ga-flat .ga-chip { color: rgb(var(--gray-500)); background: rgba(var(--gray-500), .12); }
+.ga-kpi-prev { color: rgb(var(--gray-500)); }
+.ga-spark { position: absolute; left: 1rem; right: 1rem; bottom: .625rem; width: calc(100% - 2rem); height: 1.625rem; overflow: visible; }
+.ga-spark-line { fill: none; stroke-width: 1.5; stroke: rgb(var(--gray-400)); }
+.ga-spark-area { fill: rgba(var(--gray-400), .12); stroke: none; }
+.ga-up .ga-spark-line { stroke: rgb(var(--ga-up)); }
+.ga-up .ga-spark-area { fill: rgba(var(--ga-up), .12); }
+.ga-down .ga-spark-line { stroke: rgb(var(--ga-down)); }
+.ga-down .ga-spark-area { fill: rgba(var(--ga-down), .12); }
