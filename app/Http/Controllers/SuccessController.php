@@ -2,38 +2,48 @@
 
 namespace App\Http\Controllers;
 
-use Illuminate\Http\Request;
 use App\Models\SystemSetting;
+use Illuminate\Http\Request;
 
 class SuccessController extends Controller
 {
+    private const PROGRAMS = [
+        'carwash' => ['name' => 'Car Wash', 'image' => 'carwash.png'],
+        'motorwash' => ['name' => 'Motor Wash', 'image' => 'motorcycle.png'],
+        'coffeeshop' => ['name' => 'Coffee Shop', 'image' => 'drink.png'],
+    ];
+
     public function index(Request $request)
     {
-        $name = $request->query('name', 'Customer');
-        $loyaltyType = $request->query('loyalty_type', 'carwash');
-        $carwashPoints = (int) $request->query('carwash_points', 0);
-        $motorwashPoints = (int) $request->query('motorwash_points', 0);
-        $coffeeshopPoints = (int) $request->query('coffeeshop_points', 0);
-        $carwashReward = filter_var($request->query('carwash_reward', false), FILTER_VALIDATE_BOOLEAN);
-        $motorwashReward = filter_var($request->query('motorwash_reward', false), FILTER_VALIDATE_BOOLEAN);
-        $coffeeshopReward = filter_var($request->query('coffeeshop_reward', false), FILTER_VALIDATE_BOOLEAN);
+        $types = array_values(array_intersect(
+            explode(',', (string) $request->query('loyalty_types', '')),
+            SystemSetting::LOYALTY_TYPES
+        )) ?: ['carwash'];
 
-        $carwashThreshold = SystemSetting::carwashRewardThreshold();
-        $motorwashThreshold = SystemSetting::motorwashRewardThreshold();
-        $coffeeshopThreshold = SystemSetting::coffeeshopRewardThreshold();
+        $programs = collect($types)->map(function (string $type) use ($request) {
+            $points = (int) $request->query("{$type}_points", 0);
+            $milestones = SystemSetting::milestones($type);
+            $hasReward = filter_var($request->query("{$type}_reward", false), FILTER_VALIDATE_BOOLEAN);
 
-        return view('success', compact(
-            'name',
-            'loyaltyType',
-            'carwashPoints',
-            'motorwashPoints',
-            'coffeeshopPoints',
-            'carwashReward',
-            'motorwashReward',
-            'coffeeshopReward',
-            'carwashThreshold',
-            'motorwashThreshold',
-            'coffeeshopThreshold'
-        ));
+            // Points freeze at the milestone waiting to be claimed, so that tier is the highest one reached.
+            $earned = collect($milestones)->where('at', '<=', $points)->last();
+            $next = collect($milestones)->firstWhere('at', '>', $points);
+
+            return self::PROGRAMS[$type] + [
+                'type' => $type,
+                'points' => $points,
+                'max_points' => SystemSetting::maxPoints($type),
+                'has_reward' => $hasReward && $earned !== null,
+                'earned_reward' => $earned['reward'] ?? null,
+                'next_reward' => $next['reward'] ?? null,
+                'points_until_reward' => $next ? $next['at'] - $points : 0,
+            ];
+        });
+
+        return view('success', [
+            'name' => $request->query('name', 'Customer'),
+            'programs' => $programs,
+            'hasReward' => $programs->contains('has_reward', true),
+        ]);
     }
 }

@@ -1,128 +1,94 @@
 <x-layout.layout title="Check-In - Getwashed Loyalty">
-    <div class="min-h-screen flex flex-col p-4 md:p-8">
-        
-        <!-- Header / Back -->
-        <header class="w-full max-w-4xl mx-auto mb-8">
-            <a href="{{ route('home') }}" class="inline-flex items-center gap-2 text-slate-400 hover:text-white transition-colors">
+    @php
+        $programs = [
+            'carwash' => ['label' => 'Car Wash', 'image' => 'carwash.png'],
+            'motorwash' => ['label' => 'Motor Wash', 'image' => 'motorcycle.png'],
+            'coffeeshop' => ['label' => 'Coffee Shop', 'image' => 'drink.png'],
+        ];
+    @endphp
+
+    <div class="min-h-screen flex flex-col">
+        <header class="max-w-md w-full mx-auto px-4 h-16 flex items-center justify-between">
+            <a href="{{ route('home') }}" class="inline-flex items-center gap-1.5 -ml-2 px-2 py-1.5 rounded-lg text-sm font-semibold text-ink-2 hover:text-ink transition-colors">
                 <span class="material-symbols-outlined">arrow_back</span>
-                <span class="font-bold text-sm">Kembali</span>
+                Kembali
             </a>
+            <x-theme-toggle />
         </header>
 
-        <main class="flex-grow flex items-center justify-center">
-            <div class="w-full max-w-md bg-card-dark border border-white/5 rounded-3xl p-8 sm:p-10 shadow-2xl relative overflow-hidden backdrop-blur-xl">
-                <!-- Background Decoration -->
-                <div class="absolute top-0 right-0 w-64 h-64 bg-primary/10 rounded-full blur-3xl -mr-16 -mt-16 pointer-events-none"></div>
+        <main class="flex-1 max-w-md w-full mx-auto px-4 pb-10">
+            <div class="pt-4 pb-8">
+                <img src="{{ asset('Logo Get Washed Updated.png') }}" alt="Getwashed" class="size-14 rounded-2xl object-contain">
+                <h1 class="mt-5 text-3xl font-extrabold tracking-tight">Check-in</h1>
+                <p class="mt-1.5 text-ink-2">Isi nama dan nomor WhatsApp untuk dapat poin.</p>
 
-                <div class="relative z-10 text-center">
-                    
-                    <!-- Icon -->
-                    <div class="w-20 h-20 mx-auto bg-gradient-to-br from-primary via-blue-500 to-purple-600 rounded-2xl flex items-center justify-center mb-8 shadow-lg shadow-primary/20">
-                        <span class="material-symbols-outlined text-white text-4xl">check_circle</span>
-                    </div>
-
-                    <h1 class="text-2xl font-extrabold text-white mb-2">Check-In Sekarang</h1>
-                    
-                    <div class="mt-4 mb-8 flex flex-wrap gap-2 justify-center">
-                        @foreach($loyaltyTypes as $type)
-                            @if($type === 'carwash')
-                                <span class="px-3 py-1 bg-blue-500/10 border border-blue-500/20 text-blue-400 rounded-lg text-xs font-bold uppercase tracking-wider">
-                                    🚗 Cuci Mobil
+                <div class="mt-5 flex flex-wrap gap-2">
+                    @foreach($loyaltyTypes as $type)
+                        @isset($programs[$type])
+                            <span class="inline-flex items-center gap-2 rounded-full bg-surface border border-line pl-1 pr-3 py-1 text-sm font-semibold">
+                                <span class="size-6 rounded-full bg-{{ $type }} p-1">
+                                    <img src="{{ asset($programs[$type]['image']) }}" alt="" class="size-full object-contain">
                                 </span>
-                            @elseif($type === 'motorwash')
-                                <span class="px-3 py-1 bg-orange-500/10 border border-orange-500/20 text-orange-400 rounded-lg text-xs font-bold uppercase tracking-wider">
-                                    🏍️ Cuci Motor
-                                </span>
-                            @elseif($type === 'coffeeshop')
-                                <span class="px-3 py-1 bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 rounded-lg text-xs font-bold uppercase tracking-wider">
-                                    ☕ Coffee Shop
-                                </span>
-                            @endif
-                        @endforeach
-                    </div>
-
+                                {{ $programs[$type]['label'] }}
+                            </span>
+                        @endisset
+                    @endforeach
                     @if(count($loyaltyTypes) > 1)
-                        <div class="mb-8 inline-flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-yellow-500/20 to-orange-500/20 border border-yellow-500/30 text-yellow-500 rounded-xl text-sm font-bold animate-pulse">
-                            <span class="material-symbols-outlined text-lg">stars</span>
-                            {{ count($loyaltyTypes) }}x Poin!
-                        </div>
+                        <span class="inline-flex items-center rounded-full bg-caution-soft text-caution px-3 py-1 text-sm font-bold">
+                            {{ count($loyaltyTypes) }}x poin
+                        </span>
                     @endif
-
-                    @if(session('success'))
-                        <div class="mb-6 p-4 bg-green-500/10 border border-green-500/20 rounded-xl text-green-400 text-sm font-medium">
-                            {{ session('success') }}
-                        </div>
-                    @endif
-
-                    @if(session('error'))
-                        <div class="mb-6 p-4 bg-red-500/10 border border-red-500/20 rounded-xl text-red-400 text-sm font-medium">
-                            {{ session('error') }}
-                        </div>
-                    @endif
-
-                    <form method="POST" action="{{ route('checkin.store') }}" class="space-y-5 text-left">
-                        @csrf
-                        @foreach($loyaltyTypes as $type)
-                            <input type="hidden" name="loyalty_types[]" value="{{ $type }}">
-                        @endforeach
-                        @if($qrCode)
-                            <input type="hidden" name="qr_code" value="{{ $qrCode->code }}">
-                        @endif
-
-                        <div class="space-y-1.5">
-                            <label class="text-xs font-bold text-slate-400 uppercase tracking-wider ml-1" for="full-name">Nama Lengkap</label>
-                            <div class="relative group">
-                                <span class="absolute left-4 top-3.5 material-symbols-outlined text-slate-500 group-focus-within:text-primary transition-colors">badge</span>
-                                <input 
-                                    class="w-full pl-12 pr-4 py-3.5 bg-background-dark/50 border border-white/10 rounded-xl focus:ring-2 focus:ring-primary/50 focus:border-primary text-white placeholder-slate-500 transition-all font-medium" 
-                                    id="full-name" 
-                                    name="name" 
-                                    placeholder="Masukkan nama Anda" 
-                                    type="text"
-                                    required
-                                >
-                            </div>
-                        </div>
-
-                        <div class="space-y-1.5">
-                            <label class="text-xs font-bold text-slate-400 uppercase tracking-wider ml-1" for="whatsapp-number">Nomor WhatsApp</label>
-                            <div class="relative group">
-                                <span class="absolute left-4 top-3.5 material-symbols-outlined text-slate-500 group-focus-within:text-primary transition-colors">chat</span>
-                                <input 
-                                    class="w-full pl-12 pr-4 py-3.5 bg-background-dark/50 border border-white/10 rounded-xl focus:ring-2 focus:ring-primary/50 focus:border-primary text-white placeholder-slate-500 transition-all font-medium" 
-                                    id="whatsapp-number" 
-                                    name="phone" 
-                                    placeholder="08123456789" 
-                                    type="tel"
-                                    required
-                                >
-                            </div>
-                            <p class="text-[10px] text-slate-500 font-medium ml-1">Format: 08xxx atau 628xxx</p>
-                        </div>
-
-                        <button 
-                            class="w-full group mt-4 flex items-center justify-center gap-2 bg-gradient-to-r from-primary to-blue-600 hover:to-blue-500 text-white font-bold py-4 px-6 rounded-xl shadow-lg shadow-primary/25 hover:shadow-primary/40 transition-all transform hover:-translate-y-0.5 active:scale-[0.98]" 
-                            type="submit"
-                        >
-                            <span class="material-symbols-outlined group-hover:animate-bounce">auto_awesome</span>
-                            Dapatkan Poin Sekarang!
-                        </button>
-                    </form>
-
-                    <div class="mt-8 pt-6 border-t border-white/5">
-                        <div class="flex items-start gap-3 text-left">
-                            <div class="min-w-[20px] pt-0.5">
-                                <span class="material-symbols-outlined text-primary text-sm">info</span>
-                            </div>
-                            <p class="text-xs text-slate-400 leading-relaxed">Poin akan langsung masuk. Notifikasi & link dashboard dikirim ke WhatsApp Anda.</p>
-                        </div>
-                    </div>
                 </div>
             </div>
+
+            <div class="space-y-3 mb-5">
+                @if(session('success'))
+                    <x-alert type="success">{{ session('success') }}</x-alert>
+                @endif
+                @if(session('error'))
+                    <x-alert type="error">{{ session('error') }}</x-alert>
+                @endif
+                @if($errors->any())
+                    <x-alert type="error">{{ $errors->first() }}</x-alert>
+                @endif
+            </div>
+
+            <form method="POST" action="{{ route('checkin.store') }}" class="rounded-3xl bg-surface border border-line p-5 space-y-5"
+                  x-data="{ sending: false }" @submit="sending = true">
+                @csrf
+                @foreach($loyaltyTypes as $type)
+                    <input type="hidden" name="loyalty_types[]" value="{{ $type }}">
+                @endforeach
+                @if($qrCode)
+                    <input type="hidden" name="qr_code" value="{{ $qrCode->code }}">
+                @endif
+
+                <div>
+                    <label for="full-name" class="block text-sm font-semibold mb-1.5">Nama lengkap</label>
+                    <input id="full-name" name="name" type="text" required autocomplete="name" value="{{ old('name') }}"
+                           placeholder="Nama kamu"
+                           class="w-full rounded-xl border-line bg-canvas px-4 py-3 text-ink placeholder:text-ink-3 focus:border-accent focus:ring-accent">
+                </div>
+
+                <div>
+                    <label for="whatsapp-number" class="block text-sm font-semibold mb-1.5">Nomor WhatsApp</label>
+                    <input id="whatsapp-number" name="phone" type="tel" required inputmode="tel" autocomplete="tel" value="{{ old('phone') }}"
+                           placeholder="08123456789" aria-describedby="phone-hint"
+                           class="w-full rounded-xl border-line bg-canvas px-4 py-3 text-ink placeholder:text-ink-3 focus:border-accent focus:ring-accent">
+                    <p id="phone-hint" class="mt-1.5 text-xs text-ink-3">Format 08xxx atau 628xxx</p>
+                </div>
+
+                <button type="submit" :disabled="sending"
+                        class="w-full inline-flex items-center justify-center gap-2 rounded-xl bg-accent-solid px-5 py-3.5 font-bold text-white hover:brightness-110 active:scale-[0.99] disabled:opacity-60 transition focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-accent focus-visible:ring-offset-surface">
+                    <span x-show="!sending">Dapatkan poin</span>
+                    <span x-show="sending" x-cloak>Memproses...</span>
+                </button>
+            </form>
+
+            <p class="mt-5 flex items-start gap-2 text-sm text-ink-3">
+                <span class="material-symbols-outlined shrink-0">info</span>
+                Poin langsung masuk. Notifikasi dan link dashboard dikirim ke WhatsApp kamu.
+            </p>
         </main>
-        
-        <footer class="py-6 text-center">
-            <p class="text-[10px] text-slate-600 font-bold tracking-widest uppercase">Getwashed Loyalty © 2026</p>
-        </footer>
     </div>
 </x-layout.layout>

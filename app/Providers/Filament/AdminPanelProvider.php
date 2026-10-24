@@ -12,7 +12,10 @@ use Filament\Panel;
 use Filament\PanelProvider;
 use Filament\Support\Colors\Color;
 use Filament\Enums\ThemeMode;
+use Filament\View\PanelsRenderHook;
 use Filament\Widgets;
+use Illuminate\Support\Facades\Blade;
+use Illuminate\Support\HtmlString;
 use Illuminate\Cookie\Middleware\AddQueuedCookiesToResponse;
 use Illuminate\Cookie\Middleware\EncryptCookies;
 use Illuminate\Foundation\Http\Middleware\VerifyCsrfToken;
@@ -36,6 +39,16 @@ class AdminPanelProvider extends PanelProvider
             ])
             ->defaultThemeMode(ThemeMode::Light)
             ->sidebarCollapsibleOnDesktop()
+            ->renderHook(PanelsRenderHook::USER_MENU_BEFORE, fn () => Blade::render('<div class="gw-topbar-theme"><x-filament-panels::theme-switcher /></div>'))
+            ->renderHook(PanelsRenderHook::SIDEBAR_FOOTER, fn () => view('filament.sidebar-logout'))
+            ->renderHook(PanelsRenderHook::STYLES_AFTER, fn () => new HtmlString('<style>'
+                // The switcher lives in the topbar from tablet up; on phones the topbar is too tight, so it stays in the profile dropdown there.
+                . '@media (max-width:639px){.gw-topbar-theme{display:none}}'
+                . '@media (min-width:640px){.fi-user-menu .fi-dropdown-list:has(> .fi-theme-switcher){display:none}}'
+                // Row actions show icons only; the label stays for screen readers and doubles as the tooltip.
+                . '.fi-ta-actions-cell .fi-link > span{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap}'
+                . '.fi-sidebar-nav{scrollbar-width:none;scrollbar-gutter:auto!important}.fi-sidebar-nav::-webkit-scrollbar{display:none}'
+                . '</style>'))
             ->navigationGroups([
                 NavigationGroup::make('Car Wash')->collapsible(),
                 NavigationGroup::make('Motor Wash')->collapsible(),

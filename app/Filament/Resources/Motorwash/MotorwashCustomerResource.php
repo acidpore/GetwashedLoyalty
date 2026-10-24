@@ -57,30 +57,42 @@ class MotorwashCustomerResource extends Resource
     {
         return $table
             ->columns([
+                // Phones get one stacked column; the desktop columns below hide under md but stay searchable.
+                Tables\Columns\ViewColumn::make('mobile_summary')
+                    ->label('Customer')
+                    ->view('filament.tables.program-customer-mobile')
+                    ->viewData(['type' => 'motorwash'])
+                    ->hiddenFrom('md'),
+
                 Tables\Columns\TextColumn::make('user.name')
                     ->label('Name')
                     ->searchable()
-                    ->sortable(),
+                    ->sortable()
+                    ->visibleFrom('md'),
                 
                 Tables\Columns\TextColumn::make('user.phone')
                     ->label('Phone')
                     ->searchable()
-                    ->copyable(),
+                    ->copyable()
+                    ->visibleFrom('md'),
                 
                 Tables\Columns\TextColumn::make('motorwash_points')
                     ->label('Points')
                     ->sortable()
                     ->badge()
-                    ->color(fn ($state) => $state >= SystemSetting::firstMilestonePoints('motorwash') ? 'success' : 'gray'),
+                    ->color(fn ($state) => $state >= SystemSetting::firstMilestonePoints('motorwash') ? 'success' : 'gray')
+                    ->visibleFrom('md'),
                 
                 Tables\Columns\TextColumn::make('motorwash_total_visits')
                     ->label('Total Visits')
-                    ->sortable(),
+                    ->sortable()
+                    ->visibleFrom('md'),
                 
                 Tables\Columns\TextColumn::make('motorwash_last_visit_at')
                     ->label('Last Visit')
                     ->dateTime('d M Y H:i')
-                    ->sortable(),
+                    ->sortable()
+                    ->visibleFrom('md'),
             ])
             ->filters([
                 Tables\Filters\Filter::make('ready_for_reward')
@@ -95,7 +107,9 @@ class MotorwashCustomerResource extends Resource
                 Tables\Actions\EditAction::make(),
                 \App\Filament\Actions\ClaimRewardAction::make('motorwash'),
                 Tables\Actions\Action::make('add_point')
-                    ->label('Add Point')
+                    ->label('Tambah Poin')
+                    ->button()
+                    ->size('sm')
                     ->icon('heroicon-o-plus-circle')
                     ->action(function (Customer $record) {
                         if ($record->addPoints('motorwash') === 0) {
@@ -109,131 +123,138 @@ class MotorwashCustomerResource extends Resource
                     ->requiresConfirmation(),
             ])
             ->headerActions([
-                Tables\Actions\Action::make('import')
-                    ->label('Import CSV')
-                    ->icon('heroicon-o-arrow-up-tray')
-                    ->color('primary')
-                    ->form([
-                        Forms\Components\FileUpload::make('file')
-                            ->label('Upload CSV File')
-                            ->acceptedFileTypes(['text/csv', 'text/plain'])
-                            ->required()
-                            ->helperText('Format: Name, Phone, Points, Total Visits'),
-                    ])
-                    ->action(function (array $data) {
-                        $file = storage_path('app/public/' . $data['file']);
-                        $imported = 0;
-                        $errors = [];
+                // One dropdown instead of several wide buttons, so the toolbar fits on phones.
+                Tables\Actions\ActionGroup::make([
+                    Tables\Actions\Action::make('import')
+                        ->label('Import CSV')
+                        ->icon('heroicon-o-arrow-up-tray')
+                        ->color('primary')
+                        ->form([
+                            Forms\Components\FileUpload::make('file')
+                                ->label('Upload CSV File')
+                                ->acceptedFileTypes(['text/csv', 'text/plain'])
+                                ->required()
+                                ->helperText('Format: Name, Phone, Points, Total Visits'),
+                        ])
+                        ->action(function (array $data) {
+                            $file = storage_path('app/public/' . $data['file']);
+                            $imported = 0;
+                            $errors = [];
 
-                        if (($handle = fopen($file, 'r')) !== false) {
-                            $header = fgetcsv($handle);
+                            if (($handle = fopen($file, 'r')) !== false) {
+                                $header = fgetcsv($handle);
                             
-                            while (($row = fgetcsv($handle)) !== false) {
-                                try {
-                                    $user = \App\Models\User::firstOrCreate(
-                                        ['phone' => $row[1]],
-                                        ['name' => $row[0]]
-                                    );
+                                while (($row = fgetcsv($handle)) !== false) {
+                                    try {
+                                        $user = \App\Models\User::firstOrCreate(
+                                            ['phone' => $row[1]],
+                                            ['name' => $row[0]]
+                                        );
                                     
-                                    $customer = Customer::firstOrCreate(['user_id' => $user->id]);
-                                    $customer->motorwash_points = $row[2] ?? 0;
-                                    $customer->motorwash_total_visits = $row[3] ?? 0;
-                                    $customer->save();
+                                        $customer = Customer::firstOrCreate(['user_id' => $user->id]);
+                                        $customer->motorwash_points = $row[2] ?? 0;
+                                        $customer->motorwash_total_visits = $row[3] ?? 0;
+                                        $customer->save();
                                     
-                                    $imported++;
-                                } catch (\Exception $e) {
-                                    $errors[] = "Row error: {$row[0]} - {$e->getMessage()}";
-                                }
-                            }
-                            fclose($handle);
-                        }
-
-                        \Filament\Notifications\Notification::make()
-                            ->title('Import Completed')
-                            ->body("Imported {$imported} customers" . (count($errors) > 0 ? ". Errors: " . implode(', ', array_slice($errors, 0, 3)) : ''))
-                            ->success()
-                            ->send();
-                    }),
-                    
-                Tables\Actions\Action::make('export')
-                    ->label('Export CSV')
-                    ->icon('heroicon-o-arrow-down-tray')
-                    ->color('success')
-                    ->form([
-                        Forms\Components\Radio::make('format')
-                            ->label('Export Format')
-                            ->options([
-                                'standard' => 'Standard Export - Full customer data',
-                                'maxchat' => 'MaxChat Template - Phone numbers only',
-                            ])
-                            ->descriptions([
-                                'standard' => 'Export motor wash customer details (Name, Phone, Points, Total Visits, Last Visit)',
-                                'maxchat' => 'Export phone numbers only for MaxChat WhatsApp broadcast',
-                            ])
-                            ->default('standard')
-                            ->required()
-                            ->inline()
-                            ->columnSpanFull(),
-                    ])
-                    ->action(function (array $data) {
-                        $customers = Customer::with('user')
-                            ->where('motorwash_total_visits', '>', 0)
-                            ->orderBy('motorwash_last_visit_at', 'desc')
-                            ->get();
-
-                        if ($data['format'] === 'maxchat') {
-                            // MaxChat Template Export (phone only)
-                            $headers = [
-                                'Content-Type' => 'text/csv',
-                                'Content-Disposition' => 'attachment; filename="motorwash_maxchat_broadcast_' . now()->format('Y-m-d') . '.csv"',
-                            ];
-
-                            $callback = function () use ($customers) {
-                                $handle = fopen('php://output', 'w');
-                                fputcsv($handle, ['phone']);
-                                
-                                foreach ($customers as $customer) {
-                                    if ($customer->user && $customer->user->phone) {
-                                        fputcsv($handle, [$customer->user->phone]);
+                                        $imported++;
+                                    } catch (\Exception $e) {
+                                        $errors[] = "Row error: {$row[0]} - {$e->getMessage()}";
                                     }
                                 }
-                                
                                 fclose($handle);
-                            };
-                        } else {
-                            // Standard Export (full data)
-                            $headers = [
-                                'Content-Type' => 'text/csv',
-                                'Content-Disposition' => 'attachment; filename="motorwash_customers_' . now()->format('Y-m-d') . '.csv"',
-                            ];
+                            }
 
-                            $callback = function () use ($customers) {
-                                $handle = fopen('php://output', 'w');
-                                fputcsv($handle, ['Name', 'Phone', 'Points', 'Total Visits', 'Last Visit']);
-                                
-                                foreach ($customers as $customer) {
-                                    fputcsv($handle, [
-                                        $customer->user->name,
-                                        $customer->user->phone,
-                                        $customer->motorwash_points,
-                                        $customer->motorwash_total_visits,
-                                        $customer->motorwash_last_visit_at?->format('Y-m-d H:i:s') ?? '',
-                                    ]);
-                                }
-                                
-                                fclose($handle);
-                            };
-                        }
-
-                        return response()->stream($callback, 200, $headers);
-                    }),
+                            \Filament\Notifications\Notification::make()
+                                ->title('Import Completed')
+                                ->body("Imported {$imported} customers" . (count($errors) > 0 ? ". Errors: " . implode(', ', array_slice($errors, 0, 3)) : ''))
+                                ->success()
+                                ->send();
+                        }),
                     
-                Tables\Actions\Action::make('export_pdf')
-                    ->label('Print PDF')
-                    ->icon('heroicon-o-printer')
-                    ->color('danger')
-                    ->url(fn () => route('pdf.customers.motorwash'))
-                    ->openUrlInNewTab(),
+                    Tables\Actions\Action::make('export')
+                        ->label('Export CSV')
+                        ->icon('heroicon-o-arrow-down-tray')
+                        ->color('success')
+                        ->form([
+                            Forms\Components\Radio::make('format')
+                                ->label('Export Format')
+                                ->options([
+                                    'standard' => 'Standard Export - Full customer data',
+                                    'maxchat' => 'MaxChat Template - Phone numbers only',
+                                ])
+                                ->descriptions([
+                                    'standard' => 'Export motor wash customer details (Name, Phone, Points, Total Visits, Last Visit)',
+                                    'maxchat' => 'Export phone numbers only for MaxChat WhatsApp broadcast',
+                                ])
+                                ->default('standard')
+                                ->required()
+                                ->inline()
+                                ->columnSpanFull(),
+                        ])
+                        ->action(function (array $data) {
+                            $customers = Customer::with('user')
+                                ->where('motorwash_total_visits', '>', 0)
+                                ->orderBy('motorwash_last_visit_at', 'desc')
+                                ->get();
+
+                            if ($data['format'] === 'maxchat') {
+                                // MaxChat Template Export (phone only)
+                                $headers = [
+                                    'Content-Type' => 'text/csv',
+                                    'Content-Disposition' => 'attachment; filename="motorwash_maxchat_broadcast_' . now()->format('Y-m-d') . '.csv"',
+                                ];
+
+                                $callback = function () use ($customers) {
+                                    $handle = fopen('php://output', 'w');
+                                    fputcsv($handle, ['phone']);
+                                
+                                    foreach ($customers as $customer) {
+                                        if ($customer->user && $customer->user->phone) {
+                                            fputcsv($handle, [$customer->user->phone]);
+                                        }
+                                    }
+                                
+                                    fclose($handle);
+                                };
+                            } else {
+                                // Standard Export (full data)
+                                $headers = [
+                                    'Content-Type' => 'text/csv',
+                                    'Content-Disposition' => 'attachment; filename="motorwash_customers_' . now()->format('Y-m-d') . '.csv"',
+                                ];
+
+                                $callback = function () use ($customers) {
+                                    $handle = fopen('php://output', 'w');
+                                    fputcsv($handle, ['Name', 'Phone', 'Points', 'Total Visits', 'Last Visit']);
+                                
+                                    foreach ($customers as $customer) {
+                                        fputcsv($handle, [
+                                            $customer->user->name,
+                                            $customer->user->phone,
+                                            $customer->motorwash_points,
+                                            $customer->motorwash_total_visits,
+                                            $customer->motorwash_last_visit_at?->format('Y-m-d H:i:s') ?? '',
+                                        ]);
+                                    }
+                                
+                                    fclose($handle);
+                                };
+                            }
+
+                            return response()->stream($callback, 200, $headers);
+                        }),
+                    
+                    Tables\Actions\Action::make('export_pdf')
+                        ->label('Print PDF')
+                        ->icon('heroicon-o-printer')
+                        ->color('danger')
+                        ->url(fn () => route('pdf.customers.motorwash'))
+                        ->openUrlInNewTab(),
+                ])
+                    ->label('Import / Export')
+                    ->icon('heroicon-m-arrows-up-down')
+                    ->button()
+                    ->color('gray'),
             ])
             ->defaultSort('motorwash_last_visit_at', 'desc')
             ->modifyQueryUsing(fn ($query) => $query->where('motorwash_total_visits', '>', 0));

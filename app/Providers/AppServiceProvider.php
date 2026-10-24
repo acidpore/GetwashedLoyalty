@@ -2,6 +2,7 @@
 
 namespace App\Providers;
 
+use Filament\Tables\Actions\Action as TableAction;
 use Filament\Tables\Columns\Column;
 use Filament\Tables\Table;
 use Illuminate\Cache\RateLimiting\Limit;
@@ -27,6 +28,11 @@ class AppServiceProvider extends ServiceProvider
         // Pada tabel sebesar customer dan visit history itu menghabiskan memory PHP.
         Table::configureUsing(fn (Table $table) => $table->paginationPageOptions([10, 25, 50]));
         Column::configureUsing(fn (Column $column) => $column->alignCenter());
+
+        // Row actions render as link views and are shown icon-only, so their label becomes the hover tooltip.
+        TableAction::configureUsing(fn (TableAction $action) => $action->tooltip(
+            fn (TableAction $action) => $action->getView() === TableAction::LINK_VIEW ? $action->getLabel() : null
+        ));
     }
 
     protected function configureRateLimiting(): void

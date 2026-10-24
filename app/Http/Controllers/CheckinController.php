@@ -22,7 +22,7 @@ class CheckinController extends Controller
     public function index(Request $request)
     {
         // SECURITY: Require QR code to access checkin page
-        if (!$request->has('code')) {
+        if (!$request->filled('code')) {
             return redirect()->route('home')->with('error', 'Akses checkin hanya melalui scan QR Code.');
         }
 

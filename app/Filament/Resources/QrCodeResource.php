@@ -124,11 +124,25 @@ class QrCodeResource extends Resource
     {
         return $table
             ->columns([
+                // Phones get one stacked column; the desktop columns below hide under md but stay searchable.
+                Tables\Columns\ViewColumn::make('mobile_summary')
+                    ->label('QR Code')
+                    ->view('filament.tables.qr-code-mobile')
+                    ->hiddenFrom('md'),
+
+                Tables\Columns\TextColumn::make('name')
+                    ->label('Name')
+                    ->searchable(['name', 'location'])
+                    ->default('—')
+                    ->description(fn (QrCode $record): ?string => $record->location)
+                    ->visibleFrom('md'),
+
                 Tables\Columns\TextColumn::make('code')
                     ->label('Code')
                     ->searchable()
                     ->copyable()
-                    ->fontFamily('mono'),
+                    ->fontFamily('mono')
+                    ->visibleFrom('md'),
                 
                 Tables\Columns\TextColumn::make('loyalty_types')
                     ->label('Programs')
@@ -153,39 +167,33 @@ class QrCodeResource extends Resource
                         })->toArray();
                     })
                     ->badge()
-                    ->separator(','),
+                    ->separator(',')
+                    ->visibleFrom('md'),
 
-                
-                Tables\Columns\TextColumn::make('name')
-                    ->label('Name')
-                    ->searchable()
-                    ->default('—'),
-                
-                Tables\Columns\TextColumn::make('location')
-                    ->label('Location')
-                    ->searchable()
-                    ->default('—'),
-                
                 Tables\Columns\BadgeColumn::make('qr_type')
                     ->label('Type')
                     ->colors([
                         'success' => 'permanent',
                         'warning' => 'onetime',
-                    ]),
-                
+                    ])
+                    ->visibleFrom('md'),
+
                 Tables\Columns\TextColumn::make('scan_count')
                     ->label('Scans')
                     ->sortable()
-                    ->alignCenter(),
-                
+                    ->alignCenter()
+                    ->visibleFrom('md'),
+
                 Tables\Columns\IconColumn::make('is_active')
                     ->label('Active')
-                    ->boolean(),
-                
+                    ->boolean()
+                    ->visibleFrom('md'),
+
                 Tables\Columns\TextColumn::make('created_at')
                     ->label('Created')
                     ->dateTime('d M Y')
-                    ->sortable(),
+                    ->sortable()
+                    ->toggleable(isToggledHiddenByDefault: true),
             ])
             ->filters([
                 Tables\Filters\SelectFilter::make('qr_type')

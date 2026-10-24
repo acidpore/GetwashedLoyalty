@@ -33,48 +33,61 @@ class ReadyForRewardTableWidget extends BaseWidget
             ->heading('Customers Ready for Reward')
             ->description('Customers eligible for car wash, motor wash, or coffee shop rewards')
             ->columns([
+                // Phones get one stacked column; the desktop columns below hide under md.
+                Tables\Columns\ViewColumn::make('mobile_summary')
+                    ->label('Customer')
+                    ->view('filament.tables.customer-mobile')
+                    ->hiddenFrom('md'),
+
                 Tables\Columns\TextColumn::make('user.name')
                     ->label('Name')
                     ->searchable()
                     ->sortable()
                     ->weight('bold')
-                    ->icon('heroicon-o-user'),
+                    ->icon('heroicon-o-user')
+                    ->visibleFrom('md'),
                 
                 Tables\Columns\TextColumn::make('user.phone')
                     ->label('Phone')
                     ->searchable()
-                    ->icon('heroicon-o-phone'),
+                    ->icon('heroicon-o-phone')
+                    ->visibleFrom('md'),
                 
                 Tables\Columns\TextColumn::make('carwash_points')
                     ->label('CW')
                     ->badge()
                     ->color(fn ($state) => $state >= $carwashThreshold ? 'success' : 'gray')
                     ->sortable()
-                    ->alignCenter(),
+                    ->alignCenter()
+                    ->visibleFrom('md'),
 
                 Tables\Columns\TextColumn::make('motorwash_points')
                     ->label('MW')
                     ->badge()
                     ->color(fn ($state) => $state >= $motorwashThreshold ? 'success' : 'gray')
                     ->sortable()
-                    ->alignCenter(),
+                    ->alignCenter()
+                    ->visibleFrom('md'),
                 
                 Tables\Columns\TextColumn::make('coffeeshop_points')
                     ->label('CS')
                     ->badge()
                     ->color(fn ($state) => $state >= $coffeeshopThreshold ? 'success' : 'gray')
                     ->sortable()
-                    ->alignCenter(),
+                    ->alignCenter()
+                    ->visibleFrom('md'),
                 
                 Tables\Columns\TextColumn::make('carwash_last_visit_at')
                     ->label('Last CW')
                     ->dateTime('d M Y')
-                    ->sortable(),
+                    ->sortable()
+                    ->visibleFrom('md'),
                 
                 Tables\Columns\TextColumn::make('coffeeshop_last_visit_at')
                     ->label('Last CS')
                     ->dateTime('d M Y')
-                    ->sortable(),
+                    ->sortable()
+                    ->visibleFrom('md'),
             ])
             ->defaultSort('carwash_points', 'desc')
             ->striped()

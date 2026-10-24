@@ -3,7 +3,6 @@
 namespace App\Filament\Resources;
 
 use App\Filament\Resources\CustomerResource\Pages;
-use App\Filament\Resources\CustomerResource\RelationManagers;
 use App\Models\Customer;
 use App\Models\SystemSetting;
 use Filament\Forms;
@@ -12,15 +11,19 @@ use Filament\Resources\Resource;
 use Filament\Tables;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
-use Illuminate\Database\Eloquent\SoftDeletingScope;
 
 class CustomerResource extends Resource
 {
     protected static ?string $model = Customer::class;
+
     protected static ?string $navigationIcon = 'heroicon-o-users';
+
     protected static ?string $navigationLabel = 'All Customers';
+
     protected static ?string $navigationGroup = 'Management';
+
     protected static ?int $navigationSort = 60;
+
     protected static ?string $modelLabel = 'Customer';
 
     public static function form(Form $form): Form
@@ -50,13 +53,13 @@ class CustomerResource extends Resource
                                     ->minValue(0)
                                     ->label('Points')
                                     ->suffix('pts'),
-                                
+
                                 Forms\Components\TextInput::make('carwash_total_visits')
                                     ->numeric()
                                     ->default(0)
                                     ->minValue(0)
                                     ->label('Total Visits'),
-                                
+
                                 Forms\Components\DateTimePicker::make('carwash_last_visit_at')
                                     ->label('Last Visit')
                                     ->disabled()
@@ -96,13 +99,13 @@ class CustomerResource extends Resource
                                     ->minValue(0)
                                     ->label('Points')
                                     ->suffix('pts'),
-                                
+
                                 Forms\Components\TextInput::make('coffeeshop_total_visits')
                                     ->numeric()
                                     ->default(0)
                                     ->minValue(0)
                                     ->label('Total Visits'),
-                                
+
                                 Forms\Components\DateTimePicker::make('coffeeshop_last_visit_at')
                                     ->label('Last Visit')
                                     ->disabled()
@@ -111,6 +114,15 @@ class CustomerResource extends Resource
                             ]),
                     ]),
             ]);
+    }
+
+    /** "12x, terakhir 24/10/26" under the points badge, so visit details need no extra columns. */
+    private static function visitSummary(Customer $record, string $type): string
+    {
+        $visits = (int) $record->{"{$type}_total_visits"};
+        $last = $record->{"{$type}_last_visit_at"};
+
+        return $visits === 0 ? 'Belum pernah' : "{$visits}x, terakhir ".$last?->format('d/m/y');
     }
 
     public static function table(Table $table): Table
@@ -125,66 +137,83 @@ class CustomerResource extends Resource
                 ])
                 ->with(['user:id,name,phone']))
             ->columns([
+                // Phones get one stacked column; the desktop columns below hide under md but stay searchable.
+                Tables\Columns\ViewColumn::make('mobile_summary')
+                    ->label('Customer')
+                    ->view('filament.tables.customer-mobile')
+                    ->hiddenFrom('md'),
+
                 Tables\Columns\TextColumn::make('user.name')
                     ->label('Name')
                     ->searchable()
-                    ->sortable(),
-                
+                    ->sortable()
+                    ->visibleFrom('md'),
+
                 Tables\Columns\TextColumn::make('user.phone')
                     ->label('Phone')
                     ->searchable()
                     ->copyable()
                     ->copyMessage('Phone copied!')
-                    ->icon('heroicon-m-phone'),
-                
+                    ->icon('heroicon-m-phone')
+                    ->visibleFrom('md'),
+
                 Tables\Columns\TextColumn::make('carwash_points')
                     ->label('Car Wash')
                     ->sortable()
                     ->badge()
-                    ->color(fn (int $state): string => $state >= SystemSetting::firstMilestonePoints('carwash') ? 'success' : 'gray'),
-                
+                    ->color(fn (int $state): string => $state >= SystemSetting::firstMilestonePoints('carwash') ? 'success' : 'gray')
+                    ->description(fn (Customer $record): string => self::visitSummary($record, 'carwash'))
+                    ->visibleFrom('md'),
+
                 Tables\Columns\TextColumn::make('coffeeshop_points')
                     ->label('Coffee Shop')
                     ->sortable()
                     ->badge()
-                    ->color(fn (int $state): string => $state >= SystemSetting::firstMilestonePoints('coffeeshop') ? 'success' : 'gray'),
+                    ->color(fn (int $state): string => $state >= SystemSetting::firstMilestonePoints('coffeeshop') ? 'success' : 'gray')
+                    ->description(fn (Customer $record): string => self::visitSummary($record, 'coffeeshop'))
+                    ->visibleFrom('md'),
 
                 Tables\Columns\TextColumn::make('motorwash_points')
                     ->label('Motor Wash')
                     ->sortable()
                     ->badge()
-                    ->color(fn (int $state): string => $state >= SystemSetting::firstMilestonePoints('motorwash') ? 'success' : 'gray'),
-                
+                    ->color(fn (int $state): string => $state >= SystemSetting::firstMilestonePoints('motorwash') ? 'success' : 'gray')
+                    ->description(fn (Customer $record): string => self::visitSummary($record, 'motorwash'))
+                    ->visibleFrom('md'),
+
                 Tables\Columns\TextColumn::make('carwash_total_visits')
-                    ->label('CW Visits')
-                    ->sortable(),
-                
+                    ->label('Kunjungan Car Wash')
+                    ->sortable()
+                    ->toggleable(isToggledHiddenByDefault: true),
+
+                Tables\Columns\TextColumn::make('carwash_last_visit_at')
+                    ->label('Terakhir Car Wash')
+                    ->dateTime('d/m/Y')
+                    ->sortable()
+                    ->toggleable(isToggledHiddenByDefault: true),
+
                 Tables\Columns\TextColumn::make('coffeeshop_total_visits')
-                    ->label('CS Visits')
-                    ->sortable(),
+                    ->label('Kunjungan Coffee Shop')
+                    ->sortable()
+                    ->toggleable(isToggledHiddenByDefault: true),
+
+                Tables\Columns\TextColumn::make('coffeeshop_last_visit_at')
+                    ->label('Terakhir Coffee Shop')
+                    ->dateTime('d/m/Y')
+                    ->sortable()
+                    ->toggleable(isToggledHiddenByDefault: true),
 
                 Tables\Columns\TextColumn::make('motorwash_total_visits')
-                    ->label('MW Visits')
-                    ->sortable(),
-                
-                Tables\Columns\TextColumn::make('carwash_last_visit_at')
-                    ->label('Last CW')
-                    ->dateTime('d/m/Y')
+                    ->label('Kunjungan Motor Wash')
                     ->sortable()
-                    ->toggleable(),
-                
-                Tables\Columns\TextColumn::make('coffeeshop_last_visit_at')
-                    ->label('Last CS')
-                    ->dateTime('d/m/Y')
-                    ->sortable()
-                    ->toggleable(),
+                    ->toggleable(isToggledHiddenByDefault: true),
 
                 Tables\Columns\TextColumn::make('motorwash_last_visit_at')
-                    ->label('Last MW')
+                    ->label('Terakhir Motor Wash')
                     ->dateTime('d/m/Y')
                     ->sortable()
-                    ->toggleable(),
-                
+                    ->toggleable(isToggledHiddenByDefault: true),
+
                 Tables\Columns\TextColumn::make('created_at')
                     ->label('Joined')
                     ->date('d/m/Y')
@@ -195,15 +224,15 @@ class CustomerResource extends Resource
                 Tables\Filters\Filter::make('has_carwash_reward')
                     ->label('Ready for Car Wash Reward')
                     ->query(fn (Builder $query): Builder => $query->where('carwash_points', '>=', SystemSetting::firstMilestonePoints('carwash'))),
-                
+
                 Tables\Filters\Filter::make('has_coffeeshop_reward')
                     ->label('Ready for Coffee Shop Reward')
                     ->query(fn (Builder $query): Builder => $query->where('coffeeshop_points', '>=', SystemSetting::firstMilestonePoints('coffeeshop'))),
-                
+
                 Tables\Filters\Filter::make('active_carwash')
                     ->label('Active Car Wash (Last 30 Days)')
                     ->query(fn (Builder $query): Builder => $query->where('carwash_last_visit_at', '>=', now()->subDays(30))),
-                
+
                 Tables\Filters\Filter::make('active_coffeeshop')
                     ->label('Active Coffee Shop (Last 30 Days)')
                     ->query(fn (Builder $query): Builder => $query->where('coffeeshop_last_visit_at', '>=', now()->subDays(30))),
@@ -224,90 +253,97 @@ class CustomerResource extends Resource
                 \App\Filament\Actions\ClaimRewardAction::make('coffeeshop'),
             ])
             ->headerActions([
-                Tables\Actions\Action::make('download_template')
-                    ->label('Download CSV Template')
-                    ->icon('heroicon-o-document-arrow-down')
-                    ->color('gray')
-                    ->action(function () {
-                        $headers = [
-                            'Content-Type' => 'text/csv',
-                            'Content-Disposition' => 'attachment; filename="customer_import_template.csv"',
-                        ];
-                        
-                        $callback = function () {
-                            $handle = fopen('php://output', 'w');
-                            fputcsv($handle, ['Phone', 'Name', 'CW Points', 'CS Points', 'MW Points', 'CW Visits', 'CS Visits', 'MW Visits']);
-                            fputcsv($handle, ['081234567890', 'John Doe', '3', '2', '1', '5', '3', '2']);
-                            fputcsv($handle, ['082345678901', 'Jane Smith', '0', '1', '0', '2', '1', '0']);
-                            fclose($handle);
-                        };
-                        
-                        return response()->stream($callback, 200, $headers);
-                    }),
-                    
-                Tables\Actions\Action::make('import')
-                    ->label('Import CSV')
-                    ->icon('heroicon-o-arrow-up-tray')
-                    ->color('success')
-                    ->form([
-                        Forms\Components\FileUpload::make('file')
-                            ->label('Upload CSV File')
-                            ->acceptedFileTypes(['text/csv', 'text/plain', 'application/csv'])
-                            ->maxSize(2048)
-                            ->required()
-                            ->helperText('Format: Phone, Name, CW Points, CS Points, MW Points, CW Visits, CS Visits, MW Visits'),
-                    ])
-                    ->action(function (array $data) {
-                        $file = \Illuminate\Support\Facades\Storage::disk('public')->path($data['file']);
-                        
-                        $request = new \Illuminate\Http\Request();
-                        $request->files->set('file', new \Illuminate\Http\UploadedFile($file, basename($file), 'text/csv', null, true));
-                        
-                        $controller = new \App\Http\Controllers\CustomerImportController();
-                        $response = $controller->__invoke($request);
-                        $result = $response->getData();
-                        
-                        if ($result->success) {
-                            \Filament\Notifications\Notification::make()
-                                ->title('Import Successful')
-                                ->body($result->message)
-                                ->success()
-                                ->send();
-                        } else {
-                            \Filament\Notifications\Notification::make()
-                                ->title('Import Failed')
-                                ->body($result->message)
-                                ->danger()
-                                ->send();
-                        }
-                    }),
-                    
-                Tables\Actions\Action::make('export')
-                    ->label('Export CSV')
-                    ->icon('heroicon-o-arrow-down-tray')
-                    ->form([
-                        Forms\Components\Radio::make('format')
-                            ->label('Export Format')
-                            ->options([
-                                'standard' => 'Standard Export - Full customer data',
-                                'maxchat' => 'MaxChat Template - Phone numbers only',
-                            ])
-                            ->descriptions([
-                                'standard' => 'Export all customer information with service-specific details (Name, Phone, Points, Visits, etc.)',
-                                'maxchat' => 'Export phone numbers only in MaxChat broadcast format (for WhatsApp campaigns)',
-                            ])
-                            ->default('standard')
-                            ->required()
-                            ->inline()
-                            ->columnSpanFull(),
-                    ])
-                    ->action(function (array $data) {
-                        $route = $data['format'] === 'maxchat' 
-                            ? route('admin.export.customers.maxchat')
-                            : route('admin.export.customers.standard');
-                        
-                        return redirect($route);
-                    }),
+                // One dropdown instead of three wide buttons, so the toolbar fits on phones.
+                Tables\Actions\ActionGroup::make([
+                    Tables\Actions\Action::make('download_template')
+                        ->label('Download CSV Template')
+                        ->icon('heroicon-o-document-arrow-down')
+                        ->color('gray')
+                        ->action(function () {
+                            $headers = [
+                                'Content-Type' => 'text/csv',
+                                'Content-Disposition' => 'attachment; filename="customer_import_template.csv"',
+                            ];
+
+                            $callback = function () {
+                                $handle = fopen('php://output', 'w');
+                                fputcsv($handle, ['Phone', 'Name', 'CW Points', 'CS Points', 'MW Points', 'CW Visits', 'CS Visits', 'MW Visits']);
+                                fputcsv($handle, ['081234567890', 'John Doe', '3', '2', '1', '5', '3', '2']);
+                                fputcsv($handle, ['082345678901', 'Jane Smith', '0', '1', '0', '2', '1', '0']);
+                                fclose($handle);
+                            };
+
+                            return response()->stream($callback, 200, $headers);
+                        }),
+
+                    Tables\Actions\Action::make('import')
+                        ->label('Import CSV')
+                        ->icon('heroicon-o-arrow-up-tray')
+                        ->color('success')
+                        ->form([
+                            Forms\Components\FileUpload::make('file')
+                                ->label('Upload CSV File')
+                                ->acceptedFileTypes(['text/csv', 'text/plain', 'application/csv'])
+                                ->maxSize(2048)
+                                ->required()
+                                ->helperText('Format: Phone, Name, CW Points, CS Points, MW Points, CW Visits, CS Visits, MW Visits'),
+                        ])
+                        ->action(function (array $data) {
+                            $file = \Illuminate\Support\Facades\Storage::disk('public')->path($data['file']);
+
+                            $request = new \Illuminate\Http\Request;
+                            $request->files->set('file', new \Illuminate\Http\UploadedFile($file, basename($file), 'text/csv', null, true));
+
+                            $controller = new \App\Http\Controllers\CustomerImportController;
+                            $response = $controller->__invoke($request);
+                            $result = $response->getData();
+
+                            if ($result->success) {
+                                \Filament\Notifications\Notification::make()
+                                    ->title('Import Successful')
+                                    ->body($result->message)
+                                    ->success()
+                                    ->send();
+                            } else {
+                                \Filament\Notifications\Notification::make()
+                                    ->title('Import Failed')
+                                    ->body($result->message)
+                                    ->danger()
+                                    ->send();
+                            }
+                        }),
+
+                    Tables\Actions\Action::make('export')
+                        ->label('Export CSV')
+                        ->icon('heroicon-o-arrow-down-tray')
+                        ->form([
+                            Forms\Components\Radio::make('format')
+                                ->label('Export Format')
+                                ->options([
+                                    'standard' => 'Standard Export - Full customer data',
+                                    'maxchat' => 'MaxChat Template - Phone numbers only',
+                                ])
+                                ->descriptions([
+                                    'standard' => 'Export all customer information with service-specific details (Name, Phone, Points, Visits, etc.)',
+                                    'maxchat' => 'Export phone numbers only in MaxChat broadcast format (for WhatsApp campaigns)',
+                                ])
+                                ->default('standard')
+                                ->required()
+                                ->inline()
+                                ->columnSpanFull(),
+                        ])
+                        ->action(function (array $data) {
+                            $route = $data['format'] === 'maxchat'
+                                ? route('admin.export.customers.maxchat')
+                                : route('admin.export.customers.standard');
+
+                            return redirect($route);
+                        }),
+                ])
+                    ->label('Import / Export')
+                    ->icon('heroicon-m-arrows-up-down')
+                    ->button()
+                    ->color('gray'),
             ])
             ->bulkActions([
                 Tables\Actions\BulkActionGroup::make([

@@ -44,6 +44,7 @@ class CustomerDashboardController extends Controller
                 return $info + [
                     'type' => $type,
                     'points' => $customer->getPoints($type),
+                    'claimed' => $customer->claimedPoints($type),
                     // threshold = target berikutnya kalau masih ngumpulin, max kalau sudah mentok
                     'threshold' => $next['at'] ?? SystemSetting::maxPoints($type),
                     'message' => $earned['reward'] ?? ($next['reward'] ?? ''),

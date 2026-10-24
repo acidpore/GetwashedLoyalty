@@ -1,111 +1,62 @@
-<!DOCTYPE html>
-<html lang="en" class="dark">
-<head>
-    <meta charset="utf-8"/>
-    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-    <title>Atur PIN - Getwashed x Latte</title>
-    <link rel="icon" type="image/png" href="{{ asset('Logo Get Washed Updated.png') }}">
-    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;700;800&display=swap" rel="stylesheet"/>
-    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet">
-    <script>
-        tailwind.config = {
-            darkMode: "class",
-            theme: {
-                extend: {
-                    colors: {
-                        "primary": "#137fec",
-                        "background-dark": "#101922",
-                        "card-dark": "#16222e",
-                    },
-                    fontFamily: {
-                        "display": ["Manrope", "sans-serif"]
-                    }
-                },
-            },
-        }
-    </script>
-</head>
-<body class="font-display bg-background-dark text-slate-200 min-h-screen flex items-center justify-center p-6">
-
-    <div class="w-full max-w-md space-y-8">
-        
-        <!-- Header -->
-        <div class="text-center space-y-2">
-            <div class="inline-flex items-center justify-center w-16 h-16 bg-primary/10 rounded-2xl mb-4">
-                <span class="material-symbols-outlined text-4xl text-primary">lock</span>
-            </div>
-            <h1 class="text-3xl font-extrabold text-white tracking-tight">
-                {{ $hasPin ? 'Ganti PIN' : 'Atur PIN' }}
-            </h1>
-            <p class="text-slate-400">PIN digunakan untuk login ke dashboard</p>
-        </div>
-
-        <!-- Alerts -->
-        @if(session('info'))
-            <div class="p-4 bg-blue-500/10 border border-blue-500/20 rounded-xl text-blue-400 text-sm flex items-center gap-2">
-                <span class="material-symbols-outlined text-lg">info</span>
-                {{ session('info') }}
-            </div>
-        @endif
-
-        @if(session('error'))
-            <div class="p-4 bg-red-500/10 border border-red-500/20 rounded-xl text-red-400 text-sm flex items-center gap-2">
-                <span class="material-symbols-outlined text-lg">error</span>
-                {{ session('error') }}
-            </div>
-        @endif
-
-        @if($errors->any())
-            <div class="p-4 bg-red-500/10 border border-red-500/20 rounded-xl text-red-400 text-sm">
-                <ul class="list-disc list-inside space-y-1">
-                    @foreach($errors->all() as $error)
-                        <li>{{ $error }}</li>
-                    @endforeach
-                </ul>
-            </div>
-        @endif
-
-        <!-- Form -->
-        <form method="POST" action="{{ route('customer.pin.store') }}" class="space-y-6">
-            @csrf
-            
-            <div class="space-y-4">
-                <div class="space-y-2">
-                    <label class="text-xs font-bold uppercase tracking-wider text-slate-500">PIN Baru (6 Digit)</label>
-                    <input type="password" name="pin" required placeholder="******" maxlength="6" inputmode="numeric" pattern="[0-9]*"
-                           class="w-full bg-card-dark border border-white/10 rounded-xl px-4 py-4 text-white text-center tracking-[0.5em] text-2xl font-bold placeholder:tracking-normal placeholder:text-zinc-600 focus:border-primary focus:ring-1 focus:ring-primary transition-all outline-none">
-                </div>
-
-                <div class="space-y-2">
-                    <label class="text-xs font-bold uppercase tracking-wider text-slate-500">Konfirmasi PIN</label>
-                    <input type="password" name="pin_confirmation" required placeholder="******" maxlength="6" inputmode="numeric" pattern="[0-9]*"
-                           class="w-full bg-card-dark border border-white/10 rounded-xl px-4 py-4 text-white text-center tracking-[0.5em] text-2xl font-bold placeholder:tracking-normal placeholder:text-zinc-600 focus:border-green-500 focus:ring-1 focus:ring-green-500 transition-all outline-none">
-                </div>
-            </div>
-
-            <button type="submit" class="w-full bg-primary hover:bg-blue-600 text-white font-bold py-4 rounded-xl transition-all shadow-lg shadow-primary/20 flex items-center justify-center gap-2">
-                <span class="material-symbols-outlined">check_circle</span>
-                {{ $hasPin ? 'Simpan PIN Baru' : 'Atur PIN' }}
-            </button>
-        </form>
-
-        <!-- Skip / Back -->
-        <div class="text-center">
-            <a href="{{ route('customer.dashboard') }}" class="text-sm text-slate-500 hover:text-slate-300 transition-colors">
-                {{ $hasPin ? 'Batal' : 'Lewati untuk sekarang' }}
+<x-layout.layout :title="($hasPin ? 'Ganti PIN' : 'Atur PIN') . ' - Getwashed x Latte'">
+    <div class="min-h-screen flex flex-col">
+        <header class="max-w-sm w-full mx-auto px-4 h-16 flex items-center justify-between">
+            <a href="{{ route('customer.dashboard') }}" class="inline-flex items-center gap-1.5 -ml-2 px-2 py-1.5 rounded-lg text-sm font-semibold text-ink-2 hover:text-ink transition-colors">
+                <span class="material-symbols-outlined">arrow_back</span>
+                Dashboard
             </a>
-        </div>
+            <x-theme-toggle />
+        </header>
 
-        <!-- Info -->
-        <div class="bg-card-dark border border-white/5 rounded-xl p-4 space-y-2">
-            <p class="text-xs text-slate-500 flex items-start gap-2">
-                <span class="material-symbols-outlined text-sm mt-0.5">tips_and_updates</span>
-                <span>PIN akan digunakan bersama nomor WhatsApp untuk login. Jika lupa PIN, check-in ulang untuk reset.</span>
+        <main class="flex-1 max-w-sm w-full mx-auto px-4 pb-10">
+            <div class="pt-4 pb-8">
+                <div class="size-14 rounded-2xl bg-subtle text-accent inline-flex items-center justify-center">
+                    <span class="material-symbols-outlined icon-fill !text-[28px]">lock</span>
+                </div>
+                <h1 class="mt-5 text-3xl font-extrabold tracking-tight">{{ $hasPin ? 'Ganti PIN' : 'Atur PIN' }}</h1>
+                <p class="mt-1.5 text-ink-2">PIN dipakai bersama nomor WhatsApp untuk masuk.</p>
+            </div>
+
+            <div class="space-y-3 mb-5">
+                @if(session('info'))
+                    <x-alert>{{ session('info') }}</x-alert>
+                @endif
+                @if(session('error'))
+                    <x-alert type="error">{{ session('error') }}</x-alert>
+                @endif
+                @if($errors->any())
+                    <x-alert type="error">{{ $errors->first() }}</x-alert>
+                @endif
+            </div>
+
+            <form method="POST" action="{{ route('customer.pin.store') }}" class="rounded-3xl bg-surface border border-line p-5 space-y-5">
+                @csrf
+                <div>
+                    <label for="pin" class="block text-sm font-semibold mb-1.5">PIN baru</label>
+                    <input id="pin" type="password" name="pin" required maxlength="6" inputmode="numeric" pattern="[0-9]*" autocomplete="new-password"
+                           placeholder="6 digit angka"
+                           class="w-full rounded-xl border-line bg-canvas px-4 py-3 text-ink text-lg tracking-[0.4em] font-bold placeholder:text-base placeholder:tracking-normal placeholder:font-normal placeholder:text-ink-3 focus:border-accent focus:ring-accent">
+                </div>
+                <div>
+                    <label for="pin_confirmation" class="block text-sm font-semibold mb-1.5">Ulangi PIN</label>
+                    <input id="pin_confirmation" type="password" name="pin_confirmation" required maxlength="6" inputmode="numeric" pattern="[0-9]*" autocomplete="new-password"
+                           placeholder="6 digit angka"
+                           class="w-full rounded-xl border-line bg-canvas px-4 py-3 text-ink text-lg tracking-[0.4em] font-bold placeholder:text-base placeholder:tracking-normal placeholder:font-normal placeholder:text-ink-3 focus:border-accent focus:ring-accent">
+                </div>
+                <button type="submit"
+                        class="w-full rounded-xl bg-accent-solid px-5 py-3.5 font-bold text-white hover:brightness-110 active:scale-[0.99] transition focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-accent focus-visible:ring-offset-surface">
+                    {{ $hasPin ? 'Simpan PIN baru' : 'Atur PIN' }}
+                </button>
+            </form>
+
+            <a href="{{ route('customer.dashboard') }}" class="mt-4 block text-center text-sm font-semibold text-ink-3 hover:text-ink transition-colors py-2">
+                {{ $hasPin ? 'Batal' : 'Lewati dulu' }}
+            </a>
+
+            <p class="mt-4 flex items-start gap-2 text-sm text-ink-3">
+                <span class="material-symbols-outlined shrink-0">info</span>
+                Lupa PIN? Check-in ulang di outlet, link untuk atur PIN baru dikirim ke WhatsApp.
             </p>
-        </div>
-
+        </main>
     </div>
-
-</body>
-</html>
+</x-layout.layout>
