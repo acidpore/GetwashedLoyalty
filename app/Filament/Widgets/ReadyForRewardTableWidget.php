@@ -3,7 +3,6 @@
 namespace App\Filament\Widgets;
 
 use App\Models\Customer;
-use App\Models\SystemSetting;
 use Filament\Tables;
 use Filament\Tables\Table;
 use Filament\Widgets\TableWidget as BaseWidget;
@@ -16,18 +15,13 @@ class ReadyForRewardTableWidget extends BaseWidget
 
     public function table(Table $table): Table
     {
-        $carwashThreshold = SystemSetting::firstMilestonePoints('carwash');
-        $coffeeshopThreshold = SystemSetting::firstMilestonePoints('coffeeshop');
-        $motorwashThreshold = SystemSetting::firstMilestonePoints('motorwash');
-        
         return $table
             ->query(
                 Customer::with('user')
-                    ->where(function($query) use ($carwashThreshold, $coffeeshopThreshold, $motorwashThreshold) {
-                        $query->where('carwash_points', '>=', $carwashThreshold)
-                              ->orWhere('coffeeshop_points', '>=', $coffeeshopThreshold)
-                              ->orWhere('motorwash_points', '>=', $motorwashThreshold);
-                    })
+                    ->where(fn ($query) => $query
+                        ->withPendingReward('carwash')
+                        ->orWhere(fn ($query) => $query->withPendingReward('coffeeshop'))
+                        ->orWhere(fn ($query) => $query->withPendingReward('motorwash')))
                     ->orderByDesc('carwash_points')
             )
             ->heading('Customers Ready for Reward')
@@ -56,7 +50,7 @@ class ReadyForRewardTableWidget extends BaseWidget
                 Tables\Columns\TextColumn::make('carwash_points')
                     ->label('CW')
                     ->badge()
-                    ->color(fn ($state) => $state >= $carwashThreshold ? 'success' : 'gray')
+                    ->color(fn (Customer $record) => $record->hasReward('carwash') ? 'success' : 'gray')
                     ->sortable()
                     ->alignCenter()
                     ->visibleFrom('md'),
@@ -64,7 +58,7 @@ class ReadyForRewardTableWidget extends BaseWidget
                 Tables\Columns\TextColumn::make('motorwash_points')
                     ->label('MW')
                     ->badge()
-                    ->color(fn ($state) => $state >= $motorwashThreshold ? 'success' : 'gray')
+                    ->color(fn (Customer $record) => $record->hasReward('motorwash') ? 'success' : 'gray')
                     ->sortable()
                     ->alignCenter()
                     ->visibleFrom('md'),
@@ -72,7 +66,7 @@ class ReadyForRewardTableWidget extends BaseWidget
                 Tables\Columns\TextColumn::make('coffeeshop_points')
                     ->label('CS')
                     ->badge()
-                    ->color(fn ($state) => $state >= $coffeeshopThreshold ? 'success' : 'gray')
+                    ->color(fn (Customer $record) => $record->hasReward('coffeeshop') ? 'success' : 'gray')
                     ->sortable()
                     ->alignCenter()
                     ->visibleFrom('md'),

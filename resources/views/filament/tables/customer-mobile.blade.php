@@ -11,7 +11,7 @@
         @foreach($programs as $type => $short)
             <x-filament::badge
                 size="sm"
-                :color="$record->getPoints($type) >= \App\Models\SystemSetting::firstMilestonePoints($type) ? 'success' : 'gray'"
+                :color="$record->hasReward($type) ? 'success' : 'gray'"
                 :tooltip="\Illuminate\Support\Str::headline($type)"
             >
                 {{ $short }} {{ $record->getPoints($type) }}

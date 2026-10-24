@@ -80,7 +80,7 @@ class CarwashCustomerResource extends Resource
                     ->label('Points')
                     ->sortable()
                     ->badge()
-                    ->color(fn ($state) => $state >= SystemSetting::firstMilestonePoints('carwash') ? 'success' : 'gray')
+                    ->color(fn (Customer $record): string => $record->hasReward('carwash') ? 'success' : 'gray')
                     ->visibleFrom('md'),
                 
                 Tables\Columns\TextColumn::make('carwash_total_visits')
@@ -97,7 +97,7 @@ class CarwashCustomerResource extends Resource
             ->filters([
                 Tables\Filters\Filter::make('ready_for_reward')
                     ->label('Ready for Reward')
-                    ->query(fn ($query) => $query->where('carwash_points', '>=', SystemSetting::firstMilestonePoints('carwash'))),
+                    ->query(fn ($query) => $query->withPendingReward('carwash')),
                 
                 Tables\Filters\Filter::make('active_customers')
                     ->label('Active (Last 30 Days)')

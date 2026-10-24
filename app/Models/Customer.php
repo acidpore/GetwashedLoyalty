@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -145,6 +146,18 @@ class Customer extends Model
         }
 
         return SystemSetting::maxPoints($loyaltyType);
+    }
+
+    /** SQL twin of hasReward(): some milestone is reached but not yet claimed in this cycle. */
+    public function scopeWithPendingReward(Builder $query, string $loyaltyType): Builder
+    {
+        return $query->where(function (Builder $query) use ($loyaltyType) {
+            foreach (SystemSetting::milestones($loyaltyType) as $milestone) {
+                $query->orWhere(fn (Builder $query) => $query
+                    ->where("{$loyaltyType}_points", '>=', $milestone['at'])
+                    ->where("{$loyaltyType}_claimed_points", '<', $milestone['at']));
+            }
+        });
     }
 
     public function hasReward(string $loyaltyType): bool

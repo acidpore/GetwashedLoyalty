@@ -80,7 +80,7 @@ class CoffeeshopCustomerResource extends Resource
                     ->label('Points')
                     ->sortable()
                     ->badge()
-                    ->color(fn ($state) => $state >= SystemSetting::firstMilestonePoints('coffeeshop') ? 'success' : 'gray')
+                    ->color(fn (Customer $record): string => $record->hasReward('coffeeshop') ? 'success' : 'gray')
                     ->visibleFrom('md'),
                 
                 Tables\Columns\TextColumn::make('coffeeshop_total_visits')
@@ -97,7 +97,7 @@ class CoffeeshopCustomerResource extends Resource
             ->filters([
                 Tables\Filters\Filter::make('ready_for_reward')
                     ->label('Ready for Reward')
-                    ->query(fn ($query) => $query->where('coffeeshop_points', '>=', SystemSetting::firstMilestonePoints('coffeeshop'))),
+                    ->query(fn ($query) => $query->withPendingReward('coffeeshop')),
                 
                 Tables\Filters\Filter::make('active_customers')
                     ->label('Active (Last 30 Days)')

@@ -131,9 +131,9 @@ class CustomerResource extends Resource
             ->modifyQueryUsing(fn (Builder $query) => $query
                 ->select([
                     'id', 'user_id', 'created_at',
-                    'carwash_points', 'carwash_total_visits', 'carwash_last_visit_at',
-                    'coffeeshop_points', 'coffeeshop_total_visits', 'coffeeshop_last_visit_at',
-                    'motorwash_points', 'motorwash_total_visits', 'motorwash_last_visit_at',
+                    'carwash_points', 'carwash_claimed_points', 'carwash_total_visits', 'carwash_last_visit_at',
+                    'coffeeshop_points', 'coffeeshop_claimed_points', 'coffeeshop_total_visits', 'coffeeshop_last_visit_at',
+                    'motorwash_points', 'motorwash_claimed_points', 'motorwash_total_visits', 'motorwash_last_visit_at',
                 ])
                 ->with(['user:id,name,phone']))
             ->columns([
@@ -161,7 +161,7 @@ class CustomerResource extends Resource
                     ->label('Car Wash')
                     ->sortable()
                     ->badge()
-                    ->color(fn (int $state): string => $state >= SystemSetting::firstMilestonePoints('carwash') ? 'success' : 'gray')
+                    ->color(fn (Customer $record): string => $record->hasReward('carwash') ? 'success' : 'gray')
                     ->description(fn (Customer $record): string => self::visitSummary($record, 'carwash'))
                     ->visibleFrom('md'),
 
@@ -169,7 +169,7 @@ class CustomerResource extends Resource
                     ->label('Coffee Shop')
                     ->sortable()
                     ->badge()
-                    ->color(fn (int $state): string => $state >= SystemSetting::firstMilestonePoints('coffeeshop') ? 'success' : 'gray')
+                    ->color(fn (Customer $record): string => $record->hasReward('coffeeshop') ? 'success' : 'gray')
                     ->description(fn (Customer $record): string => self::visitSummary($record, 'coffeeshop'))
                     ->visibleFrom('md'),
 
@@ -177,7 +177,7 @@ class CustomerResource extends Resource
                     ->label('Motor Wash')
                     ->sortable()
                     ->badge()
-                    ->color(fn (int $state): string => $state >= SystemSetting::firstMilestonePoints('motorwash') ? 'success' : 'gray')
+                    ->color(fn (Customer $record): string => $record->hasReward('motorwash') ? 'success' : 'gray')
                     ->description(fn (Customer $record): string => self::visitSummary($record, 'motorwash'))
                     ->visibleFrom('md'),
 
@@ -223,11 +223,11 @@ class CustomerResource extends Resource
             ->filters([
                 Tables\Filters\Filter::make('has_carwash_reward')
                     ->label('Ready for Car Wash Reward')
-                    ->query(fn (Builder $query): Builder => $query->where('carwash_points', '>=', SystemSetting::firstMilestonePoints('carwash'))),
+                    ->query(fn (Builder $query): Builder => $query->withPendingReward('carwash')),
 
                 Tables\Filters\Filter::make('has_coffeeshop_reward')
                     ->label('Ready for Coffee Shop Reward')
-                    ->query(fn (Builder $query): Builder => $query->where('coffeeshop_points', '>=', SystemSetting::firstMilestonePoints('coffeeshop'))),
+                    ->query(fn (Builder $query): Builder => $query->withPendingReward('coffeeshop')),
 
                 Tables\Filters\Filter::make('active_carwash')
                     ->label('Active Car Wash (Last 30 Days)')
@@ -239,7 +239,7 @@ class CustomerResource extends Resource
 
                 Tables\Filters\Filter::make('has_motorwash_reward')
                     ->label('Ready for Motor Wash Reward')
-                    ->query(fn (Builder $query): Builder => $query->where('motorwash_points', '>=', SystemSetting::firstMilestonePoints('motorwash'))),
+                    ->query(fn (Builder $query): Builder => $query->withPendingReward('motorwash')),
 
                 Tables\Filters\Filter::make('active_motorwash')
                     ->label('Active Motor Wash (Last 30 Days)')

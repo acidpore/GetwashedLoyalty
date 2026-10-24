@@ -64,6 +64,7 @@ class AdminPanelProvider extends PanelProvider
                 \App\Filament\Resources\Coffeeshop\CoffeeshopCustomerResource::class,
                 \App\Filament\Resources\QrCodeResource::class,
                 \App\Filament\Resources\VisitHistoryResource::class,
+                \App\Filament\Resources\RewardClaimResource::class,
             ])
             ->pages([
                 Pages\Dashboard::class,
