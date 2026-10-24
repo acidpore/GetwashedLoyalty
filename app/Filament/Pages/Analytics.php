@@ -25,7 +25,7 @@ class Analytics extends Dashboard
 
     public function filtersForm(Form $form): Form
     {
-        return $form->schema([
+        return $form->columns(['default' => 1, 'sm' => 2, 'md' => 2, 'lg' => 2, 'xl' => 2, '2xl' => 2])->schema([
             Select::make('period')
                 ->label('Periode')
                 ->options(BusinessAnalytics::PERIODS)
