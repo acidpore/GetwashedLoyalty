@@ -16,7 +16,7 @@ class CoffeeshopVisitHistoryResource extends Resource
     protected static ?string $model = VisitHistory::class;
     protected static ?string $navigationIcon = 'heroicon-o-clock';
     protected static ?string $navigationLabel = 'Visit History';
-    protected static ?string $navigationGroup = 'Coffee Shop';
+    protected static ?string $navigationGroup = 'Latte';
     protected static ?int $navigationSort = 51;
     protected static ?string $modelLabel = 'Visit';
     protected static ?string $pluralModelLabel = 'Visit Histories';

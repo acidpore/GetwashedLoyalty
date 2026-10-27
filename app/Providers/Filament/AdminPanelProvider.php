@@ -7,6 +7,7 @@ use Filament\Http\Middleware\AuthenticateSession;
 use Filament\Http\Middleware\DisableBladeIconComponents;
 use Filament\Http\Middleware\DispatchServingFilamentEvent;
 use Filament\Navigation\NavigationGroup;
+use Filament\Navigation\NavigationItem;
 use Filament\Pages;
 use Filament\Panel;
 use Filament\PanelProvider;
@@ -49,10 +50,18 @@ class AdminPanelProvider extends PanelProvider
                 . '.fi-ta-actions-cell .fi-link > span{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap}'
                 . '.fi-sidebar-nav{scrollbar-width:none;scrollbar-gutter:auto!important}.fi-sidebar-nav::-webkit-scrollbar{display:none}'
                 . '</style>'))
+            ->navigationItems([
+                NavigationItem::make('Buka Kasir')
+                    ->group('Latte')
+                    ->sort(45)
+                    ->icon('heroicon-o-calculator')
+                    ->url(fn () => \App\Filament\Kasir\Pages\Pos::getUrl(panel: 'kasir'))
+                    ->openUrlInNewTab(),
+            ])
             ->navigationGroups([
                 NavigationGroup::make('Car Wash')->collapsible(),
                 NavigationGroup::make('Motor Wash')->collapsible(),
-                NavigationGroup::make('Coffee Shop')->collapsible(),
+                NavigationGroup::make('Latte')->collapsible(),
                 NavigationGroup::make('Management')->collapsible(),
             ])
             // ->discoverResources(in: app_path('Filament/Resources'), for: 'App\\Filament\\Resources')
@@ -65,6 +74,8 @@ class AdminPanelProvider extends PanelProvider
                 \App\Filament\Resources\QrCodeResource::class,
                 \App\Filament\Resources\VisitHistoryResource::class,
                 \App\Filament\Resources\RewardClaimResource::class,
+                \App\Filament\Resources\Latte\OrderResource::class,
+                \App\Filament\Resources\Latte\ProductResource::class,
             ])
             ->pages([
                 Pages\Dashboard::class,

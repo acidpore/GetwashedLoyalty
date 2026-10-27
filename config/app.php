@@ -67,6 +67,9 @@ return [
 
     'timezone' => 'Asia/Jakarta',
 
+    // Host for the Latte till (e.g. kasir.getwashedxlatte.com). Empty = served at /kasir.
+    'kasir_domain' => env('KASIR_DOMAIN'),
+
     /*
     |--------------------------------------------------------------------------
     | Application Locale Configuration

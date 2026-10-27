@@ -9,7 +9,7 @@ class LogoutResponse implements LogoutResponseContract
 {
     public function toResponse($request): RedirectResponse
     {
-        // Redirect to home page instead of Filament admin login
-        return redirect('/');
+        // Cashiers go back to the till login; admins land on the public home page.
+        return redirect(filament()->getCurrentPanel()?->getId() === 'kasir' ? filament()->getLoginUrl() : '/');
     }
 }
