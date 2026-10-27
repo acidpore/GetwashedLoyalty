@@ -68,15 +68,31 @@
     </div>
 
     <section class="lt-card lt-panel">
-        <header><div><h2>Insight</h2><p>Temuan otomatis dari data periode ini</p></div></header>
-        <div class="rp-insights">
-            @foreach ($r['insights'] as [$tone, $title, $text])
-                <div class="rp-insight rp-{{ $tone }}">
-                    <x-filament::icon :icon="['up' => 'heroicon-m-arrow-trending-up', 'down' => 'heroicon-m-exclamation-triangle', 'flat' => 'heroicon-m-light-bulb'][$tone]" />
-                    <div><strong>{{ $title }}</strong><p>{{ $text }}</p></div>
-                </div>
+        @php
+            $levels = ['critical' => 'Kritis', 'warning' => 'Perhatian', 'good' => 'Positif', 'info' => 'Info'];
+            $counts = collect($r['insights'])->countBy('level');
+        @endphp
+        <header>
+            <div><h2>Briefing Manajer</h2><p>Temuan dan tindakan, urut dari yang paling mendesak</p></div>
+            <div class="rp-tally">
+                @foreach ($levels as $key => $label)
+                    @if ($counts[$key] ?? 0)<span class="rp-tag rp-{{ $key }}">{{ $counts[$key] }} {{ $label }}</span>@endif
+                @endforeach
+            </div>
+        </header>
+        <ol class="rp-brief">
+            @foreach ($r['insights'] as $i => $x)
+                <li class="rp-item rp-{{ $x['level'] }}">
+                    <span class="rp-no">{{ str_pad($i + 1, 2, '0', STR_PAD_LEFT) }}</span>
+                    <div class="rp-body">
+                        <div class="rp-head"><span class="rp-tag rp-{{ $x['level'] }}">{{ $levels[$x['level']] }}</span><strong>{{ $x['title'] }}</strong></div>
+                        <p>{{ $x['text'] }}</p>
+                        <p class="rp-action"><b>Tindakan</b> {{ $x['action'] }}</p>
+                    </div>
+                    <span class="rp-metric">{{ $x['metric'] }}</span>
+                </li>
             @endforeach
-        </div>
+        </ol>
     </section>
 
     <section class="lt-card lt-panel">

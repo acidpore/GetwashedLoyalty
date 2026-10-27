@@ -28,9 +28,14 @@
     .kpi td { border: 1px solid #e7e5e4; padding: 8px; width: 25%; }
     .kpi b { display: block; font-size: 14px; margin: 2px 0; }
     .up { color: #15803d; } .down { color: #b91c1c; }
-    .insight { padding: 6px 8px; margin-bottom: 5px; background: #fffbeb; border-left: 3px solid #f59e0b; }
-    .insight.down { background: #fef2f2; border-color: #dc2626; color: #1c1917; }
-    .insight.up { background: #f0fdf4; border-color: #16a34a; color: #1c1917; }
+    .brief td { padding: 7px 6px; border-bottom: 1px solid #e7e5e4; }
+    .brief .no { width: 18px; font-weight: bold; color: #a8a29e; }
+    .brief tr.critical td.no { border-left: 3px solid #dc2626; } .brief tr.warning td.no { border-left: 3px solid #d97706; }
+    .brief tr.good td.no { border-left: 3px solid #16a34a; } .brief tr.info td.no { border-left: 3px solid #78716c; }
+    .tag { font-size: 7.5px; font-weight: bold; letter-spacing: .5px; padding: 1px 4px; color: #fff; }
+    .tag.critical { background: #dc2626; } .tag.warning { background: #d97706; } .tag.good { background: #16a34a; } .tag.info { background: #57534e; }
+    .act { font-weight: bold; color: #1c1917; }
+    .metric { width: 90px; font-size: 13px; font-weight: bold; }
     .bar { background: #fbbf24; height: 8px; }
     .half { width: 49%; vertical-align: top; }
     .page-break { page-break-before: always; }
@@ -61,10 +66,17 @@
         </tr>
     </table>
 
-    <h2>Insight &amp; Rekomendasi</h2>
-    @foreach ($r['insights'] as [$tone, $title, $text])
-        <div class="insight {{ $tone }}"><b>{{ $title }}</b><br>{{ $text }}</div>
-    @endforeach
+    <h2>Briefing Manajer</h2>
+    @php $levels = ['critical' => 'KRITIS', 'warning' => 'PERHATIAN', 'good' => 'POSITIF', 'info' => 'INFO']; @endphp
+    <table class="brief">
+        @foreach ($r['insights'] as $i => $x)
+            <tr class="{{ $x['level'] }}">
+                <td class="no">{{ str_pad($i + 1, 2, '0', STR_PAD_LEFT) }}</td>
+                <td><span class="tag {{ $x['level'] }}">{{ $levels[$x['level']] }}</span> <b>{{ $x['title'] }}</b><br>{{ $x['text'] }}<br><span class="act">&#9656; Tindakan: {{ $x['action'] }}</span></td>
+                <td class="num metric">{{ $x['metric'] }}</td>
+            </tr>
+        @endforeach
+    </table>
 
     <h2>Omzet Harian</h2>
     <table>

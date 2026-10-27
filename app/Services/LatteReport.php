@@ -172,85 +172,115 @@ class LatteReport
         return $before ? ($now - $before) / $before * 100 : null;
     }
 
-    /** Plain-language findings, most important first. Each: [tone, title, text]. */
+    private const LEVELS = ['critical' => 0, 'warning' => 1, 'good' => 2, 'info' => 3];
+
+    /**
+     * Manager-style briefing: a verdict, the number behind it, and what to do.
+     * Sorted critical first. Each: level, title, metric, text, action.
+     */
     private static function insights(array $r): array
     {
         $s = $r['summary'];
         $p = $r['previous'];
         $rp = fn ($n) => 'Rp' . number_format($n, 0, ',', '.');
-        $pct = fn ($n) => number_format($n, 1, ',', '.') . '%';
+        $pct = fn ($n) => number_format(abs($n), 1, ',', '.') . '%';
         $out = [];
+        $add = function (string $level, string $title, string $metric, string $text, string $action) use (&$out) {
+            $out[] = compact('level', 'title', 'metric', 'text', 'action');
+        };
 
         if (! $s['orders']) {
-            return [['flat', 'Belum ada penjualan', 'Tidak ada transaksi pada periode ini, jadi belum ada yang bisa dianalisis.']];
+            $add('critical', 'Tidak ada penjualan', 'Rp0', 'Tidak ada satu pun transaksi tercatat di periode ini.', 'Pastikan kasir mencatat setiap penjualan lewat POS.');
+
+            return $out;
         }
 
         if (($c = self::change($s['net'], $p['net'])) !== null) {
-            $out[] = [$c >= 0 ? 'up' : 'down', 'Omzet ' . ($c >= 0 ? 'naik' : 'turun') . ' ' . $pct(abs($c)),
-                "Omzet bersih {$rp($s['net'])} dibanding {$rp($p['net'])} pada {$r['days']} hari sebelumnya."
-                . (($o = self::change($s['orders'], $p['orders'])) !== null && ($a = self::change($s['avg'], $p['avg'])) !== null
-                    ? ' Penyebabnya: jumlah transaksi ' . ($o >= 0 ? 'naik ' : 'turun ') . $pct(abs($o)) . ', nilai rata-rata per transaksi ' . ($a >= 0 ? 'naik ' : 'turun ') . $pct(abs($a)) . '.'
-                    : '')];
+            $o = self::change($s['orders'], $p['orders']) ?? 0;
+            $a = self::change($s['avg'], $p['avg']) ?? 0;
+            $driver = abs($o) >= abs($a)
+                ? 'jumlah transaksi (' . ($o >= 0 ? '+' : '-') . $pct($o) . ')'
+                : 'nilai per transaksi (' . ($a >= 0 ? '+' : '-') . $pct($a) . ')';
+            if ($c <= -10) {
+                $add('critical', 'Omzet turun ' . $pct($c), '-' . $rp($p['net'] - $s['net']),
+                    "Omzet {$rp($s['net'])} vs {$rp($p['net'])} periode sebelumnya. Penyebab utama: {$driver}.",
+                    $o < $a ? 'Traffic turun. Dorong kunjungan: promo jam sepi, broadcast WA ke member.' : 'Belanja per orang turun. Latih kasir upsell: extra shot, makanan pendamping.');
+            } elseif ($c < 0) {
+                $add('warning', 'Omzet melemah ' . $pct($c), '-' . $rp($p['net'] - $s['net']),
+                    "Omzet {$rp($s['net'])} vs {$rp($p['net'])}. Penggerak: {$driver}.", 'Pantau minggu depan. Jika berlanjut, jalankan promo terarah.');
+            } else {
+                $add('good', 'Omzet tumbuh ' . $pct($c), '+' . $rp($s['net'] - $p['net']),
+                    "Omzet {$rp($s['net'])} vs {$rp($p['net'])}. Penggerak: {$driver}.", 'Pertahankan. Cek menu dan jam yang mendorong kenaikan ini.');
+            }
+        }
+
+        if (($bad = $r['shifts']->filter(fn ($sh) => $sh['difference']))->isNotEmpty()) {
+            $short = $bad->where('difference', '<', 0)->sum('difference');
+            $add($short < -20000 ? 'critical' : 'warning', "Selisih kas di {$bad->count()} shift", ($bad->sum('difference') < 0 ? '-' : '+') . $rp(abs($bad->sum('difference'))),
+                'Kas kurang total ' . $rp(abs($short)) . ', lebih ' . $rp($bad->where('difference', '>', 0)->sum('difference'))
+                . '. Kasir terbanyak selisih: ' . $bad->countBy('cashier')->sortDesc()->keys()->first() . '.',
+                'Audit shift bermasalah. Wajibkan hitung uang bersama saat serah terima.');
+        }
+
+        if ($s['voids']) {
+            $rate = $s['voids'] / ($s['orders'] + $s['voids']) * 100;
+            $top = $r['cashiers']->sortByDesc('voids')->first();
+            $add($rate > 5 ? 'critical' : ($rate > 2 ? 'warning' : 'info'), "{$s['voids']} transaksi dibatalkan", $pct($rate),
+                "Nilai batal {$rp($s['void_value'])}." . ($top && $top['voids'] ? " Terbanyak oleh {$top['name']} ({$top['voids']})." : ''),
+                $rate > 2 ? 'Di atas batas wajar 2%. Telusuri alasan pembatalan per kasir.' : 'Masih wajar. Tetap pantau.');
+        }
+
+        if ($r['low_stock']->isNotEmpty()) {
+            $add('critical', $r['low_stock']->count() . ' bahan di bawah minimum', $r['low_stock']->count() . ' item',
+                'Stok kritis: ' . $r['low_stock']->pluck('name')->implode(', ') . '.', 'Belanja hari ini sebelum menu terkait tidak bisa dijual.');
         }
 
         if ($r['products']->count() >= 3) {
             $top = $r['products']->first();
             $core = $r['products']->takeWhile(fn ($row) => $row['cumulative'] <= 80)->count() + 1;
-            $out[] = ['flat', 'Menu andalan: ' . $top['name'],
-                "{$top['name']} menyumbang {$pct($top['share'])} pendapatan menu ({$top['qty']} terjual). "
-                . "{$core} dari {$r['products']->count()} menu menghasilkan 80% pendapatan — pastikan menu-menu ini tidak pernah kehabisan bahan."];
+            $add('info', "{$core} dari {$r['products']->count()} menu = 80% pendapatan", $pct($top['share']),
+                "Menu nomor satu: {$top['name']} ({$pct($top['share'])} pendapatan, {$top['qty']} terjual).",
+                'Prioritaskan stok dan kualitas menu inti ini. Jangan sampai kosong.');
         }
 
-        $busiestDay = $r['weekdays']->sortByDesc('avg_revenue')->first();
-        $quietDay = $r['weekdays']->filter(fn ($d) => $d['orders'] > 0)->sortBy('avg_revenue')->first();
-        if ($r['days'] >= 7 && $busiestDay && $quietDay && $busiestDay['day'] !== $quietDay['day']) {
-            $out[] = ['flat', "Hari tersibuk {$busiestDay['day']}, tersepi {$quietDay['day']}",
-                "Rata-rata omzet hari {$busiestDay['day']} {$rp($busiestDay['avg_revenue'])}, sedangkan {$quietDay['day']} hanya {$rp($quietDay['avg_revenue'])}. "
-                . "Promo khusus hari {$quietDay['day']} bisa membantu meratakan penjualan."];
+        if ($r['unsold']->isNotEmpty()) {
+            $add('warning', $r['unsold']->count() . ' menu tidak terjual', '0 terjual',
+                'Nol penjualan: ' . $r['unsold']->take(6)->implode(', ') . ($r['unsold']->count() > 6 ? ', dll' : '') . '.',
+                'Evaluasi: promosikan, ubah resep, atau hapus dari menu.');
+        }
+
+        $l = $r['loyalty'];
+        if ($l['member_share'] < 30) {
+            $add('warning', 'Member hanya ' . $pct($l['member_share']) . ' transaksi', $pct($l['member_share']),
+                "{$l['member_orders']} dari {$s['orders']} transaksi tercatat member. Sisanya pembeli anonim yang tidak bisa dihubungi lagi.",
+                'Target 40%. Kasir wajib menawarkan daftar member di setiap transaksi.');
+        } else {
+            $add('good', 'Member ' . $pct($l['member_share']) . ' transaksi', $pct($l['member_share']),
+                "{$l['repeat_members']} dari {$l['unique_members']} member kembali lebih dari sekali. Belanja member {$rp($l['member_avg'])} vs non-member {$rp($l['guest_avg'])}.",
+                'Jaga retensi: kirim pengingat poin ke member yang lama tidak datang.');
+        }
+
+        $busiest = $r['weekdays']->sortByDesc('avg_revenue')->first();
+        $quiet = $r['weekdays']->filter(fn ($d) => $d['orders'] > 0)->sortBy('avg_revenue')->first();
+        if ($r['days'] >= 7 && $quiet && $busiest['day'] !== $quiet['day']) {
+            $gap = self::change($quiet['avg_revenue'], $busiest['avg_revenue']);
+            $add('info', "{$quiet['day']} hari terlemah", $rp($quiet['avg_revenue']),
+                "Rata-rata omzet {$quiet['day']} {$pct($gap)} di bawah {$busiest['day']} ({$rp($busiest['avg_revenue'])}).",
+                "Jalankan promo khusus hari {$quiet['day']}.");
         }
 
         if ($r['hours']->isNotEmpty()) {
             $peak = $r['hours']->sortByDesc('orders')->first();
-            $window = sprintf('%02d.00–%02d.00', $peak['hour'], $peak['hour'] + 1);
-            $out[] = ['flat', "Jam sibuk {$window}",
-                "{$peak['orders']} transaksi (" . $pct($peak['orders'] / $s['orders'] * 100) . ") terjadi di jam ini. Siapkan barista dan bahan ekstra sebelum jam tersebut."];
+            $add('info', sprintf('Jam puncak %02d.00–%02d.00', $peak['hour'], $peak['hour'] + 1), $pct($peak['orders'] / $s['orders'] * 100),
+                "{$peak['orders']} transaksi terjadi di jam ini.", 'Barista lengkap dan bahan siap 30 menit sebelumnya.');
         }
 
-        $l = $r['loyalty'];
-        if ($l['member_orders'] && $l['guest_avg']) {
-            $diff = self::change($l['member_avg'], $l['guest_avg']);
-            $out[] = [$diff >= 0 ? 'up' : 'flat', $pct($l['member_share']) . ' transaksi dari member',
-                "Rata-rata belanja member {$rp($l['member_avg'])} vs non-member {$rp($l['guest_avg'])} (" . ($diff >= 0 ? 'lebih tinggi ' : 'lebih rendah ') . $pct(abs($diff)) . "). "
-                . "{$l['repeat_members']} dari {$l['unique_members']} member datang lebih dari sekali."
-                . ($l['member_share'] < 40 ? ' Ajak lebih banyak pembeli untuk daftar member di kasir.' : '')];
-        } elseif (! $l['member_orders']) {
-            $out[] = ['down', 'Belum ada transaksi member', 'Tidak ada pembeli yang tercatat sebagai member. Tawarkan daftar member di kasir supaya pembeli kembali lagi.'];
+        if ($s['discount'] && ($share = $s['discount'] / max(1, $s['gross']) * 100) > 5) {
+            $add('warning', 'Diskon memakan ' . $pct($share) . ' omzet', $rp($s['discount']),
+                'Total potongan harga melewati 5% omzet kotor.', 'Batasi diskon manual. Ukur apakah promo benar menambah transaksi.');
         }
 
-        if ($s['discount']) {
-            $out[] = ['flat', 'Diskon ' . $rp($s['discount']),
-                'Diskon memotong ' . $pct($s['discount'] / max(1, $s['gross']) * 100) . ' dari omzet kotor.'
-                . ($r['promos']->isNotEmpty() ? " Promo paling sering dipakai: {$r['promos']->sortByDesc('orders')->first()['name']}." : '')];
-        }
-
-        if ($s['voids']) {
-            $rate = $s['voids'] / ($s['orders'] + $s['voids']) * 100;
-            $out[] = [$rate > 5 ? 'down' : 'flat', "{$s['voids']} transaksi dibatalkan",
-                "Senilai {$rp($s['void_value'])} ({$pct($rate)} dari semua transaksi)." . ($rate > 5 ? ' Angka ini cukup tinggi — cek alasan pembatalan per kasir.' : '')];
-        }
-
-        if (($bad = $r['shifts']->filter(fn ($sh) => $sh['difference']))->isNotEmpty()) {
-            $out[] = ['down', "Selisih kas di {$bad->count()} shift",
-                'Total selisih ' . $rp($bad->sum('difference')) . '. Cek ulang shift yang selisihnya besar di tabel Shift.'];
-        }
-
-        if ($r['low_stock']->isNotEmpty()) {
-            $out[] = ['down', $r['low_stock']->count() . ' bahan hampir habis', 'Segera belanja: ' . $r['low_stock']->pluck('name')->implode(', ') . '.'];
-        }
-
-        if ($r['unsold']->isNotEmpty()) {
-            $out[] = ['flat', $r['unsold']->count() . ' menu tidak laku', 'Tidak terjual sama sekali: ' . $r['unsold']->take(6)->implode(', ') . ($r['unsold']->count() > 6 ? ', dll' : '') . '. Pertimbangkan promo atau ganti menu.'];
-        }
+        usort($out, fn ($a, $b) => self::LEVELS[$a['level']] <=> self::LEVELS[$b['level']]);
 
         return $out;
     }

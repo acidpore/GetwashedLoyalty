@@ -50,7 +50,9 @@ class LatteReportExport
             ['Hadiah diklaim', $r['loyalty']['rewards'], '', ''],
         ], [1 => $money, 2 => $money], 26);
 
-        $sheet('Insight', ['Temuan', 'Penjelasan'], collect($r['insights'])->map(fn ($i) => [$i[1], $i[2]]), [], 60);
+        $levels = ['critical' => 'Kritis', 'warning' => 'Perhatian', 'good' => 'Positif', 'info' => 'Info'];
+        $sheet('Insight', ['Status', 'Temuan', 'Angka', 'Penjelasan', 'Tindakan'],
+            collect($r['insights'])->map(fn ($i) => [$levels[$i['level']], $i['title'], $i['metric'], $i['text'], $i['action']]), [], 40);
 
         $sheet('Harian', ['Tanggal', 'Transaksi', 'Omzet bersih', 'Diskon', 'Rata-rata'],
             $r['daily']->map(fn ($d) => [$d['date']->format('Y-m-d'), $d['orders'], $d['revenue'], $d['discount'], $d['avg']]),
