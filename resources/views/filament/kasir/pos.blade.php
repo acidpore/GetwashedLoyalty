@@ -161,15 +161,32 @@
 
         {{-- Shift gate --}}
         <div class="pos-gate" x-show="! shift" x-cloak>
-            <div class="pos-modal-card">
-                <div class="pos-done-icon"><x-filament::icon icon="heroicon-m-banknotes" /></div>
-                <h3>Buka shift</h3>
-                <p class="pos-hint">Hitung uang di laci kas sebelum mulai jualan.</p>
-                <label class="pos-cash-input">
-                    <span>Modal awal</span>
-                    <input type="text" inputmode="numeric" placeholder="0" :value="opening ? num(opening) : ''" x-on:input="opening = money($event)" aria-label="Modal awal">
-                </label>
-                <button type="button" class="pos-submit" :disabled="busy" x-on:click="openShift()">Mulai shift</button>
+            <div class="pos-gate-card">
+                <div class="pos-gate-top">
+                    <span class="pos-gate-badge"><i></i> Kasir tutup</span>
+                    <p class="pos-gate-date">{{ now()->locale('id')->translatedFormat('l, d F Y') }}</p>
+                    <h2>Siap jualan, {{ \Illuminate\Support\Str::of(auth()->user()->name)->explode(' ')->first() }}?</h2>
+                    <p>Hitung uang di laci, masukkan modal awal, lalu buka kasir.</p>
+                </div>
+                <div class="pos-gate-main">
+                    <label class="pos-gate-label" for="pos-opening">Modal awal di laci</label>
+                    <div class="pos-gate-amount">
+                        <span>Rp</span>
+                        <input id="pos-opening" type="text" inputmode="numeric" placeholder="0" :value="opening ? num(opening) : ''" x-on:input="opening = money($event)" x-on:keydown.enter="openShift()" autofocus>
+                    </div>
+                    <div class="pos-gate-quick">
+                        @foreach ([100000, 200000, 300000, 500000] as $amount)
+                            <button type="button" x-on:click="opening = {{ $amount }}" :class="{ 'is-on': opening === {{ $amount }} }">{{ $amount / 1000 }}rb</button>
+                        @endforeach
+                    </div>
+                    <ul class="pos-gate-check">
+                        <li><x-filament::icon icon="heroicon-m-check-circle" /> Uang dihitung dua kali</li>
+                        <li><x-filament::icon icon="heroicon-m-check-circle" /> Selisih dicek saat tutup shift</li>
+                    </ul>
+                    <button type="button" class="pos-gate-go" :disabled="busy" x-on:click="openShift()">
+                        <x-filament::icon icon="heroicon-m-lock-open" /> Buka kasir sekarang
+                    </button>
+                </div>
             </div>
         </div>
 
