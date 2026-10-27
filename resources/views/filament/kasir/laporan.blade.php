@@ -28,8 +28,11 @@
                 <button type="button" wire:click="preset('{{ $key }}')">{{ $label }}</button>
             @endforeach
         </div>
-        <label>Dari <input type="date" class="pos-input" wire:model.live="from"></label>
-        <label>Sampai <input type="date" class="pos-input" wire:model.live="to"></label>
+        <div class="rp-range">
+            <label><span>Tanggal mulai</span><input type="date" class="pos-input" wire:model.live="from"></label>
+            <span class="rp-range-sep">→</span>
+            <label><span>Tanggal akhir</span><input type="date" class="pos-input" wire:model.live="to"></label>
+        </div>
         <span wire:loading class="rp-loading">Memuat…</span>
     </div>
 

@@ -332,9 +332,16 @@
 .rp-filter .pos-chips { display: flex; flex-wrap: wrap; gap: .5rem; }
 .rp-filter .pos-chips button { height: 2.25rem; padding: 0 .875rem; border: 1px solid rgb(var(--gray-200)); border-radius: 999px; font-size: .8125rem; font-weight: 600; color: rgb(var(--gray-600)); }
 .rp-filter .pos-chips button:hover { border-color: rgb(var(--primary-400)); }
-.rp-filter label { display: flex; align-items: center; gap: .5rem; font-size: .8125rem; color: rgb(var(--gray-500)); }
-.rp-filter .pos-input { width: auto; border-color: rgb(var(--gray-200)); }
-.dark .rp-filter .pos-input, .dark .rp-filter .pos-chips button { border-color: rgba(255, 255, 255, .1); background: transparent; color: rgb(var(--gray-300)); }
+.rp-range { display: flex; align-items: flex-end; gap: .625rem; margin-left: auto; }
+.rp-range label { display: flex; flex-direction: column; gap: .3rem; }
+.rp-range label span { font-size: .6875rem; font-weight: 700; letter-spacing: .05em; text-transform: uppercase; color: rgb(var(--gray-600)); }
+.rp-range .pos-input { width: 10.5rem; height: 2.5rem; padding: 0 .75rem; border: 1.5px solid rgb(var(--gray-300)); border-radius: .625rem; background: #fff; color: rgb(var(--gray-950)); font-size: .9375rem; font-weight: 600; }
+.rp-range .pos-input:focus { border-color: rgb(var(--primary-500)); box-shadow: 0 0 0 3px rgba(var(--primary-500), .2); outline: none; }
+.rp-range-sep { padding-bottom: .55rem; font-weight: 700; color: rgb(var(--gray-400)); }
+.dark .rp-range label span { color: rgb(var(--gray-300)); }
+.dark .rp-range .pos-input { border-color: rgba(255, 255, 255, .2); background: rgba(255, 255, 255, .05); color: #fff; color-scheme: dark; }
+@media (max-width: 640px) { .rp-range { width: 100%; margin-left: 0; } .rp-range label { flex: 1; } .rp-range .pos-input { width: 100%; } }
+.dark .rp-filter .pos-chips button { border-color: rgba(255, 255, 255, .1); background: transparent; color: rgb(var(--gray-300)); }
 .rp-loading { font-size: .8125rem; color: rgb(var(--gray-500)); }
 .rp-up { color: #16a34a; font-weight: 600; }
 .rp-down { color: #dc2626; font-weight: 600; }
