@@ -30,7 +30,7 @@
                                     <td title="{{ $days[$d] }} {{ sprintf('%02d.00', $hour) }}: {{ $n }} kunjungan"
                                         style="{{ $n ? 'background:' . $shade($n) . ';' : '' }}--fg:{{ $n / max(1, $h['max']) > .5 ? '#fff' : 'rgb(var(--gray-950))' }}">{{ $n ?: '' }}</td>
                                 @endfor
-                                <th scope="row" class="ga-num" style="padding-left:.75rem;text-align:right">{{ number_format($h['by_day'][$d], 0, ',', '.') }}</th>
+                                <th scope="row" class="ga-num" style="padding-left:.75rem;text-align:center">{{ number_format($h['by_day'][$d], 0, ',', '.') }}</th>
                             </tr>
                         @endforeach
                     </tbody>

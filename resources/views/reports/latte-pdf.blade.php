@@ -22,9 +22,10 @@
     .muted { color: #78716c; }
     .head { border-bottom: 3px solid #f59e0b; padding-bottom: 8px; margin-bottom: 12px; }
     table { width: 100%; border-collapse: collapse; }
-    th { text-align: left; font-size: 9px; color: #78716c; border-bottom: 1px solid #d6d3d1; padding: 4px; }
+    th { text-align: center; font-size: 9px; color: #78716c; border-bottom: 1px solid #d6d3d1; padding: 4px; }
+    td { text-align: center; }
     td { padding: 4px; border-bottom: 1px solid #f5f5f4; vertical-align: top; }
-    .num { text-align: right; white-space: nowrap; }
+    .num { text-align: center; white-space: nowrap; }
     .kpi td { border: 1px solid #e7e5e4; padding: 8px; width: 25%; }
     .kpi b { display: block; font-size: 14px; margin: 2px 0; }
     .up { color: #15803d; } .down { color: #b91c1c; }
