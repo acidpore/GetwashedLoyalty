@@ -419,3 +419,7 @@
 .fi-ta-table :is(th, td), .fi-ta-table :is(th, td) * { text-align: center; }
 .fi-ta-table :is(.fi-ta-header-cell-sort-btn, .fi-ta-col-wrp, .fi-ta-text, .fi-ta-text-item, .fi-ta-icon, .fi-ta-image, .fi-ta-actions, .fi-badge) { justify-content: center; margin-inline: auto; }
 .fi-ta-table th > span, .fi-ta-table td > div { justify-content: center; }
+/* Login: Unsplash photo-1442512595331 behind the card, darkened flat so the card stands out. */
+.fi-simple-layout { background: linear-gradient(rgba(20, 14, 8, .62), rgba(20, 14, 8, .62)), url("/img/login-bg.jpg") center / cover fixed; }
+.fi-simple-main { border-radius: 1.5rem !important; box-shadow: 0 30px 70px -20px rgba(0, 0, 0, .6) !important; }
+.fi-simple-layout .fi-theme-switcher, .fi-simple-layout > div:not(.fi-simple-main-ctn) { color: #fff; }

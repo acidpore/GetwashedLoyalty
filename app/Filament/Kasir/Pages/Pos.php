@@ -49,7 +49,7 @@ class Pos extends Page
             'products' => Product::where('is_active', true)->orderBy('sort')->orderBy('name')->get()
                 ->map(fn (Product $p) => [
                     'id' => $p->id, 'name' => $p->name, 'category' => $p->category, 'price' => $p->price,
-                    'image' => $p->imageUrl(), 'options' => array_values($p->options ?? []),
+                    'image' => $p->imageUrl() ?? asset('img/menu-' . (isset(Product::CATEGORIES[$p->category]) ? $p->category : 'lainnya') . '.jpg'), 'options' => array_values($p->options ?? []),
                 ]),
             'categories' => Product::CATEGORIES,
             'methods' => Order::METHODS,
