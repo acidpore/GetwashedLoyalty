@@ -304,11 +304,12 @@
 .pos-hero-btn { margin-left: auto; height: 2.5rem; font-size: .875rem; }
 .pos-gate { display: grid; place-items: center; min-height: 70vh; padding: 1rem 0; }
 .pos-gate-card { width: 100%; max-width: 30rem; overflow: hidden; border-radius: 1.5rem; background: var(--pos-surface); box-shadow: 0 30px 60px -20px rgba(120, 53, 15, .35); border: 1px solid var(--pos-line); }
-.pos-gate-top { position: relative; padding: 1.75rem 1.75rem 1.5rem; color: #fff; background: radial-gradient(circle at 100% 0, rgba(255, 255, 255, .25), transparent 45%), linear-gradient(135deg, #f59e0b, #b45309); }
+/* Photo: Unsplash, photo-1495474472287. Flat dark overlay keeps the white text readable. */
+.pos-gate-top { position: relative; padding: 1.75rem 1.75rem 1.5rem; color: #fff; background: linear-gradient(rgba(28, 20, 12, .58), rgba(28, 20, 12, .58)), url("/img/shift-banner.jpg") center 40% / cover; text-shadow: 0 1px 8px rgba(0, 0, 0, .35); }
 .pos-gate-top h2 { margin-top: .25rem; font-size: 1.75rem; font-weight: 800; line-height: 1.15; letter-spacing: -.02em; }
 .pos-gate-top p { font-size: .875rem; opacity: .9; }
 .pos-gate-date { margin-top: 1rem; font-size: .75rem !important; font-weight: 600; letter-spacing: .06em; text-transform: uppercase; }
-.pos-gate-badge { display: inline-flex; align-items: center; gap: .4rem; padding: .25rem .65rem; border-radius: 999px; background: rgba(0, 0, 0, .2); font-size: .7rem; font-weight: 700; letter-spacing: .05em; text-transform: uppercase; }
+.pos-gate-badge { display: inline-flex; align-items: center; gap: .4rem; padding: .25rem .65rem; border-radius: 999px; background: rgba(255, 255, 255, .16); backdrop-filter: blur(6px); font-size: .7rem; font-weight: 700; letter-spacing: .05em; text-transform: uppercase; }
 .pos-gate-badge i { width: .5rem; height: .5rem; border-radius: 50%; background: #fecaca; box-shadow: 0 0 0 3px rgba(254, 202, 202, .35); }
 .pos-gate-main { padding: 1.5rem 1.75rem 1.75rem; }
 .pos-gate-label { font-size: .7rem; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; color: rgb(var(--gray-500)); }
