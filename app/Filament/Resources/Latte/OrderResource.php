@@ -22,6 +22,17 @@ class OrderResource extends Resource
     protected static ?string $modelLabel = 'Transaksi';
     protected static ?string $pluralModelLabel = 'Transaksi';
 
+    // Same resource lives in the admin panel (group "Latte") and the till panel (group "Transaksi").
+    public static function getNavigationGroup(): ?string
+    {
+        return filament()->getCurrentPanel()?->getId() === 'kasir' ? 'Transaksi' : 'Latte';
+    }
+
+    public static function getNavigationLabel(): string
+    {
+        return filament()->getCurrentPanel()?->getId() === 'kasir' ? 'Riwayat Penjualan' : 'Transaksi';
+    }
+
     public static function canCreate(): bool
     {
         return false;

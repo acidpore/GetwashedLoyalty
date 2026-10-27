@@ -6,20 +6,25 @@ use App\Models\Customer;
 use App\Models\Order;
 use App\Models\Product;
 use App\Models\SystemSetting;
-use Filament\Pages\Dashboard;
+use Filament\Pages\Page;
 use Illuminate\Contracts\Support\Htmlable;
 use InvalidArgumentException;
 
 /**
  * The cart lives in Alpine on the client so tapping items is instant;
  * the server only answers customer lookups and records the final sale.
- * Extends Dashboard only to own the panel's root URL.
  */
-class Pos extends Dashboard
+class Pos extends Page
 {
-    protected static string $routePath = '/';
+    protected static ?string $slug = 'kasir';
 
     protected static ?string $title = 'Kasir';
+
+    protected static ?string $navigationIcon = 'heroicon-o-shopping-cart';
+
+    protected static ?string $navigationGroup = 'Transaksi';
+
+    protected static ?int $navigationSort = 1;
 
     protected static string $view = 'filament.kasir.pos';
 

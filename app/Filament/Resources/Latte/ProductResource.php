@@ -20,6 +20,17 @@ class ProductResource extends Resource
     protected static ?string $modelLabel = 'Menu';
     protected static ?string $pluralModelLabel = 'Menu';
 
+    public static function getNavigationGroup(): ?string
+    {
+        return filament()->getCurrentPanel()?->getId() === 'kasir' ? 'Produk' : 'Latte';
+    }
+
+    // Prices are the owner's call; cashiers only sell.
+    public static function canAccess(): bool
+    {
+        return auth()->user()?->isAdmin() ?? false;
+    }
+
     public static function form(Form $form): Form
     {
         return $form->schema([

@@ -73,12 +73,6 @@
             },
             print() { window.print(); },
 
-            toggleTheme() {
-                const dark = ! document.documentElement.classList.contains('dark');
-                document.documentElement.classList.toggle('dark', dark);
-                try { localStorage.setItem('theme', dark ? 'dark' : 'light'); } catch (e) {}
-            },
-
             rp(n) { return 'Rp' + (n || 0).toLocaleString('id-ID'); },
             num(n) { return (n || 0).toLocaleString('id-ID'); },
         });
@@ -88,29 +82,13 @@
         x-data="posApp(@js($products), @js($categories))"
         x-on:keydown.escape.window="sheet = false"
     >
-        {{-- Header --}}
-        <header class="pos-head">
-            <div class="pos-brand">
-                <img src="{{ asset('Logo Get Washed Updated.png') }}" alt="">
-                <div>
-                    <strong>Getwashed Latte</strong>
-                    <span>Kasir · {{ auth()->user()->name }}</span>
-                </div>
+        <div class="lt-hero pos-hero">
+            <span class="lt-hero-icon"><x-filament::icon icon="heroicon-o-shopping-cart" /></span>
+            <div>
+                <h1>Kasir</h1>
+                <p>{{ auth()->user()->name }} · <span x-text="clock"></span> WIB</p>
             </div>
-            <div class="pos-head-end">
-                <span class="pos-clock" x-text="clock"></span>
-                <button type="button" class="pos-icon-btn" x-on:click="toggleTheme()" title="Ganti tema" aria-label="Ganti tema">
-                    <x-filament::icon icon="heroicon-o-sun" class="pos-only-dark" />
-                    <x-filament::icon icon="heroicon-o-moon" class="pos-only-light" />
-                </button>
-                <form method="POST" action="{{ filament()->getLogoutUrl() }}">
-                    @csrf
-                    <button type="submit" class="pos-icon-btn" title="Keluar" aria-label="Keluar">
-                        <x-filament::icon icon="heroicon-o-arrow-right-start-on-rectangle" />
-                    </button>
-                </form>
-            </div>
-        </header>
+        </div>
 
         <div class="pos-body">
             {{-- Menu --}}
@@ -131,6 +109,7 @@
                 <div class="pos-grid">
                     <template x-for="product in visible" :key="product.id">
                         <button type="button" class="pos-product" :class="{ 'is-in': qty(product.id) }" x-on:click="add(product)">
+                            <span class="pos-product-icon" :class="'is-' + product.category" x-text="product.name.charAt(0)"></span>
                             <span class="pos-product-cat" x-text="categories[product.category] ?? ''"></span>
                             <span class="pos-product-name" x-text="product.name"></span>
                             <span class="pos-product-price" x-text="rp(product.price)"></span>

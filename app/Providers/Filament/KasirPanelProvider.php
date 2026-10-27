@@ -2,10 +2,12 @@
 
 namespace App\Providers\Filament;
 
+use Filament\Enums\ThemeMode;
 use Filament\Http\Middleware\Authenticate;
 use Filament\Http\Middleware\AuthenticateSession;
 use Filament\Http\Middleware\DisableBladeIconComponents;
 use Filament\Http\Middleware\DispatchServingFilamentEvent;
+use Filament\Navigation\NavigationGroup;
 use Filament\Panel;
 use Filament\PanelProvider;
 use Filament\Support\Colors\Color;
@@ -15,10 +17,11 @@ use Illuminate\Cookie\Middleware\EncryptCookies;
 use Illuminate\Foundation\Http\Middleware\VerifyCsrfToken;
 use Illuminate\Routing\Middleware\SubstituteBindings;
 use Illuminate\Session\Middleware\StartSession;
+use Illuminate\Support\Facades\Blade;
 use Illuminate\Support\HtmlString;
 use Illuminate\View\Middleware\ShareErrorsFromSession;
 
-/** The Latte till: one full-screen page, no sidebar, open to admins and cashiers. */
+/** The Latte back office + till, open to admins and cashiers. */
 class KasirPanelProvider extends PanelProvider
 {
     public function panel(Panel $panel): Panel
@@ -30,13 +33,29 @@ class KasirPanelProvider extends PanelProvider
             ->domain($domain)
             ->path($domain ? '' : 'kasir')
             ->login()
-            ->brandName('Getwashed Latte · Kasir')
+            ->brandName('Getwashed Latte')
+            ->brandLogo(fn () => view('filament.kasir.brand'))
             ->favicon(asset('Logo Get Washed Updated.png'))
-            ->colors(['primary' => Color::Amber])
-            ->navigation(false)
-            ->topbar(false)
-            ->pages([\App\Filament\Kasir\Pages\Pos::class])
-            ->renderHook(PanelsRenderHook::STYLES_AFTER, fn () => new HtmlString('<link rel="stylesheet" href="' . asset('css/pos.css') . '?v=1">'))
+            ->colors(['primary' => Color::Blue])
+            ->font('Inter')
+            ->defaultThemeMode(ThemeMode::System)
+            ->sidebarCollapsibleOnDesktop()
+            ->navigationGroups([
+                NavigationGroup::make('Utama'),
+                NavigationGroup::make('Transaksi')->collapsible(),
+                NavigationGroup::make('Produk')->collapsible(),
+            ])
+            ->pages([
+                \App\Filament\Kasir\Pages\LatteDashboard::class,
+                \App\Filament\Kasir\Pages\Pos::class,
+            ])
+            ->resources([
+                \App\Filament\Resources\Latte\OrderResource::class,
+                \App\Filament\Resources\Latte\ProductResource::class,
+            ])
+            ->renderHook(PanelsRenderHook::STYLES_AFTER, fn () => new HtmlString('<link rel="stylesheet" href="' . asset('css/pos.css') . '?v=2">'))
+            ->renderHook(PanelsRenderHook::USER_MENU_BEFORE, fn () => Blade::render('<div class="lt-topbar-theme"><x-filament-panels::theme-switcher /></div>'))
+            ->renderHook(PanelsRenderHook::SIDEBAR_FOOTER, fn () => view('filament.kasir.sidebar-user'))
             ->middleware([
                 EncryptCookies::class,
                 AddQueuedCookiesToResponse::class,
