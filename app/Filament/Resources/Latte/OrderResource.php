@@ -94,7 +94,7 @@ class OrderResource extends Resource
                 Tables\Columns\TextColumn::make('items_sum_qty')->label('Item')->suffix(' item')->visibleFrom('lg'),
                 Tables\Columns\TextColumn::make('payment_method')->label('Bayar')->badge()
                     ->formatStateUsing(fn ($state, Order $record) => $record->voided_at ? 'Dibatalkan' : (Order::METHODS[$state] ?? $state))
-                    ->color(fn ($state, Order $record) => $record->voided_at ? 'danger' : ($state === 'cash' ? 'gray' : 'info'))->visibleFrom('sm'),
+                    ->color(fn ($state, Order $record) => $record->voided_at ? 'danger' : ($state === 'cash' ? 'success' : 'info'))->visibleFrom('sm'),
                 Tables\Columns\TextColumn::make('total')->label('Total')->money('IDR', locale: 'id')->sortable()->weight('semibold')
                     ->extraAttributes(fn (Order $record) => $record->voided_at ? ['style' => 'text-decoration:line-through;opacity:.5'] : [])
                     ->description(fn (Order $record) => $record->discount ? 'Diskon ' . number_format($record->discount, 0, ',', '.') : null)
