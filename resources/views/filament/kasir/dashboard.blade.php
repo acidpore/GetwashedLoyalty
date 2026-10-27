@@ -72,7 +72,7 @@
             <div class="lt-row">
                 <span class="lt-row-icon"><x-filament::icon icon="heroicon-o-receipt-percent" /></span>
                 <div><strong>{{ $order->number }}</strong><span>{{ $order->customer?->user?->name ?? 'Umum' }} · {{ $order->created_at->format('H:i') }}</span></div>
-                <span class="lt-pill">{{ $methods[$order->payment_method] }}</span>
+                <span class="lt-pill">{{ $order->voided_at ? 'Dibatalkan' : $methods[$order->payment_method] }}</span>
                 <b>Rp{{ number_format($order->total, 0, ',', '.') }}</b>
             </div>
         @empty

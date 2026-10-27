@@ -44,16 +44,22 @@ class KasirPanelProvider extends PanelProvider
                 NavigationGroup::make('Utama'),
                 NavigationGroup::make('Transaksi')->collapsible(),
                 NavigationGroup::make('Produk')->collapsible(),
+                NavigationGroup::make('Pengaturan')->collapsible(),
             ])
             ->pages([
                 \App\Filament\Kasir\Pages\LatteDashboard::class,
                 \App\Filament\Kasir\Pages\Pos::class,
+                \App\Filament\Kasir\Pages\Laporan::class,
             ])
             ->resources([
                 \App\Filament\Resources\Latte\OrderResource::class,
                 \App\Filament\Resources\Latte\ProductResource::class,
+                \App\Filament\Kasir\Resources\IngredientResource::class,
+                \App\Filament\Kasir\Resources\PromoResource::class,
+                \App\Filament\Kasir\Resources\CashierResource::class,
+                \App\Filament\Kasir\Resources\CashShiftResource::class,
             ])
-            ->renderHook(PanelsRenderHook::STYLES_AFTER, fn () => new HtmlString('<link rel="stylesheet" href="' . asset('css/pos.css') . '?v=3">'))
+            ->renderHook(PanelsRenderHook::STYLES_AFTER, fn () => new HtmlString('<link rel="stylesheet" href="' . asset('css/pos.css') . '?v=4">'))
             ->renderHook(PanelsRenderHook::USER_MENU_BEFORE, fn () => Blade::render('<div class="lt-topbar-theme"><x-filament-panels::theme-switcher /></div>'))
             ->renderHook(PanelsRenderHook::SIDEBAR_FOOTER, fn () => view('filament.kasir.sidebar-user'))
             ->middleware([

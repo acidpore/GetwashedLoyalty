@@ -1,13 +1,15 @@
 <x-filament-panels::page class="pos-page">
     <script>
         // Plain script before the markup, so it exists when Alpine boots the page.
-        window.posApp = (products, categories) => ({
-            products, categories,
+        window.posApp = (products, categories, promos, shift) => ({
+            products, categories, promos, shift,
             search: '', category: null,
             cart: [], customer: null, redeem: false,
-            phone: '', results: [], searching: false,
+            phone: '', results: [], searching: false, newName: '',
             method: 'cash', paid: 0,
-            busy: false, error: '', receipt: null, sheet: false,
+            promoId: '', manual: 0,
+            busy: false, error: '', receipt: null, sheet: false, waSent: null,
+            picker: null, opening: 0, closing: null, counted: 0, closeNote: '', closed: null,
             clock: '',
 
             init() {
@@ -20,7 +22,14 @@
                 const q = this.search.trim().toLowerCase();
                 return this.products.filter(p => (this.category === null || p.category === this.category) && (! q || p.name.toLowerCase().includes(q)));
             },
-            get total() { return this.cart.reduce((sum, l) => sum + l.price * l.qty, 0); },
+            get subtotal() { return this.cart.reduce((sum, l) => sum + l.price * l.qty, 0); },
+            // Mirrors Promo::discountFor; the server recomputes it anyway.
+            get discount() {
+                const promo = this.promos.find(p => p.id == this.promoId);
+                const d = promo ? (promo.type === 'percent' ? Math.floor(this.subtotal * Math.min(100, promo.value) / 100) : promo.value) : this.manual;
+                return Math.min(this.subtotal, d || 0);
+            },
+            get total() { return this.subtotal - this.discount; },
             get count() { return this.cart.reduce((sum, l) => sum + l.qty, 0); },
             get canPay() {
                 if (! this.cart.length && ! this.redeem) return false;
@@ -34,17 +43,45 @@
                 return [t, ...new Set(ups)].slice(0, 4);
             },
 
-            qty(id) { return this.cart.find(l => l.id === id)?.qty ?? 0; },
-            add(product) {
-                const line = this.cart.find(l => l.id === product.id);
-                line ? line.qty++ : this.cart.push({ ...product, qty: 1 });
+            qty(id) { return this.cart.filter(l => l.id === id).reduce((s, l) => s + l.qty, 0); },
+            tap(product) {
+                if (product.options.length) {
+                    this.picker = { product, picks: product.options.map(g => g.multiple ? [] : (g.choices.length ? 0 : null)), note: '' };
+                    return;
+                }
+                this.push(product, [], '');
+            },
+            toggle(g, c) {
+                const picks = this.picker.picks;
+                if (this.picker.product.options[g].multiple) {
+                    picks[g] = picks[g].includes(c) ? picks[g].filter(x => x !== c) : [...picks[g], c];
+                } else {
+                    picks[g] = c;
+                }
+            },
+            picked(g, c) {
+                const p = this.picker.picks[g];
+                return Array.isArray(p) ? p.includes(c) : p === c;
+            },
+            confirmPick() {
+                const { product, picks, note } = this.picker;
+                const pairs = picks.flatMap((p, g) => (Array.isArray(p) ? p : (p === null ? [] : [p])).map(c => [g, c]));
+                this.push(product, pairs, note.trim());
+                this.picker = null;
+            },
+            push(product, options, note) {
+                const key = product.id + '|' + JSON.stringify(options) + '|' + note;
+                const extra = options.reduce((s, [g, c]) => s + (+product.options[g].choices[c].price || 0), 0);
+                const label = options.map(([g, c]) => product.options[g].choices[c].name).join(', ');
+                const line = this.cart.find(l => l.key === key);
+                line ? line.qty++ : this.cart.push({ key, id: product.id, name: product.name, price: product.price + extra, options, label, note, qty: 1 });
                 this.error = '';
             },
             step(line, by) {
                 line.qty += by;
                 if (line.qty <= 0) this.cart = this.cart.filter(l => l !== line);
             },
-            clear() { this.cart = []; this.paid = 0; this.redeem = false; },
+            clear() { this.cart = []; this.paid = 0; this.redeem = false; this.promoId = ''; this.manual = 0; },
 
             async lookup() {
                 if (this.phone.replace(/\D/g, '').length < 6) { this.results = []; return; }
@@ -53,19 +90,31 @@
                 this.searching = false;
                 if (this.results.length === 1 && this.phone.replace(/\D/g, '').length >= 10) this.pick(this.results[0]);
             },
-            pick(c) { this.customer = c; this.results = []; this.phone = ''; this.redeem = false; },
+            pick(c) { this.customer = c; this.results = []; this.phone = ''; this.newName = ''; this.redeem = false; },
+            async register() {
+                this.busy = true;
+                const result = await this.$wire.registerCustomer(this.newName, this.phone);
+                this.busy = false;
+                result.error ? this.error = result.error : this.pick(result);
+            },
 
             async pay() {
                 this.busy = true; this.error = '';
                 const result = await this.$wire.checkout(
-                    this.cart.map(l => ({ id: l.id, qty: l.qty })),
+                    this.cart.map(l => ({ id: l.id, qty: l.qty, options: l.options, note: l.note })),
                     this.method, this.paid, this.customer?.id ?? null, this.redeem,
+                    this.promoId ? { promo_id: +this.promoId } : { amount: this.manual },
                 );
                 this.busy = false;
                 if (result.error) { this.error = result.error; return; }
                 this.receipt = result;
+                this.waSent = null;
                 this.sheet = false;
                 this.$nextTick(() => this.$refs.next?.focus());
+            },
+            async sendWa() {
+                this.waSent = 'sending';
+                this.waSent = await this.$wire.sendReceipt(this.receipt.id) ? 'ok' : 'fail';
             },
             reset() {
                 this.receipt = null; this.customer = null; this.method = 'cash';
@@ -73,24 +122,58 @@
             },
             print() { window.print(); },
 
+            async openShift() {
+                this.busy = true;
+                this.shift = await this.$wire.openShift(this.opening);
+                this.busy = false;
+            },
+            async startClose() {
+                this.closing = await this.$wire.shiftSummary();
+                this.counted = 0; this.closeNote = ''; this.closed = null;
+            },
+            async closeShift() {
+                this.busy = true;
+                this.closed = await this.$wire.closeShift(this.counted, this.closeNote);
+                this.busy = false;
+            },
+            finishClose() { this.closing = null; this.closed = null; this.shift = null; this.opening = 0; this.reset(); },
+
             rp(n) { return 'Rp' + (n || 0).toLocaleString('id-ID'); },
             num(n) { return (n || 0).toLocaleString('id-ID'); },
+            money(e) { return parseInt(e.target.value.replace(/\D/g, '')) || 0; },
         });
     </script>
     <div
         class="pos"
-        x-data="posApp(@js($products), @js($categories))"
-        x-on:keydown.escape.window="sheet = false"
+        x-data="posApp(@js($products), @js($categories), @js($promos), @js($shift))"
+        x-on:keydown.escape.window="sheet = false; picker = null"
     >
         <div class="lt-hero pos-hero">
             <span class="lt-hero-icon"><x-filament::icon icon="heroicon-o-shopping-cart" /></span>
             <div>
                 <h1>Kasir</h1>
-                <p>{{ auth()->user()->name }} · <span x-text="clock"></span> WIB</p>
+                <p>{{ auth()->user()->name }} · <span x-text="clock"></span> WIB<span x-show="shift" x-text="' · shift sejak ' + shift?.opened"></span></p>
+            </div>
+            <button type="button" class="pos-secondary pos-hero-btn" x-show="shift" x-on:click="startClose()">
+                <x-filament::icon icon="heroicon-m-lock-closed" /> Tutup shift
+            </button>
+        </div>
+
+        {{-- Shift gate --}}
+        <div class="pos-gate" x-show="! shift" x-cloak>
+            <div class="pos-modal-card">
+                <div class="pos-done-icon"><x-filament::icon icon="heroicon-m-banknotes" /></div>
+                <h3>Buka shift</h3>
+                <p class="pos-hint">Hitung uang di laci kas sebelum mulai jualan.</p>
+                <label class="pos-cash-input">
+                    <span>Modal awal</span>
+                    <input type="text" inputmode="numeric" placeholder="0" :value="opening ? num(opening) : ''" x-on:input="opening = money($event)" aria-label="Modal awal">
+                </label>
+                <button type="button" class="pos-submit" :disabled="busy" x-on:click="openShift()">Mulai shift</button>
             </div>
         </div>
 
-        <div class="pos-body">
+        <div class="pos-body" x-show="shift">
             {{-- Menu --}}
             <section class="pos-menu" aria-label="Menu">
                 <div class="pos-tools">
@@ -108,9 +191,10 @@
 
                 <div class="pos-grid">
                     <template x-for="product in visible" :key="product.id">
-                        <button type="button" class="pos-product" :class="{ 'is-in': qty(product.id) }" x-on:click="add(product)">
-                            <span class="pos-product-icon" :class="'is-' + product.category" x-text="product.name.charAt(0)"></span>
-                            <span class="pos-product-cat" x-text="categories[product.category] ?? ''"></span>
+                        <button type="button" class="pos-product" :class="{ 'is-in': qty(product.id) }" x-on:click="tap(product)">
+                            <template x-if="product.image"><img class="pos-product-img" :src="product.image" alt="" loading="lazy"></template>
+                            <template x-if="! product.image"><span class="pos-product-icon" :class="'is-' + product.category" x-text="product.name.charAt(0)"></span></template>
+                            <span class="pos-product-cat" x-text="(categories[product.category] ?? '') + (product.options.length ? ' · varian' : '')"></span>
                             <span class="pos-product-name" x-text="product.name"></span>
                             <span class="pos-product-price" x-text="rp(product.price)"></span>
                             <span class="pos-product-qty" x-show="qty(product.id)" x-text="qty(product.id)"></span>
@@ -118,7 +202,7 @@
                     </template>
                     <p class="pos-empty" x-show="! visible.length" x-cloak>
                         @if ($products->isEmpty())
-                            Belum ada menu. Tambahkan dulu di admin → Latte → Menu.
+                            Belum ada menu. Tambahkan dulu di Produk → Menu.
                         @else
                             Menu tidak ditemukan.
                         @endif
@@ -152,7 +236,13 @@
                                     </button></li>
                                 </template>
                             </ul>
-                            <p class="pos-hint" x-show="phone.replace(/\D/g, '').length >= 8 && ! searching && ! results.length" x-cloak>Customer tidak ditemukan. Transaksi tetap bisa tanpa customer.</p>
+                            <div class="pos-register" x-show="phone.replace(/\D/g, '').length >= 10 && ! searching && ! results.length" x-cloak>
+                                <p class="pos-hint">Belum terdaftar. Daftarkan sebagai member?</p>
+                                <div class="pos-register-row">
+                                    <input type="text" class="pos-input" placeholder="Nama customer" x-model="newName" x-on:keydown.enter="newName.trim() && register()" aria-label="Nama customer baru">
+                                    <button type="button" class="pos-secondary" :disabled="! newName.trim() || busy" x-on:click="register()">Daftar</button>
+                                </div>
+                            </div>
                         </div>
                     </template>
                     <template x-if="customer">
@@ -180,11 +270,11 @@
 
                 {{-- Lines --}}
                 <ul class="pos-lines">
-                    <template x-for="line in cart" :key="line.id">
+                    <template x-for="line in cart" :key="line.key">
                         <li>
                             <div class="pos-line-info">
                                 <span x-text="line.name"></span>
-                                <small x-text="rp(line.price)"></small>
+                                <small x-text="[line.label, line.note && '“' + line.note + '”', rp(line.price)].filter(Boolean).join(' · ')"></small>
                             </div>
                             <div class="pos-stepper">
                                 <button type="button" x-on:click="step(line, -1)" :aria-label="'Kurangi ' + line.name">−</button>
@@ -203,6 +293,15 @@
 
                 {{-- Payment --}}
                 <div class="pos-pay">
+                    <div class="pos-discount" x-show="cart.length">
+                        <select class="pos-input" x-model="promoId" aria-label="Promo">
+                            <option value="">Tanpa promo</option>
+                            <template x-for="p in promos" :key="p.id"><option :value="p.id" x-text="p.name + ' (' + p.label + ')'"></option></template>
+                        </select>
+                        <input type="text" inputmode="numeric" class="pos-input" placeholder="Diskon Rp" x-show="! promoId" :value="manual ? num(manual) : ''" x-on:input="manual = money($event)" aria-label="Diskon manual">
+                    </div>
+                    <div class="pos-subline" x-show="discount"><span>Subtotal</span><span x-text="rp(subtotal)"></span></div>
+                    <div class="pos-subline" x-show="discount"><span>Diskon</span><span x-text="'-' + rp(discount)"></span></div>
                     <div class="pos-total"><span>Total</span><strong x-text="rp(total)"></strong></div>
 
                     <div class="pos-methods" role="radiogroup" aria-label="Metode bayar">
@@ -214,7 +313,7 @@
                     <div class="pos-cash" x-show="method === 'cash'">
                         <label class="pos-cash-input">
                             <span>Dibayar</span>
-                            <input type="text" inputmode="numeric" placeholder="0" :value="paid ? paid.toLocaleString('id-ID') : ''" x-on:input="paid = parseInt($event.target.value.replace(/\D/g, '')) || 0" aria-label="Uang dibayar">
+                            <input type="text" inputmode="numeric" placeholder="0" :value="paid ? num(paid) : ''" x-on:input="paid = money($event)" aria-label="Uang dibayar">
                         </label>
                         <div class="pos-quick">
                             <template x-for="amount in quick" :key="amount">
@@ -238,11 +337,69 @@
         </div>
 
         {{-- Phone: cart collapses into a bar --}}
-        <button type="button" class="pos-bar" x-show="! sheet" x-on:click="sheet = true">
+        <button type="button" class="pos-bar" x-show="shift && ! sheet" x-on:click="sheet = true">
             <span><b x-text="count"></b> item</span>
             <strong x-text="rp(total)"></strong>
             <x-filament::icon icon="heroicon-m-chevron-up" />
         </button>
+
+        {{-- Variant picker --}}
+        <div class="pos-modal" x-show="picker" x-cloak x-transition.opacity role="dialog" aria-modal="true" aria-labelledby="pos-pick-title">
+            <template x-if="picker">
+                <div class="pos-modal-card pos-picker" x-on:click.outside="picker = null">
+                    <h3 id="pos-pick-title" x-text="picker.product.name"></h3>
+                    <template x-for="(group, g) in picker.product.options" :key="g">
+                        <fieldset class="pos-option-group">
+                            <legend x-text="group.name + (group.multiple ? ' (boleh lebih dari satu)' : '')"></legend>
+                            <div class="pos-chips">
+                                <template x-for="(choice, c) in group.choices" :key="c">
+                                    <button type="button" :class="{ 'is-on': picked(g, c) }" :aria-pressed="picked(g, c)" x-on:click="toggle(g, c)"
+                                        x-text="choice.name + (+choice.price ? ' +' + num(+choice.price) : '')"></button>
+                                </template>
+                            </div>
+                        </fieldset>
+                    </template>
+                    <input type="text" class="pos-input" placeholder="Catatan (mis. less sugar)" maxlength="80" x-model="picker.note" aria-label="Catatan">
+                    <div class="pos-modal-actions">
+                        <button type="button" class="pos-secondary" x-on:click="picker = null">Batal</button>
+                        <button type="button" class="pos-submit" x-on:click="confirmPick()">Tambah</button>
+                    </div>
+                </div>
+            </template>
+        </div>
+
+        {{-- Close shift --}}
+        <div class="pos-modal" x-show="closing" x-cloak x-transition.opacity role="dialog" aria-modal="true" aria-labelledby="pos-close-title">
+            <div class="pos-modal-card">
+                <h3 id="pos-close-title">Tutup shift</h3>
+                <template x-if="! closed">
+                    <div class="pos-close">
+                        <p class="pos-hint" x-text="`${closing?.orders ?? 0} transaksi · penjualan ${rp(closing?.sales)}`"></p>
+                        <div class="pos-subline"><span>Modal awal</span><span x-text="rp(shift?.opening)"></span></div>
+                        <div class="pos-subline"><span>Seharusnya di laci</span><b x-text="rp(closing?.expected)"></b></div>
+                        <label class="pos-cash-input">
+                            <span>Uang dihitung</span>
+                            <input type="text" inputmode="numeric" placeholder="0" :value="counted ? num(counted) : ''" x-on:input="counted = money($event)" aria-label="Uang dihitung">
+                        </label>
+                        <input type="text" class="pos-input" placeholder="Catatan (opsional)" maxlength="200" x-model="closeNote" aria-label="Catatan">
+                        <div class="pos-modal-actions">
+                            <button type="button" class="pos-secondary" x-on:click="closing = null">Batal</button>
+                            <button type="button" class="pos-submit" :disabled="busy" x-on:click="closeShift()">Tutup shift</button>
+                        </div>
+                    </div>
+                </template>
+                <template x-if="closed">
+                    <div class="pos-close">
+                        <div class="pos-done-change" :class="{ 'is-short': closed.difference }">
+                            <span x-text="closed.difference ? 'Selisih' : 'Kas pas'"></span>
+                            <strong x-text="(closed.difference > 0 ? '+' : closed.difference < 0 ? '-' : '') + rp(Math.abs(closed.difference))"></strong>
+                        </div>
+                        <p class="pos-hint" x-text="`Seharusnya ${rp(closed.expected)}, dihitung ${rp(closed.counted)}.`"></p>
+                        <button type="button" class="pos-submit" x-on:click="finishClose()">Selesai</button>
+                    </div>
+                </template>
+            </div>
+        </div>
 
         {{-- Done --}}
         <div class="pos-modal" x-show="receipt" x-cloak x-transition.opacity role="dialog" aria-modal="true" aria-labelledby="pos-done-title">
@@ -260,7 +417,11 @@
                 </p>
                 <div class="pos-modal-actions">
                     <button type="button" class="pos-secondary" x-on:click="print()">
-                        <x-filament::icon icon="heroicon-m-printer" /> Cetak struk
+                        <x-filament::icon icon="heroicon-m-printer" /> Cetak
+                    </button>
+                    <button type="button" class="pos-secondary" x-show="receipt?.customer" :disabled="waSent === 'sending' || waSent === 'ok'" x-on:click="sendWa()">
+                        <x-filament::icon icon="heroicon-m-chat-bubble-left-ellipsis" />
+                        <span x-text="{ sending: 'Mengirim…', ok: 'Terkirim', fail: 'Gagal, ulangi' }[waSent] ?? 'Struk WA'"></span>
                     </button>
                     <button type="button" class="pos-submit" x-on:click="reset()" x-ref="next">Transaksi baru</button>
                 </div>
@@ -278,10 +439,17 @@
                     <template x-for="(item, i) in receipt.items" :key="i">
                         <div>
                             <p x-text="item.name"></p>
+                            <p x-show="item.options || item.note" x-text="'  ' + [item.options, item.note].filter(Boolean).join(' · ')"></p>
                             <p class="r-row"><span x-text="item.qty + ' x ' + num(item.price)"></span><span x-text="item.price ? num(item.price * item.qty) : 'GRATIS'"></span></p>
                         </div>
                     </template>
                     <hr>
+                    <template x-if="receipt.discount">
+                        <div>
+                            <p class="r-row"><span>Subtotal</span><span x-text="num(receipt.subtotal)"></span></p>
+                            <p class="r-row"><span x-text="receipt.promo || 'Diskon'"></span><span x-text="'-' + num(receipt.discount)"></span></p>
+                        </div>
+                    </template>
                     <p class="r-row r-bold"><span>TOTAL</span><span x-text="num(receipt.total)"></span></p>
                     <p class="r-row"><span x-text="receipt.method"></span><span x-text="num(receipt.paid)"></span></p>
                     <p class="r-row" x-show="receipt.change"><span>Kembali</span><span x-text="num(receipt.change)"></span></p>

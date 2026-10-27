@@ -27,13 +27,13 @@ class LatteDashboard extends Dashboard
 
     protected function getViewData(): array
     {
-        $today = Order::whereDate('created_at', today());
-        $month = Order::where('created_at', '>=', now()->startOfMonth());
+        $today = Order::paid()->whereDate('created_at', today());
+        $month = Order::paid()->where('created_at', '>=', now()->startOfMonth());
         $todayCount = (clone $today)->count();
         $todayRevenue = (int) (clone $today)->sum('total');
-        $yesterdayRevenue = (int) Order::whereDate('created_at', today()->subDay())->sum('total');
+        $yesterdayRevenue = (int) Order::paid()->whereDate('created_at', today()->subDay())->sum('total');
 
-        $daily = Order::where('created_at', '>=', today()->subDays(6))
+        $daily = Order::paid()->where('created_at', '>=', today()->subDays(6))
             ->selectRaw('DATE(created_at) as day, SUM(total) as revenue, COUNT(*) as orders')
             ->groupBy('day')->pluck('revenue', 'day');
         $week = collect(range(6, 0))->map(function (int $ago) use ($daily) {
@@ -53,7 +53,7 @@ class LatteDashboard extends Dashboard
                 ['label' => 'Pendapatan Bulan Ini', 'value' => $this->rp((int) (clone $month)->sum('total')), 'icon' => 'heroicon-o-calendar'],
                 ['label' => 'Transaksi Bulan Ini', 'value' => number_format((clone $month)->count(), 0, ',', '.'), 'icon' => 'heroicon-o-document-text'],
                 ['label' => 'Item Terjual Bulan Ini', 'value' => number_format((int) OrderItem::whereIn('order_id', (clone $month)->select('id'))->where('price', '>', 0)->sum('qty'), 0, ',', '.'), 'icon' => 'heroicon-o-cube'],
-                ['label' => 'Menu Aktif', 'value' => Product::where('is_active', true)->count(), 'icon' => 'heroicon-o-squares-plus'],
+                ['label' => 'Bahan Hampir Habis', 'value' => \App\Models\Ingredient::low()->count(), 'icon' => 'heroicon-o-exclamation-triangle'],
                 ['label' => 'Member Latte', 'value' => number_format(Customer::where('coffeeshop_total_visits', '>', 0)->count(), 0, ',', '.'), 'icon' => 'heroicon-o-users'],
             ],
             'week' => $week,

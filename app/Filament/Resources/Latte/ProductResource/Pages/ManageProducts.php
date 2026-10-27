@@ -12,6 +12,6 @@ class ManageProducts extends ManageRecords
 
     protected function getHeaderActions(): array
     {
-        return [Actions\CreateAction::make()->label('Tambah menu')];
+        return [Actions\CreateAction::make()->label('Tambah menu')->modalWidth('3xl')];
     }
 }
