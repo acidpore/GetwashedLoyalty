@@ -153,7 +153,7 @@ class Order extends Model
             }
 
             return $order;
-        });
+        }, 5); // Two tills ringing up at once can deadlock on the number lock; Laravel retries the whole transaction.
     }
 
     /**
