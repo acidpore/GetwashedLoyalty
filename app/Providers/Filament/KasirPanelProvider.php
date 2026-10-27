@@ -36,7 +36,7 @@ class KasirPanelProvider extends PanelProvider
             ->brandName('Getwashed Latte')
             ->brandLogo(fn () => view('filament.kasir.brand'))
             ->favicon(asset('Logo Get Washed Updated.png'))
-            ->colors(['primary' => Color::Blue])
+            ->colors(['primary' => Color::Amber])
             ->font('Inter')
             ->defaultThemeMode(ThemeMode::System)
             ->sidebarCollapsibleOnDesktop()
@@ -53,7 +53,7 @@ class KasirPanelProvider extends PanelProvider
                 \App\Filament\Resources\Latte\OrderResource::class,
                 \App\Filament\Resources\Latte\ProductResource::class,
             ])
-            ->renderHook(PanelsRenderHook::STYLES_AFTER, fn () => new HtmlString('<link rel="stylesheet" href="' . asset('css/pos.css') . '?v=2">'))
+            ->renderHook(PanelsRenderHook::STYLES_AFTER, fn () => new HtmlString('<link rel="stylesheet" href="' . asset('css/pos.css') . '?v=3">'))
             ->renderHook(PanelsRenderHook::USER_MENU_BEFORE, fn () => Blade::render('<div class="lt-topbar-theme"><x-filament-panels::theme-switcher /></div>'))
             ->renderHook(PanelsRenderHook::SIDEBAR_FOOTER, fn () => view('filament.kasir.sidebar-user'))
             ->middleware([
