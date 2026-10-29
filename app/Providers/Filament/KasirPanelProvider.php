@@ -46,6 +46,14 @@ class KasirPanelProvider extends PanelProvider
                 NavigationGroup::make('Produk')->collapsible(),
                 NavigationGroup::make('Pengaturan')->collapsible(),
             ])
+            ->navigationItems([
+                \Filament\Navigation\NavigationItem::make('Admin Loyalty')
+                    ->group('Utama')
+                    ->sort(99)
+                    ->icon('heroicon-o-arrow-uturn-left')
+                    ->url(fn () => filament()->getPanel('admin')->getUrl())
+                    ->visible(fn () => auth()->user()?->isAdmin()),
+            ])
             ->pages([
                 \App\Filament\Kasir\Pages\LatteDashboard::class,
                 \App\Filament\Kasir\Pages\Pos::class,
