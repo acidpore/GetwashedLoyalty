@@ -331,7 +331,7 @@
 .dark .pos-gate-go { background: #f59e0b; color: #1c1917 !important; }
 .dark .pos-gate-quick button { color: rgb(var(--gray-300)); }
 .dark .pos-gate-quick button.is-on, .dark .pos-gate-quick button:hover { color: #fbbf24; }
-.pos-product-img { width: 100%; aspect-ratio: 4 / 3; flex-shrink: 0; margin-bottom: .375rem; border-radius: .75rem; object-fit: cover; background: var(--pos-soft); }
+.pos-product-img { width: 100%; height: 7rem; flex-shrink: 0; margin-bottom: .375rem; border-radius: .75rem; object-fit: cover; background: var(--pos-soft); }
 .pos-product > * { flex-shrink: 0; }
 .pos-input { width: 100%; height: 2.5rem; padding: 0 .75rem; border: 1px solid var(--pos-line); border-radius: .625rem; background: var(--pos-surface); color: var(--pos-ink); font-size: .875rem; }
 .pos-input:focus { border-color: var(--pos-accent); box-shadow: 0 0 0 3px var(--pos-accent-soft); outline: none; }
