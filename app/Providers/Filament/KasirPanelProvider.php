@@ -51,7 +51,7 @@ class KasirPanelProvider extends PanelProvider
                     ->group('Utama')
                     ->sort(99)
                     ->icon('heroicon-o-arrow-uturn-left')
-                    ->url(fn () => filament()->getPanel('admin')->getUrl())
+                    ->url('/admin')
                     ->visible(fn () => auth()->user()?->isAdmin()),
             ])
             ->pages([
