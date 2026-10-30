@@ -68,7 +68,7 @@ class KasirPanelProvider extends PanelProvider
                 \App\Filament\Kasir\Resources\CashShiftResource::class,
             ])
             ->renderHook(PanelsRenderHook::HEAD_END, fn () => new HtmlString('<link rel="manifest" href="/kasir.webmanifest"><link rel="apple-touch-icon" href="/img/icon-180.png"><meta name="theme-color" content="#18181b"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-title" content="Getwashed">'))
-            ->renderHook(PanelsRenderHook::STYLES_AFTER, fn () => new HtmlString('<link rel="stylesheet" href="' . asset('css/pos.css') . '?v=11">'))
+            ->renderHook(PanelsRenderHook::STYLES_AFTER, fn () => new HtmlString('<link rel="stylesheet" href="' . asset('css/pos.css') . '?v=12">'))
             ->renderHook(PanelsRenderHook::USER_MENU_BEFORE, fn () => Blade::render('<div class="lt-topbar-theme"><x-filament-panels::theme-switcher /></div>'))
             ->renderHook(PanelsRenderHook::SIDEBAR_FOOTER, fn () => view('filament.kasir.sidebar-user'))
             ->middleware([
