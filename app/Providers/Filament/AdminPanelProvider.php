@@ -40,6 +40,8 @@ class AdminPanelProvider extends PanelProvider
             ])
             ->defaultThemeMode(ThemeMode::System)
             ->sidebarCollapsibleOnDesktop()
+            ->renderHook(PanelsRenderHook::HEAD_START, fn () => new HtmlString('<script>// Phones start with the sidebar shut; Filament otherwise persists it open from the last visit.
+if (matchMedia("(max-width: 1023px)").matches) localStorage.setItem("isOpen", "false")</script>'))
             ->renderHook(PanelsRenderHook::USER_MENU_BEFORE, fn () => Blade::render('<div class="gw-topbar-theme"><x-filament-panels::theme-switcher /></div>'))
             ->renderHook(PanelsRenderHook::SIDEBAR_FOOTER, fn () => view('filament.sidebar-logout'))
             ->renderHook(PanelsRenderHook::STYLES_AFTER, fn () => new HtmlString('<link rel="stylesheet" href="' . asset('css/analytics.css') . '?v=5"><style>'
