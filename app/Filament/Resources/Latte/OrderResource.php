@@ -67,7 +67,7 @@ class OrderResource extends Resource
             Infolists\Components\TextEntry::make('payment_method')->label('Bayar')->formatStateUsing(fn ($state) => Order::METHODS[$state] ?? $state),
             Infolists\Components\RepeatableEntry::make('items')->label('Item')->columnSpanFull()->columns(3)->schema([
                 Infolists\Components\TextEntry::make('name')->hiddenLabel()->weight('semibold')
-                    ->description(fn ($record) => collect([$record->options, $record->note])->filter()->implode(' · ') ?: null),
+                    ->helperText(fn ($record) => collect([$record->options, $record->note])->filter()->implode(' · ') ?: null),
                 Infolists\Components\TextEntry::make('qty')->hiddenLabel()->formatStateUsing(fn ($record) => $record->qty . ' × ' . $rp($record->price)),
                 Infolists\Components\TextEntry::make('price')->hiddenLabel()->alignEnd()
                     ->formatStateUsing(fn ($record) => $record->price ? $rp($record->price * $record->qty) : 'Gratis'),
@@ -97,7 +97,7 @@ class OrderResource extends Resource
                     ->color(fn ($state, Order $record) => $record->voided_at ? 'danger' : ($state === 'cash' ? 'success' : 'info'))->visibleFrom('sm'),
                 Tables\Columns\TextColumn::make('total')->label('Total')->formatStateUsing(fn ($state) => 'Rp' . number_format((int) $state, 0, ',', '.'))->sortable()->weight('semibold')
                     ->extraAttributes(fn (Order $record) => $record->voided_at ? ['style' => 'text-decoration:line-through;opacity:.5'] : [])
-                    ->description(fn (Order $record) => $record->discount ? 'Diskon ' . number_format($record->discount, 0, ',', '.') : null)
+                    ->description(fn (Order $record) => $record->discount ? 'Diskon Rp' . number_format($record->discount, 0, ',', '.') : null)
                     ->summarize(Tables\Columns\Summarizers\Sum::make()->label('Omzet (tanpa batal)')->formatStateUsing(fn ($state) => 'Rp' . number_format((int) $state, 0, ',', '.'))
                         ->query(fn ($query) => $query->whereNull('voided_at'))),
                 Tables\Columns\TextColumn::make('cashier.name')->label('Kasir')->placeholder('-')->visibleFrom('lg'),
