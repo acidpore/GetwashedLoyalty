@@ -389,7 +389,7 @@
         <div class="pos-modal" x-show="closing" x-cloak x-transition.opacity role="dialog" aria-modal="true" aria-labelledby="pos-close-title">
             <div class="pos-modal-card">
                 <h3 id="pos-close-title">Tutup shift</h3>
-                <template x-if="! closed">
+                <div x-show="! closed">
                     <div class="pos-close">
                         <p class="pos-hint" x-text="`${closing?.orders ?? 0} transaksi · penjualan ${rp(closing?.sales)}`"></p>
                         <div class="pos-subline"><span>Modal awal</span><span x-text="rp(shift?.opening)"></span></div>
@@ -404,17 +404,17 @@
                             <button type="button" class="pos-submit" :disabled="busy" x-on:click="closeShift()">Tutup shift</button>
                         </div>
                     </div>
-                </template>
-                <template x-if="closed">
+                </div>
+                <div x-show="closed">
                     <div class="pos-close">
-                        <div class="pos-done-change" :class="{ 'is-short': closed.difference }">
-                            <span x-text="closed.difference ? 'Selisih' : 'Kas pas'"></span>
-                            <strong x-text="(closed.difference > 0 ? '+' : closed.difference < 0 ? '-' : '') + rp(Math.abs(closed.difference))"></strong>
+                        <div class="pos-done-change" :class="{ 'is-short': closed?.difference }">
+                            <span x-text="closed?.difference ? 'Selisih' : 'Kas pas'"></span>
+                            <strong x-text="(closed?.difference > 0 ? '+' : closed?.difference < 0 ? '-' : '') + rp(Math.abs(closed?.difference))"></strong>
                         </div>
-                        <p class="pos-hint" x-text="`Seharusnya ${rp(closed.expected)}, dihitung ${rp(closed.counted)}.`"></p>
+                        <p class="pos-hint" x-text="`Seharusnya ${rp(closed?.expected)}, dihitung ${rp(closed?.counted)}.`"></p>
                         <button type="button" class="pos-submit" x-on:click="finishClose()">Selesai</button>
                     </div>
-                </template>
+                </div>
             </div>
         </div>
 
