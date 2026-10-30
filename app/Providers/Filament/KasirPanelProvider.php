@@ -37,7 +37,7 @@ class KasirPanelProvider extends PanelProvider
             ->brandLogo(fn () => view('filament.kasir.brand'))
             ->favicon(asset('Logo Get Washed Updated.png'))
             ->colors(['primary' => Color::Amber])
-            ->font('Inter')
+            ->font('Plus Jakarta Sans')
             ->defaultThemeMode(ThemeMode::System)
             ->sidebarCollapsibleOnDesktop()
             ->navigationGroups([
@@ -70,7 +70,7 @@ class KasirPanelProvider extends PanelProvider
             ->renderHook(PanelsRenderHook::HEAD_START, fn () => new HtmlString('<script>// Phones start with the sidebar shut; Filament otherwise persists it open from the last visit.
 if (matchMedia("(max-width: 1023px)").matches) localStorage.setItem("isOpen", "false")</script>'))
             ->renderHook(PanelsRenderHook::HEAD_END, fn () => new HtmlString('<link rel="manifest" href="/kasir.webmanifest"><link rel="apple-touch-icon" href="/img/icon-180.png"><meta name="theme-color" content="#18181b"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-title" content="Getwashed">'))
-            ->renderHook(PanelsRenderHook::STYLES_AFTER, fn () => new HtmlString('<link rel="stylesheet" href="' . asset('css/pos.css') . '?v=17">'))
+            ->renderHook(PanelsRenderHook::STYLES_AFTER, fn () => new HtmlString('<link rel="stylesheet" href="' . asset('css/pos.css') . '?v=18">'))
             ->renderHook(PanelsRenderHook::USER_MENU_BEFORE, fn () => Blade::render('<div class="lt-topbar-theme"><x-filament-panels::theme-switcher /></div>'))
             ->renderHook(PanelsRenderHook::SIDEBAR_FOOTER, fn () => view('filament.kasir.sidebar-user'))
             ->middleware([

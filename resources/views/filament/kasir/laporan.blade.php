@@ -38,10 +38,10 @@
 
     <div class="lt-cards">
         @foreach ([
-            ['Omzet Bersih', $rp($s['net']), $delta($s['net'], $p['net']), 'green', 'heroicon-o-banknotes'],
-            ['Transaksi', number_format($s['orders'], 0, ',', '.'), $delta($s['orders'], $p['orders']), 'blue', 'heroicon-o-receipt-percent'],
-            ['Rata-rata / Transaksi', $rp($s['avg']), $delta($s['avg'], $p['avg']), 'orange', 'heroicon-o-shopping-bag'],
-            ['Item Terjual', number_format($s['items'], 0, ',', '.'), null, 'pink', 'heroicon-o-cube'],
+            ['Omzet Bersih', $rp($s['net']), $delta($s['net'], $p['net'])],
+            ['Transaksi', number_format($s['orders'], 0, ',', '.'), $delta($s['orders'], $p['orders'])],
+            ['Rata-rata / Transaksi', $rp($s['avg']), $delta($s['avg'], $p['avg'])],
+            ['Item Terjual', number_format($s['items'], 0, ',', '.'), null],
         ] as [$label, $value, $d, $tone, $icon])
             <div class="lt-card lt-stat lt-{{ $tone }}">
                 <span class="lt-stat-icon"><x-filament::icon :icon="$icon" /></span>

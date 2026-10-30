@@ -163,7 +163,6 @@
         <div class="pos-gate" x-show="! shift" x-cloak>
             <div class="pos-gate-card">
                 <div class="pos-gate-top">
-                    <span class="pos-gate-badge"><i></i> Kasir tutup</span>
                     <p class="pos-gate-date">{{ now()->locale('id')->translatedFormat('l, d F Y') }}</p>
                     <h2>Siap jualan, {{ \Illuminate\Support\Str::of(auth()->user()->name)->explode(' ')->first() }}?</h2>
                     <p>Hitung uang di laci, masukkan modal awal, lalu buka kasir.</p>

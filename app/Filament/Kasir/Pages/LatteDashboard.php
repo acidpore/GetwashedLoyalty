@@ -44,10 +44,10 @@ class LatteDashboard extends Dashboard
 
         return [
             'cards' => [
-                ['label' => 'Pendapatan Hari Ini', 'value' => $this->rp($todayRevenue), 'hint' => $this->versus($todayRevenue, $yesterdayRevenue), 'icon' => 'heroicon-o-arrow-trending-up', 'tone' => 'green'],
-                ['label' => 'Transaksi Hari Ini', 'value' => number_format($todayCount, 0, ',', '.'), 'hint' => (clone $today)->whereNotNull('customer_id')->count() . ' dari member loyalty', 'icon' => 'heroicon-o-receipt-percent', 'tone' => 'blue'],
-                ['label' => 'Rata-rata / Transaksi', 'value' => $this->rp($todayCount ? intdiv($todayRevenue, $todayCount) : 0), 'hint' => 'Nilai keranjang hari ini', 'icon' => 'heroicon-o-shopping-bag', 'tone' => 'orange'],
-                ['label' => 'Hadiah Diklaim', 'value' => number_format(RewardClaim::where('loyalty_type', 'coffeeshop')->whereDate('claimed_at', today())->count(), 0, ',', '.'), 'hint' => 'Hari ini', 'icon' => 'heroicon-o-gift', 'tone' => 'pink'],
+                ['label' => 'Pendapatan Hari Ini', 'value' => $this->rp($todayRevenue), 'hint' => $this->versus($todayRevenue, $yesterdayRevenue)],
+                ['label' => 'Transaksi Hari Ini', 'value' => number_format($todayCount, 0, ',', '.'), 'hint' => (clone $today)->whereNotNull('customer_id')->count() . ' dari member loyalty'],
+                ['label' => 'Rata-rata / Transaksi', 'value' => $this->rp($todayCount ? intdiv($todayRevenue, $todayCount) : 0), 'hint' => 'Nilai keranjang hari ini'],
+                ['label' => 'Hadiah Diklaim', 'value' => number_format(RewardClaim::where('loyalty_type', 'coffeeshop')->whereDate('claimed_at', today())->count(), 0, ',', '.'), 'hint' => 'Hari ini'],
             ],
             'strip' => [
                 ['label' => 'Pendapatan Bulan Ini', 'value' => $this->rp((int) (clone $month)->sum('total')), 'icon' => 'heroicon-o-calendar'],

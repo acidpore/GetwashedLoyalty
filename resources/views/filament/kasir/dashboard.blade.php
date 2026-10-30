@@ -12,12 +12,11 @@
 
     <div class="lt-cards">
         @foreach ($cards as $card)
-            <div class="lt-card lt-stat lt-{{ $card['tone'] }}">
-                <span class="lt-stat-icon"><x-filament::icon :icon="$card['icon']" /></span>
+            <div class="lt-card lt-stat">
                 <div>
                     <p class="lt-stat-label">{{ $card['label'] }}</p>
                     <p class="lt-stat-value">{{ $card['value'] }}</p>
-                    <p class="lt-stat-hint">{{ $card['hint'] }}</p>
+                    <p class="lt-stat-hint"><span @class(['rp-up' => str_starts_with($card['hint'], '▲'), 'rp-down' => str_starts_with($card['hint'], '▼')])>{{ $card['hint'] }}</span></p>
                 </div>
             </div>
         @endforeach
