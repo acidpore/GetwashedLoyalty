@@ -58,7 +58,7 @@ class IngredientResource extends Resource
                     Infolists\Components\TextEntry::make('created_at')->hiddenLabel()->dateTime('d/m/Y H:i'),
                     Infolists\Components\TextEntry::make('qty')->hiddenLabel()->formatStateUsing(fn ($state) => ($state > 0 ? '+' : '') . rtrim(rtrim(number_format($state, 2, ',', '.'), '0'), ','))
                         ->color(fn ($state) => $state > 0 ? 'success' : 'danger')->weight('semibold'),
-                    Infolists\Components\TextEntry::make('reason')->hiddenLabel()->description(fn ($record) => $record->user?->name),
+                    Infolists\Components\TextEntry::make('reason')->hiddenLabel()->helperText(fn ($record) => $record->user?->name),
                 ]),
         ]);
     }
