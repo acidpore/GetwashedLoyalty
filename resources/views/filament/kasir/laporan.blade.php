@@ -42,9 +42,8 @@
             ['Transaksi', number_format($s['orders'], 0, ',', '.'), $delta($s['orders'], $p['orders'])],
             ['Rata-rata / Transaksi', $rp($s['avg']), $delta($s['avg'], $p['avg'])],
             ['Item Terjual', number_format($s['items'], 0, ',', '.'), null],
-        ] as [$label, $value, $d, $tone, $icon])
-            <div class="lt-card lt-stat lt-{{ $tone }}">
-                <span class="lt-stat-icon"><x-filament::icon :icon="$icon" /></span>
+        ] as [$label, $value, $d])
+            <div class="lt-card lt-stat">
                 <div>
                     <p class="lt-stat-label">{{ $label }}</p>
                     <p class="lt-stat-value">{{ $value }}</p>
