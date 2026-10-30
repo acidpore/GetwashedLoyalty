@@ -431,15 +431,17 @@
                     <span x-text="receipt?.customer?.name"></span>
                     <span x-text="receipt?.points_earned ? `+${receipt.points_earned} poin · sekarang ${receipt.customer.points}/${receipt.customer.target}` : 'Poin terkunci, klaim hadiah dulu'"></span>
                 </p>
-                <div class="pos-modal-actions">
-                    <button type="button" class="pos-secondary" x-on:click="print()">
-                        <x-filament::icon icon="heroicon-m-printer" /> Cetak
-                    </button>
-                    <button type="button" class="pos-secondary" x-show="receipt?.customer" :disabled="waSent === 'sending' || waSent === 'ok'" x-on:click="sendWa()">
-                        <x-filament::icon icon="heroicon-m-chat-bubble-left-ellipsis" />
-                        <span x-text="{ sending: 'Mengirim…', ok: 'Terkirim', fail: 'Gagal, ulangi' }[waSent] ?? 'Struk WA'"></span>
-                    </button>
+                <div class="pos-done-actions">
                     <button type="button" class="pos-submit" x-on:click="reset()" x-ref="next">Transaksi baru</button>
+                    <div>
+                        <button type="button" class="pos-secondary" x-on:click="print()">
+                            <x-filament::icon icon="heroicon-m-printer" /> Cetak struk
+                        </button>
+                        <button type="button" class="pos-secondary" x-show="receipt?.customer" :disabled="waSent === 'sending' || waSent === 'ok'" x-on:click="sendWa()">
+                            <x-filament::icon icon="heroicon-m-chat-bubble-left-ellipsis" />
+                            <span x-text="{ sending: 'Mengirim…', ok: 'Terkirim', fail: 'Gagal, ulangi' }[waSent] ?? 'Struk WA'"></span>
+                        </button>
+                    </div>
                 </div>
             </div>
         </div>

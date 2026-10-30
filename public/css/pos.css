@@ -277,6 +277,10 @@
 .pos-done-points { display: flex; flex-direction: column; gap: .125rem; margin-top: 1rem; font-size: .8125rem; color: var(--pos-muted); }
 .pos-done-points span:first-child { font-weight: 600; color: var(--pos-ink); }
 .pos-modal-actions { display: grid; grid-template-columns: 1fr 1fr; gap: .5rem; margin-top: 1.5rem; }
+.pos-done-actions { display: grid; gap: .5rem; margin-top: 1.5rem; }
+.pos-done-actions > div { display: flex; gap: .5rem; }
+.pos-done-actions > div > button { flex: 1; height: 2.75rem; font-size: .875rem; }
+.pos-done-actions svg { width: 1.125rem; height: 1.125rem; }
 
 /* Receipt: 58mm thermal. Everything else is hidden while printing. */
 #pos-receipt { display: none; }
