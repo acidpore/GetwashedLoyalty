@@ -13,6 +13,7 @@ use App\Services\WhatsAppService;
 use Filament\Pages\Page;
 use Illuminate\Contracts\Support\Htmlable;
 use InvalidArgumentException;
+use LivewireAttributesRenderless;
 
 /**
  * The cart lives in Alpine on the client so tapping items is instant;
@@ -66,6 +67,7 @@ class Pos extends Page
         return $shift ? ['id' => $shift->id, 'opening' => $shift->opening_cash, 'opened' => $shift->opened_at->format('H:i')] : null;
     }
 
+    #[Renderless] // Alpine owns the till state; a re-render would reset it.
     public function openShift(int $opening): array
     {
         CashShift::openFor(auth()->id()) ?? CashShift::create(['user_id' => auth()->id(), 'opening_cash' => max(0, $opening), 'opened_at' => now()]);
@@ -74,6 +76,7 @@ class Pos extends Page
     }
 
     /** Preview for the close form: what should be in the drawer right now. */
+    #[Renderless] // Alpine owns the till state; a re-render would reset it.
     public function shiftSummary(): ?array
     {
         $shift = CashShift::openFor(auth()->id());
@@ -85,6 +88,7 @@ class Pos extends Page
         ] : null;
     }
 
+    #[Renderless] // Alpine owns the till state; a re-render would reset it.
     public function closeShift(int $counted, ?string $note): ?array
     {
         $shift = CashShift::openFor(auth()->id());
@@ -97,6 +101,7 @@ class Pos extends Page
     }
 
     /** Matches on the last digits so 0812…, 62812… and +62 812… all find the same person. */
+    #[Renderless] // Alpine owns the till state; a re-render would reset it.
     public function findCustomer(string $query): array
     {
         $digits = preg_replace(['/\D/', '/^(0|62)/'], '', $query);
@@ -114,6 +119,7 @@ class Pos extends Page
     }
 
     /** Same shape as the self check-in: phone stored as 62…, zeroed counters. */
+    #[Renderless] // Alpine owns the till state; a re-render would reset it.
     public function registerCustomer(string $name, string $phone): array
     {
         $name = trim($name);
@@ -134,6 +140,7 @@ class Pos extends Page
         return $this->customerCard($customer->load('user'));
     }
 
+    #[Renderless] // Alpine owns the till state; a re-render would reset it.
     public function checkout(array $lines, string $method, int $paid, ?int $customerId, bool $redeem, array $discount = []): array
     {
         $shift = CashShift::openFor(auth()->id());
@@ -167,6 +174,7 @@ class Pos extends Page
         ];
     }
 
+    #[Renderless] // Alpine owns the till state; a re-render would reset it.
     public function sendReceipt(int $orderId): bool
     {
         $order = Order::with('items', 'customer.user')->where('cashier_id', auth()->id())->find($orderId);
