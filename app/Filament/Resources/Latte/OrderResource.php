@@ -95,10 +95,10 @@ class OrderResource extends Resource
                 Tables\Columns\TextColumn::make('payment_method')->label('Bayar')->badge()
                     ->formatStateUsing(fn ($state, Order $record) => $record->voided_at ? 'Dibatalkan' : (Order::METHODS[$state] ?? $state))
                     ->color(fn ($state, Order $record) => $record->voided_at ? 'danger' : ($state === 'cash' ? 'success' : 'info'))->visibleFrom('sm'),
-                Tables\Columns\TextColumn::make('total')->label('Total')->money('IDR', locale: 'id')->sortable()->weight('semibold')
+                Tables\Columns\TextColumn::make('total')->label('Total')->formatStateUsing(fn ($state) => 'Rp' . number_format((int) $state, 0, ',', '.'))->sortable()->weight('semibold')
                     ->extraAttributes(fn (Order $record) => $record->voided_at ? ['style' => 'text-decoration:line-through;opacity:.5'] : [])
                     ->description(fn (Order $record) => $record->discount ? 'Diskon ' . number_format($record->discount, 0, ',', '.') : null)
-                    ->summarize(Tables\Columns\Summarizers\Sum::make()->label('Omzet (tanpa batal)')->money('IDR', locale: 'id')
+                    ->summarize(Tables\Columns\Summarizers\Sum::make()->label('Omzet (tanpa batal)')->formatStateUsing(fn ($state) => 'Rp' . number_format((int) $state, 0, ',', '.'))
                         ->query(fn ($query) => $query->whereNull('voided_at'))),
                 Tables\Columns\TextColumn::make('cashier.name')->label('Kasir')->placeholder('-')->visibleFrom('lg'),
             ])

@@ -107,7 +107,7 @@
 .lt-rank:first-of-type .lt-rank-no { background: rgb(var(--primary-400)); color: rgb(var(--gray-950)); }
 .lt-rank div, .lt-row div { flex: 1; min-width: 0; }
 .lt-rank strong, .lt-row strong { display: block; font-size: .875rem; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.lt-rank span, .lt-row div span { display: block; font-size: .75rem; color: rgb(var(--gray-500)); }
+.lt-rank > div span, .lt-row div span { display: block; font-size: .75rem; color: rgb(var(--gray-500)); }
 .lt-rank b, .lt-row b { font-size: .875rem; font-variant-numeric: tabular-nums; }
 .lt-row-icon { display: grid; place-items: center; flex: none; width: 2.5rem; height: 2.5rem; border-radius: 999px; background: rgb(var(--primary-50)); color: rgb(var(--primary-700)); }
 .dark .lt-row-icon { background: rgba(var(--primary-500), .12); color: rgb(var(--primary-400)); }

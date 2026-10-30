@@ -65,7 +65,7 @@
 
     <section class="lt-card lt-panel">
         <header>
-            <div><h2>Transaksi Terbaru</h2><p>6 transaksi terakhir</p></div>
+            <div><h2>Transaksi Terbaru</h2><p>{{ $recent->count() ? $recent->count() . ' transaksi terakhir' : 'Belum ada transaksi' }}</p></div>
             <a href="{{ \App\Filament\Resources\Latte\OrderResource::getUrl() }}" class="lt-link">Lihat semua</a>
         </header>
         @forelse ($recent as $order)

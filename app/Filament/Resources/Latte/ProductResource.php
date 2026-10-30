@@ -89,7 +89,7 @@ class ProductResource extends Resource
                     ->description(fn (Product $record) => collect($record->options)->pluck('name')->implode(' · ') ?: null),
                 Tables\Columns\TextColumn::make('category')->label('Kategori')->badge()->color('gray')
                     ->formatStateUsing(fn (string $state) => Product::CATEGORIES[$state] ?? $state)->visibleFrom('md'),
-                Tables\Columns\TextColumn::make('price')->label('Harga')->money('IDR', locale: 'id')->sortable(),
+                Tables\Columns\TextColumn::make('price')->label('Harga')->formatStateUsing(fn ($state) => 'Rp' . number_format((int) $state, 0, ',', '.'))->sortable(),
                 Tables\Columns\ToggleColumn::make('is_active')->label('Aktif'),
             ])
             ->filters([
