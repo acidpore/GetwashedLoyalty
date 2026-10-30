@@ -13,7 +13,7 @@ use App\Services\WhatsAppService;
 use Filament\Pages\Page;
 use Illuminate\Contracts\Support\Htmlable;
 use InvalidArgumentException;
-use LivewireAttributesRenderless;
+use Livewire\Attributes\Renderless;
 
 /**
  * The cart lives in Alpine on the client so tapping items is instant;
