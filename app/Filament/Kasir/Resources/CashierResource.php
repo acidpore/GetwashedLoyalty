@@ -35,8 +35,8 @@ class CashierResource extends Resource
     {
         return $form->columns(2)->schema([
             Forms\Components\TextInput::make('name')->label('Nama')->required()->maxLength(60),
-            Forms\Components\TextInput::make('email')->label('Email login')->email()->required()->unique(ignoreRecord: true),
-            Forms\Components\TextInput::make('password')->label('Password')->password()->revealable()
+            Forms\Components\TextInput::make('email')->label('Email login')->email()->autocomplete('off')->required()->unique(ignoreRecord: true),
+            Forms\Components\TextInput::make('password')->label('Password')->password()->revealable()->autocomplete('new-password')
                 ->minLength(8)->required(fn (string $operation) => $operation === 'create')
                 // The model's 'hashed' cast hashes it.
                 ->dehydrated(fn (?string $state) => filled($state))

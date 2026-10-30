@@ -360,9 +360,9 @@
         </button>
 
         {{-- Variant picker --}}
-        <div class="pos-modal" x-show="picker" x-cloak x-transition.opacity role="dialog" aria-modal="true" aria-labelledby="pos-pick-title">
+        <div class="pos-modal" x-show="picker" x-on:click.self="picker = null" x-cloak x-transition.opacity role="dialog" aria-modal="true" aria-labelledby="pos-pick-title">
             <template x-if="picker">
-                <div class="pos-modal-card pos-picker" x-on:click.outside="picker = null">
+                <div class="pos-modal-card pos-picker">
                     <h3 id="pos-pick-title" x-text="picker.product.name"></h3>
                     <template x-for="(group, g) in picker.product.options" :key="g">
                         <fieldset class="pos-option-group">
