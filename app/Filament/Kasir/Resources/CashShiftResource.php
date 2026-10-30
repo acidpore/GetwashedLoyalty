@@ -52,7 +52,7 @@ class CashShiftResource extends Resource
                 Tables\Columns\TextColumn::make('closing_cash')->label('Dihitung')->formatStateUsing($rp)->visibleFrom('md'),
                 Tables\Columns\TextColumn::make('difference')->label('Selisih')->badge()
                     ->state(fn (CashShift $record) => $record->difference())
-                    ->formatStateUsing(fn ($state) => $state === null ? '-' : ($state > 0 ? '+' : '') . 'Rp' . number_format($state, 0, ',', '.'))
+                    ->formatStateUsing(fn ($state) => $state === null ? '-' : ($state > 0 ? '+' : ($state < 0 ? '-' : '')) . 'Rp' . number_format(abs($state), 0, ',', '.'))
                     ->color(fn ($state) => $state === null ? 'gray' : ($state === 0 ? 'success' : 'danger')),
                 Tables\Columns\TextColumn::make('note')->label('Catatan')->limit(40)->placeholder('-')->visibleFrom('xl'),
             ]);

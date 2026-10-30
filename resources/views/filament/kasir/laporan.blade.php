@@ -175,7 +175,7 @@
                 <tbody>
                     @forelse ($r['shifts'] as $sh)
                         <tr><td>{{ $sh['cashier'] }}<small>{{ $sh['opened']->format('d/m H:i') }}–{{ $sh['closed']->format('H:i') }}</small></td><td class="rp-num">{{ $rp($sh['expected']) }}</td>
-                            <td @class(['rp-num', 'rp-down' => $sh['difference'], 'rp-up' => ! $sh['difference']])>{{ $sh['difference'] > 0 ? '+' : '' }}{{ $rp($sh['difference']) }}</td></tr>
+                            <td @class(['rp-num', 'rp-down' => $sh['difference'], 'rp-up' => ! $sh['difference']])>{{ $sh['difference'] > 0 ? '+' : ($sh['difference'] < 0 ? '-' : '') }}{{ $rp(abs($sh['difference'])) }}</td></tr>
                     @empty
                         <tr><td colspan="3" class="lt-empty">Belum ada shift yang ditutup.</td></tr>
                     @endforelse

@@ -176,7 +176,7 @@
             <thead><tr><th>Kasir</th><th>Waktu</th><th class="num">Modal</th><th class="num">Seharusnya</th><th class="num">Dihitung</th><th class="num">Selisih</th></tr></thead>
             @foreach ($r['shifts'] as $x)
                 <tr><td>{{ $x['cashier'] }}</td><td>{{ $x['opened']->format('d/m H:i') }}–{{ $x['closed']->format('H:i') }}</td><td class="num">{{ $rp($x['opening']) }}</td><td class="num">{{ $rp($x['expected']) }}</td><td class="num">{{ $rp($x['counted']) }}</td>
-                    <td class="num {{ $x['difference'] ? 'down' : 'up' }}">{{ $x['difference'] > 0 ? '+' : '' }}{{ $rp($x['difference']) }}</td></tr>
+                    <td class="num {{ $x['difference'] ? 'down' : 'up' }}">{{ $x['difference'] > 0 ? '+' : ($x['difference'] < 0 ? '-' : '') }}{{ $rp(abs($x['difference'])) }}</td></tr>
             @endforeach
         </table>
     @endif
