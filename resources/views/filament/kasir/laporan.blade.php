@@ -37,8 +37,10 @@
     </div>
 
     <div class="lt-cards">
-        @php($e = $r['expenses'])
-        @php($profit = $s['net'] - $e['all'])
+        @php
+            $e = $r['expenses'];
+            $profit = $s['net'] - $e['all'];
+        @endphp
         @foreach ([
             ['Omzet Bersih', $rp($s['net']), $delta($s['net'], $p['net']), null, false],
             ['Pengeluaran', $rp($e['all']), null, 'Tunai ' . $rp($e['cash']) . ' · ATM ' . $rp($e['atm']), false],
