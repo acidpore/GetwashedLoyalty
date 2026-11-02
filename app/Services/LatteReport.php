@@ -3,6 +3,7 @@
 namespace App\Services;
 
 use App\Models\CashShift;
+use App\Models\Expense;
 use App\Models\Ingredient;
 use App\Models\Order;
 use App\Models\OrderItem;
@@ -130,6 +131,7 @@ class LatteReport
             'prev_from' => $prevFrom, 'prev_to' => $prevTo,
             'generated_at' => now(),
             'summary' => $summary,
+            'expenses' => Expense::chargedBetween($from, $to),
             'previous' => $previous,
             'daily' => $daily,
             'hours' => $activeHours,

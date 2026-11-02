@@ -1,5 +1,5 @@
 @php
-    $rp = fn ($n) => 'Rp' . number_format($n, 0, ',', '.');
+    $rp = fn ($n) => ($n < 0 ? '-' : '') . 'Rp' . number_format(abs($n), 0, ',', '.');
     $s = $r['summary'];
     $p = $r['previous'];
     $delta = function ($now, $before) {
@@ -59,6 +59,8 @@
 
     <div class="lt-card lt-strip">
         @foreach ([
+            ['Laba (omzet - pengeluaran)', $rp($s['net'] - $r['expenses']['all']), 'heroicon-o-scale'],
+            ['Pengeluaran · Tunai ' . $rp($r['expenses']['cash']) . ' · ATM ' . $rp($r['expenses']['atm']), $rp($r['expenses']['all']), 'heroicon-o-banknotes'],
             ['Omzet Kotor', $rp($s['gross']), 'heroicon-o-calculator'],
             ['Total Diskon', $rp($s['discount']), 'heroicon-o-tag'],
             ['Dibatalkan', $s['voids'] . ' · ' . $rp($s['void_value']), 'heroicon-o-x-circle'],
