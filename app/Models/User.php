@@ -52,7 +52,8 @@ class User extends Authenticatable implements FilamentUser
     /** Full control of the Latte panel without access to the Getwashed loyalty admin. */
     public function managesLatte(): bool
     {
-        return in_array($this->role, ['admin', 'owner']);
+        // ponytail: client asked on 2026-11-02 for cashiers to match owners for now; drop 'cashier' to restrict them again.
+        return in_array($this->role, ['admin', 'owner', 'cashier']);
     }
 
     public function isCustomer(): bool
