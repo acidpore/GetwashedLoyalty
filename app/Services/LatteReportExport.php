@@ -2,6 +2,7 @@
 
 namespace App\Services;
 
+use App\Models\Expense;
 use OpenSpout\Common\Entity\Row;
 use OpenSpout\Common\Entity\Style\Style;
 use OpenSpout\Writer\XLSX\Writer;
@@ -39,6 +40,8 @@ class LatteReportExport
             ['Omzet kotor', $s['gross'], $p['gross'], $change($s['gross'], $p['gross'])],
             ['Diskon', $s['discount'], $p['discount'], $change($s['discount'], $p['discount'])],
             ['Omzet bersih', $s['net'], $p['net'], $change($s['net'], $p['net'])],
+            ['Pengeluaran (Tunai + ATM)', $r['expenses']['all'], '', ''],
+            ['Laba bersih', $s['net'] - $r['expenses']['all'], '', ''],
             ['Transaksi', $s['orders'], $p['orders'], $change($s['orders'], $p['orders'])],
             ['Rata-rata / transaksi', $s['avg'], $p['avg'], $change($s['avg'], $p['avg'])],
             ['Item terjual', $s['items'], '', ''],
@@ -54,9 +57,15 @@ class LatteReportExport
         $sheet('Insight', ['Status', 'Temuan', 'Angka', 'Penjelasan', 'Tindakan'],
             collect($r['insights'])->map(fn ($i) => [$levels[$i['level']], $i['title'], $i['metric'], $i['text'], $i['action']]), [], 40);
 
-        $sheet('Harian', ['Tanggal', 'Transaksi', 'Omzet bersih', 'Diskon', 'Rata-rata'],
-            $r['daily']->map(fn ($d) => [$d['date']->format('Y-m-d'), $d['orders'], $d['revenue'], $d['discount'], $d['avg']]),
-            [2 => $money, 3 => $money, 4 => $money]);
+        $running = 0;
+        $sheet('Harian', ['Tanggal', 'Transaksi', 'Pemasukan harian', 'Total berjalan', 'Pengeluaran', 'Laba', 'Diskon'],
+            $r['daily']->map(function ($d) use (&$running) { return [$d['date']->format('Y-m-d'), $d['orders'], $d['revenue'], $running += $d['revenue'], $d['expense'], $d['revenue'] - $d['expense'], $d['discount']]; }),
+            [2 => $money, 3 => $money, 4 => $money, 5 => $money, 6 => $money], 18);
+
+        $sheet('Pengeluaran', ['Tanggal', 'Keterangan', 'Nominal', 'Dibayar pakai', 'Dibagi (minggu)', 'Catatan'],
+            Expense::whereBetween('paid_on', [$r['from']->toDateString(), $r['to']->toDateString()])->orderBy('paid_on')->get()
+                ->map(fn ($e) => [$e->paid_on->format('Y-m-d'), $e->name, $e->amount, Expense::METHODS[$e->method] ?? $e->method, $e->spread_weeks, $e->note ?? '']),
+            [2 => $money], 22);
 
         $sheet('Menu', ['Menu', 'Kategori', 'Terjual', 'Pendapatan', 'Kontribusi %', 'Kumulatif %'],
             $r['products']->map(fn ($x) => [$x['name'], $x['category'], $x['qty'], $x['revenue'], round($x['share'], 1), round($x['cumulative'], 1)]),
