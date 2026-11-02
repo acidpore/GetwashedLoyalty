@@ -50,7 +50,7 @@ class OrderResource extends Resource
     {
         $user = auth()->user();
 
-        return ! $order->voided_at && ($user?->isAdmin() || ($order->cashier_id === $user?->id && $order->created_at->isToday()));
+        return ! $order->voided_at && ($user?->managesLatte() || ($order->cashier_id === $user?->id && $order->created_at->isToday()));
     }
 
     public static function infolist(Infolist $infolist): Infolist

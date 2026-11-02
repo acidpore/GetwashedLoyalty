@@ -41,12 +41,18 @@ class User extends Authenticatable implements FilamentUser
 
     public function canAccessPanel(Panel $panel): bool
     {
-        return $this->role === 'admin' || ($this->role === 'cashier' && $panel->getId() === 'kasir');
+        return $this->role === 'admin' || (in_array($this->role, ['cashier', 'owner']) && $panel->getId() === 'kasir');
     }
 
     public function isAdmin(): bool
     {
         return $this->role === 'admin';
+    }
+
+    /** Full control of the Latte panel without access to the Getwashed loyalty admin. */
+    public function managesLatte(): bool
+    {
+        return in_array($this->role, ['admin', 'owner']);
     }
 
     public function isCustomer(): bool

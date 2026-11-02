@@ -29,7 +29,7 @@ class ProductResource extends Resource
     // Prices are the owner's call; cashiers only sell.
     public static function canAccess(): bool
     {
-        return auth()->user()?->isAdmin() ?? false;
+        return auth()->user()?->managesLatte() ?? false;
     }
 
     public static function form(Form $form): Form

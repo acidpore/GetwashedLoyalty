@@ -23,7 +23,7 @@ class CashierResource extends Resource
 
     public static function canAccess(): bool
     {
-        return auth()->user()?->isAdmin() ?? false;
+        return auth()->user()?->managesLatte() ?? false;
     }
 
     public static function getEloquentQuery(): Builder

@@ -3,7 +3,7 @@
     <span class="lt-avatar">{{ \Illuminate\Support\Str::of($user->name)->explode(' ')->take(2)->map(fn ($w) => mb_substr($w, 0, 1))->implode('') }}</span>
     <div class="lt-user-info" x-show="$store.sidebar.isOpen">
         <strong>{{ $user->name }}</strong>
-        <span>{{ $user->isAdmin() ? 'Owner' : 'Kasir' }}</span>
+        <span>{{ $user->managesLatte() ? 'Owner' : 'Kasir' }}</span>
     </div>
     <form method="POST" action="{{ filament()->getLogoutUrl() }}" x-show="$store.sidebar.isOpen">
         @csrf
