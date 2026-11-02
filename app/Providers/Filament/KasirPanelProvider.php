@@ -83,6 +83,7 @@ if (matchMedia("(max-width: 1023px)").matches) localStorage.setItem("isOpen", "f
                 SubstituteBindings::class,
                 DisableBladeIconComponents::class,
                 DispatchServingFilamentEvent::class,
+                \App\Http\Middleware\LogoutWrongPanelUser::class,
             ])
             ->authMiddleware([Authenticate::class]);
     }
