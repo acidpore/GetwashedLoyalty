@@ -1,6 +1,6 @@
 {
   "name": "Getwashed Latte",
-  "short_name": "Getwashed",
+  "short_name": "Latte POS",
   "start_url": "/kasir",
   "scope": "/kasir",
   "display": "standalone",
