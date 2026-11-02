@@ -63,6 +63,7 @@
 .lt-stat-value { margin-top: .375rem; font-size: 1.75rem; font-weight: 700; color: rgb(var(--gray-950)); letter-spacing: -.02em; line-height: 1.2; font-variant-numeric: tabular-nums; }
 .lt-stat-hint { margin-top: .25rem; font-size: .8125rem; color: rgb(var(--gray-500)); }
 .dark .lt-stat-value { color: #fff; }
+.lt-stat-value.is-neg { color: #dc2626; } .dark .lt-stat-value.is-neg { color: #f87171; }
 .lt-stat-hint .rp-up, .lt-stat-hint .rp-down { font-weight: 600; }
 
 .lt-strip { display: grid; grid-template-columns: repeat(auto-fit, minmax(11rem, 1fr)); gap: 1rem; padding: 1.25rem; }

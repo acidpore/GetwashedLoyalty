@@ -37,19 +37,21 @@
     </div>
 
     <div class="lt-cards">
+        @php($e = $r['expenses'])
+        @php($profit = $s['net'] - $e['all'])
         @foreach ([
-            ['Omzet Bersih', $rp($s['net']), $delta($s['net'], $p['net'])],
-            ['Transaksi', number_format($s['orders'], 0, ',', '.'), $delta($s['orders'], $p['orders'])],
-            ['Rata-rata / Transaksi', $rp($s['avg']), $delta($s['avg'], $p['avg'])],
-            ['Item Terjual', number_format($s['items'], 0, ',', '.'), null],
-        ] as [$label, $value, $d])
+            ['Omzet Bersih', $rp($s['net']), $delta($s['net'], $p['net']), null, false],
+            ['Pengeluaran', $rp($e['all']), null, 'Tunai ' . $rp($e['cash']) . ' · ATM ' . $rp($e['atm']), false],
+            ['Laba', $rp($profit), null, 'Omzet bersih dikurangi pengeluaran', $profit < 0],
+            ['Transaksi', number_format($s['orders'], 0, ',', '.'), $delta($s['orders'], $p['orders']), null, false],
+        ] as [$label, $value, $d, $hint, $negative])
             <div class="lt-card lt-stat">
                 <div>
                     <p class="lt-stat-label">{{ $label }}</p>
-                    <p class="lt-stat-value">{{ $value }}</p>
+                    <p @class(['lt-stat-value', 'is-neg' => $negative])>{{ $value }}</p>
                     <p class="lt-stat-hint">
                         @if ($d)<span @class(['rp-up' => $d['up'], 'rp-down' => ! $d['up']])>{{ $d['text'] }}</span> vs periode lalu
-                        @elseif ($label === 'Item Terjual') Tidak termasuk hadiah gratis
+                        @elseif ($hint) {{ $hint }}
                         @else Belum ada data pembanding @endif
                     </p>
                 </div>
@@ -59,13 +61,12 @@
 
     <div class="lt-card lt-strip">
         @foreach ([
-            ['Laba (omzet - pengeluaran)', $rp($s['net'] - $r['expenses']['all']), 'heroicon-o-scale'],
-            ['Pengeluaran · Tunai ' . $rp($r['expenses']['cash']) . ' · ATM ' . $rp($r['expenses']['atm']), $rp($r['expenses']['all']), 'heroicon-o-banknotes'],
+            ['Rata-rata / Transaksi', $rp($s['avg']), 'heroicon-o-shopping-bag'],
+            ['Item Terjual', number_format($s['items'], 0, ',', '.'), 'heroicon-o-cube'],
             ['Omzet Kotor', $rp($s['gross']), 'heroicon-o-calculator'],
             ['Total Diskon', $rp($s['discount']), 'heroicon-o-tag'],
             ['Dibatalkan', $s['voids'] . ' · ' . $rp($s['void_value']), 'heroicon-o-x-circle'],
-            ['Transaksi Member', number_format($r['loyalty']['member_share'], 0) . '%', 'heroicon-o-users'],
-            ['Hadiah Diklaim', $r['loyalty']['rewards'], 'heroicon-o-gift'],
+            ['Member · Hadiah', number_format($r['loyalty']['member_share'], 0) . '% · ' . $r['loyalty']['rewards'], 'heroicon-o-users'],
         ] as [$label, $value, $icon])
             <div class="lt-mini"><x-filament::icon :icon="$icon" /><div><strong>{{ $value }}</strong><span>{{ $label }}</span></div></div>
         @endforeach
