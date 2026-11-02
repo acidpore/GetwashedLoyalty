@@ -44,6 +44,9 @@ class ExpenseResource extends Resource
 
         return $table
             ->defaultSort('paid_on', 'desc')
+            ->emptyStateIcon('heroicon-o-banknotes')
+            ->emptyStateHeading('Belum ada pengeluaran')
+            ->emptyStateDescription('Catat belanja susu, tisu, sedotan, dan lainnya supaya laba di Laporan akurat.')
             ->columns([
                 Tables\Columns\TextColumn::make('paid_on')->label('Tanggal')->date('d/m/Y')->sortable(),
                 Tables\Columns\TextColumn::make('name')->label('Untuk')->searchable()->weight('semibold')->description(fn (Expense $record) => $record->note),
