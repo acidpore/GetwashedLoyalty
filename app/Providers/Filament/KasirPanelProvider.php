@@ -66,6 +66,7 @@ class KasirPanelProvider extends PanelProvider
                 \App\Filament\Kasir\Resources\PromoResource::class,
                 \App\Filament\Kasir\Resources\CashierResource::class,
                 \App\Filament\Kasir\Resources\CashShiftResource::class,
+                \App\Filament\Kasir\Resources\ExpenseResource::class,
             ])
             ->renderHook(PanelsRenderHook::HEAD_START, fn () => new HtmlString('<script>// Phones start with the sidebar shut; Filament otherwise persists it open from the last visit.
 if (matchMedia("(max-width: 1023px)").matches) localStorage.setItem("isOpen", "false")</script>'))
