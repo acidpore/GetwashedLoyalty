@@ -59,9 +59,11 @@ class LatteReport
         ])->sortByDesc('revenue')->values();
 
         $daily = collect();
+        $spentByDay = Expense::chargedByDay($from, $to);
         for ($day = $from; $day <= $to; $day = $day->addDay()) {
             $rows = $paid->filter(fn ($o) => $o->created_at->isSameDay($day));
             $daily->push([
+                'expense' => $spentByDay[$day->toDateString()] ?? 0,
                 'date' => $day,
                 'label' => $day->locale('id')->translatedFormat('D, d M'),
                 'orders' => $rows->count(),

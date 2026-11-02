@@ -114,6 +114,44 @@
         </div>
     </section>
 
+    <section class="lt-card lt-panel">
+        <header><div><h2>Rekap Harian</h2><p>Pemasukan, pengeluaran, dan laba per hari, dengan total berjalan</p></div></header>
+        <div class="rp-table-wrap">
+            <table class="rp-table">
+                <thead><tr><th>Tanggal</th><th class="rp-num">Trx</th><th class="rp-num">Pemasukan</th><th class="rp-num">Total Berjalan</th><th class="rp-num">Pengeluaran</th><th class="rp-num">Laba</th></tr></thead>
+                <tbody>
+                    @php
+                        $running = 0;
+                    @endphp
+                    @foreach ($r['daily'] as $day)
+                        @php
+                            $running += $day['revenue'];
+                            $dayProfit = $day['revenue'] - $day['expense'];
+                        @endphp
+                        <tr>
+                            <td>{{ $day['label'] }}</td>
+                            <td class="rp-num">{{ $day['orders'] }}</td>
+                            <td class="rp-num">{{ $rp($day['revenue']) }}</td>
+                            <td class="rp-num">{{ $rp($running) }}</td>
+                            <td class="rp-num">{{ $day['expense'] ? $rp($day['expense']) : '–' }}</td>
+                            <td @class(['rp-num', 'rp-down' => $dayProfit < 0])>{{ $rp($dayProfit) }}</td>
+                        </tr>
+                    @endforeach
+                </tbody>
+                <tfoot>
+                    <tr>
+                        <th>Total</th>
+                        <th class="rp-num">{{ $r['daily']->sum('orders') }}</th>
+                        <th class="rp-num">{{ $rp($r['daily']->sum('revenue')) }}</th>
+                        <th></th>
+                        <th class="rp-num">{{ $rp($r['daily']->sum('expense')) }}</th>
+                        <th @class(['rp-num', 'rp-down' => $r['daily']->sum('revenue') < $r['daily']->sum('expense')])>{{ $rp($r['daily']->sum('revenue') - $r['daily']->sum('expense')) }}</th>
+                    </tr>
+                </tfoot>
+            </table>
+        </div>
+    </section>
+
     <div class="lt-grid">
         <section class="lt-card lt-panel">
             <header><div><h2>Peringkat Menu</h2><p>Berdasarkan pendapatan</p></div></header>
